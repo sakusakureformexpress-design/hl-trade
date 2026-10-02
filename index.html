@@ -120,7 +120,7 @@ input[type=range]{padding:0;border:none;background:none;accent-color:var(--accen
 #levPanel{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:8px;padding:8px}
 .toggle{display:flex;align-items:center;gap:8px;color:var(--fg);font-size:12px;cursor:pointer}
 .toggle input{width:16px;height:16px;accent-color:var(--accent)}
-.tpsl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tpsl{display:grid;grid-template-columns:1fr;gap:10px}
 .tpsl .f span.pv{font:11px var(--mono)}
 .tpsl .chips{gap:3px} .tpsl .chips button{padding:3px 5px}
 .calc{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12px;background:var(--panel);border-radius:8px;padding:8px 10px}
@@ -300,9 +300,7 @@ td.ja{font-family:var(--sans)}
       </div>
       <div id="tpslWrap" class="f">
         <label class="toggle"><input type="checkbox" id="tpslOn"> 利確と損切りも一緒に入れる</label>
-        <div class="tpsl" id="tpslBox" hidden>
-          <label class="f">利確（ドル）<input id="tp" class="num" inputmode="decimal"><div class="chips" data-for="tp"><button data-p="1">+1%</button><button data-p="2">+2%</button><button data-p="5">+5%</button></div><span class="pv up" id="tpPv"></span></label>
-          <label class="f">損切り（ドル）<input id="sl" class="num" inputmode="decimal"><div class="chips" data-for="sl"><button data-p="1">−1%</button><button data-p="2">−2%</button><button data-p="5">−5%</button></div><span class="pv down" id="slPv"></span></label>
+        <div id="tpslBox" hidden><div class="seg pctMode" style="margin-bottom:8px"></div><div class="tpsl" id="tpslFields"></div></div>
         </div>
       </div>
       <div class="calc" id="calc"></div>
@@ -781,13 +779,42 @@ $('levBtn').onclick = () => { $('levPanel').hidden = !$('levPanel').hidden; };
 $('lev').oninput = e => setLev(+e.target.value);
 $('levChips').onclick = e => { const b = e.target.closest('button'); if (b) setLev(+b.dataset.l); };
 $('mMode').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.margin = b.dataset.v; syncLev(); schedule(); };
-['sz','px','tp','sl'].forEach(id => $(id).addEventListener('input', schedule));
+
 $('tpslOn').onchange = () => { $('tpslBox').hidden = !$('tpslOn').checked; schedule(); };
-document.querySelectorAll('.tpsl .chips').forEach(c => c.onclick = e => {
-  const b = e.target.closest('button'); if (!b) return; e.preventDefault();
-  const e0 = entryPx(), pc = +b.dataset.p / 100, dir = c.dataset.for === 'tp' ? S.side : -S.side;
-  $(c.dataset.for).value = roundPx(curKey(), e0 * (1 + dir * pc)); schedule();
+// ===== 利確・損切りを % で決める部品（注文パネルと、ポジションの利確/損切りの窓で共通）=====
+// % の基準は2通り：「値動き」＝値段が何%動いたら、「損益率」＝証拠金に対して何%の損益か（レバレッジ込み）
+const PCTS = [0.5, 1, 2, 3, 5, 10];
+S.pctMode = store.get('pctMode', 'price');
+const PCT_MODE_HTML = `<button type="button" data-m="price">% は値動き</button><button type="button" data-m="roe">% は損益率（レバ込み）</button>`;
+function markPctMode(){ document.querySelectorAll('.pctMode button').forEach(b => b.classList.toggle('sel', b.dataset.m === S.pctMode)); }
+document.addEventListener('click', e => {
+  const b = e.target.closest('.pctMode button'); if (!b) return;
+  S.pctMode = b.dataset.m; store.set('pctMode', S.pctMode); markPctMode(); pctBinders.forEach(x => x.sync(true)); schedule();
 });
+function pctFieldHtml(id, kind){
+  return `<label class="f">${kind === 'tp' ? '利確' : '損切り'}
+    <div class="row"><input id="${id}" class="num" inputmode="decimal" placeholder="値段（ドル）"><input id="${id}Pct" class="num" inputmode="decimal" placeholder="%" style="width:64px;flex:0 0 64px"><span>%</span></div>
+    <div class="chips" data-pct="${id}">${PCTS.map(v => `<button type="button" data-p="${v}">${kind === 'tp' ? '+' : '−'}${v}%</button>`).join('')}</div>
+    <span class="pv ${kind === 'tp' ? 'up' : 'down'}" id="${id}Pv"></span></label>`;
+}
+let pctBinders = [];
+function bindPct(id, kind, ctx){
+  const pIn = $(id), qIn = $(id + 'Pct');
+  const dir = () => kind === 'tp' ? ctx().side : -ctx().side;
+  const mult = () => S.pctMode === 'roe' ? (ctx().lev || 1) : 1;
+  const toPct = p => { const c = ctx(); return (p / c.e - 1) * dir() * 100 * mult(); };
+  const fromPct = v => { const c = ctx(); return roundPx(c.k, c.e * (1 + dir() * v / 100 / mult())); };
+  qIn.oninput = () => { const v = parseFloat(qIn.value); pIn.value = v > 0 ? fromPct(v) : ''; pIn.dispatchEvent(new Event('input')); };
+  pIn.addEventListener('input', e => { if (e.isTrusted) sync(true); });
+  document.querySelector(`[data-pct="${id}"]`).onclick = e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); qIn.value = b.dataset.p; qIn.oninput(); };
+  function sync(force){ if (!force && document.activeElement === qIn) return; const v = parseFloat(pIn.value), c = ctx(); qIn.value = v > 0 && c.e > 0 ? +toPct(v).toFixed(2) : ''; }
+  const b = {id, sync}; pctBinders = pctBinders.filter(x => x.id !== id && document.body.contains($(x.id))); pctBinders.push(b); return b;
+}
+$('tpslFields').innerHTML = pctFieldHtml('tp', 'tp') + pctFieldHtml('sl', 'sl');
+$('tpslBox').querySelector('.pctMode').innerHTML = PCT_MODE_HTML; markPctMode();
+const ticketCtx = () => ({k: curKey(), e: entryPx(), side: S.side, lev: curLev()});
+const tpBind = bindPct('tp', 'tp', ticketCtx), slBind = bindPct('sl', 'sl', ticketCtx);
+['sz','px','tp','sl'].forEach(id => $(id).addEventListener('input', schedule));
 function avail(){
   if (isPerp()){
     if (!S.acct) return null;
@@ -821,9 +848,10 @@ function tpslCheck(){
   if (!isPerp() || !$('tpslOn').checked) return {ok:true};
   const e = entryPx(), tp = parseFloat($('tp').value), sl = parseFloat($('sl').value), s = S.side, c = orderCalc();
   const tpBad = tp > 0 && (tp - e) * s <= 0, slBad = sl > 0 && (sl - e) * s >= 0;
-  $('tpPv').textContent = tp > 0 ? (tpBad ? (s > 0 ? '入る値段より上にしてください' : '入る値段より下にしてください') : `${moneyS((tp - e) * c.sz * s)}（${fmtPct((tp/e - 1) * s)}）`) : '';
-  $('slPv').textContent = sl > 0 ? (slBad ? (s > 0 ? '入る値段より下にしてください' : '入る値段より上にしてください') : `${moneyS((sl - e) * c.sz * s)}（${fmtPct((sl/e - 1) * s)}）`) : '';
+  $('tpPv').textContent = tp > 0 ? (tpBad ? (s > 0 ? '入る値段より上にしてください' : '入る値段より下にしてください') : `${moneyS((tp - e) * c.sz * s)}（値動き ${fmtPct((tp/e - 1) * s)}・損益率 ${fmtPct((tp/e - 1) * s * c.lev)}）`) : '';
+  $('slPv').textContent = sl > 0 ? (slBad ? (s > 0 ? '入る値段より下にしてください' : '入る値段より上にしてください') : `${moneyS((sl - e) * c.sz * s)}（値動き ${fmtPct((sl/e - 1) * s)}・損益率 ${fmtPct((sl/e - 1) * s * c.lev)}）`) : '';
   $('tpPv').className = 'pv ' + (tpBad ? 'down' : 'up');
+  tpBind.sync(); slBind.sync();
   return {ok: !tpBad && !slBad, tp: tp > 0 ? tp : null, sl: sl > 0 ? sl : null};
 }
 function renderTicket(){
@@ -921,15 +949,19 @@ function tpslPreview(k, kind, p){
 }
 function tpslEditor(k){
   const pos = posOf(k), t = tpslOf(k), s = +pos.szi, e = +pos.entryPx;
-  const box = `<div class="tpsl"><label class="f">利確（ドル）<input id="eTp" class="num" value="${t.tp ? t.tp.triggerPx : ''}"><span class="pv up" id="eTpPv"></span></label>
-    <label class="f">損切り（ドル）<input id="eSl" class="num" value="${t.sl ? t.sl.triggerPx : ''}"><span class="pv down" id="eSlPv"></span></label></div>
+  const box = `<p class="note" style="margin-bottom:8px">建値 $${fmtPx(k, e)} ・ ${pos.leverage.value}倍。% は建値からの割合です。</p>
+    <div class="seg pctMode" style="margin-bottom:8px">${PCT_MODE_HTML}</div>
+    <div class="tpsl">${pctFieldHtml('eTp', 'tp')}${pctFieldHtml('eSl', 'sl')}</div>
     <div class="chips" style="margin-top:8px"><button id="eBe">損切りを建値に（同値撤退）</button></div>
     <p class="note" style="margin-top:8px">チャート上の線をドラッグしても変えられます。</p>
     <div style="margin-top:10px;display:flex;justify-content:flex-end"><button id="eGo" style="border:none;border-radius:6px;padding:8px 14px;background:var(--accent);color:#1b1404;font-weight:700">この内容で設定（見本）</button></div>`;
-  preview(`${label(k)} の利確と損切り`, [], box);
-  const upd = () => { for (const [id, pv] of [['eTp','eTpPv'],['eSl','eSlPv']]){ const v = parseFloat($(id).value); $(pv).textContent = v > 0 ? moneyS(pnlAt(pos, v)) : ''; } };
-  $('eTp').oninput = upd; $('eSl').oninput = upd; upd();
-  $('eBe').onclick = () => { $('eSl').value = roundPx(k, e); upd(); };
+  preview(`${label(k)} の利確と損切り`, [], box); markPctMode();
+  $('eTp').value = t.tp ? t.tp.triggerPx : ''; $('eSl').value = t.sl ? t.sl.triggerPx : '';
+  const ectx = () => ({k, e, side: Math.sign(s), lev: +pos.leverage.value || 1});
+  const b1 = bindPct('eTp', 'tp', ectx), b2 = bindPct('eSl', 'sl', ectx);
+  const upd = () => { for (const [id, pv] of [['eTp','eTpPv'],['eSl','eSlPv']]){ const v = parseFloat($(id).value); $(pv).textContent = v > 0 ? `${moneyS(pnlAt(pos, v))}（損益率 ${fmtPct((v/e - 1) * Math.sign(s) * (+pos.leverage.value || 1))}）` : ''; } };
+  $('eTp').addEventListener('input', upd); $('eSl').addEventListener('input', upd); b1.sync(true); b2.sync(true); upd();
+  $('eBe').onclick = () => { $('eSl').value = roundPx(k, e); b2.sync(true); upd(); };
   $('eGo').onclick = () => {
     const tp = parseFloat($('eTp').value), sl = parseFloat($('eSl').value), m = priceOf(k);
     if ((tp > 0 && (tp - m) * s <= 0) || (sl > 0 && (sl - m) * s >= 0)){ $('eSlPv').textContent = s > 0 ? '利確はいまの値段より上、損切りは下にしてください' : '利確はいまの値段より下、損切りは上にしてください'; return; }
