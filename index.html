@@ -177,6 +177,9 @@ td.ja{font-family:var(--sans)}
 #modal .warn{border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:8px 10px;font-size:12px}
 #modal .acts{display:flex;gap:8px;justify-content:flex-end}
 #modal .acts button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:8px 16px}
+#modal .acts .pri{background:var(--accent);color:#1b1404;border-color:var(--accent);font-weight:700}
+#modal .danger{border:1px solid var(--down);color:var(--down);border-radius:6px;padding:8px 10px;font-size:13px;font-weight:700}
+#lineLock.on{background:var(--accent);color:#1b1404;border-color:var(--accent)}
 
 @media (max-width:1180px){
   body{height:auto}
@@ -250,12 +253,13 @@ td.ja{font-family:var(--sans)}
           <button id="zIn" title="拡大">＋</button>
           <button id="zAuto" title="縦の縮尺を自動に戻す" class="sel">縦自動</button>
           <button id="zLast" title="最新の足へ戻る">最新</button>
+          <button id="lineLock" title="押すと30秒だけ、チャートの線をドラッグで動かせるようになります">線を動かす</button>
         </div>
       </div>
     </div>
     <div id="chartWrap">
       <canvas id="chart"></canvas><div id="legend"></div>
-      <div id="hint">線はドラッグで動かせます ・ 長押し（右クリック）でその値段に注文 ・ 右の目盛りを上下にドラッグで縦の縮尺</div>
+      <div id="hint">線を動かすときは上の「線を動かす」を押してから ・ 長押し（右クリック）でその値段に注文 ・ 右の目盛りを上下にドラッグで縦の縮尺</div>
       <div id="menu" hidden></div>
     </div>
   </section>
@@ -322,7 +326,7 @@ td.ja{font-family:var(--sans)}
   <div id="mExtra"></div>
   <div class="calc" id="mBody"></div>
   <div class="warn">見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。</div>
-  <div class="acts"><button id="mClose">閉じる</button></div>
+  <div class="acts"><button id="mClose">閉じる</button><button id="mOk" class="pri" hidden>変更する</button></div>
 </div></div>
 
 <script>
@@ -578,7 +582,8 @@ const chart = (() => {
     // 目盛り
     ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.fillStyle = C.dim;
     const step = niceStep((hi - lo) / Math.max(3, priceH / 60));
-    for (let p = Math.ceil(lo / step) * step; p <= hi; p += step){ const yy = Math.round(y(p)) + .5; ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); ctx.fillText(fmtPx(key, p), plotW + 6, yy); }
+    const grid = [];   // 目盛りの数字は、線の値段の札と重ならないように最後に描く
+    for (let p = Math.ceil(lo / step) * step; p <= hi; p += step){ const yy = Math.round(y(p)) + .5; ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); grid.push([p, yy]); }
     const tStep = Math.max(1, Math.ceil(110 / bw)); ctx.textBaseline = 'top'; ctx.textAlign = 'center'; let prevDay = null;
     for (let i = i0; i <= i1; i++){
       if (i % tStep) continue;
@@ -597,28 +602,40 @@ const chart = (() => {
       const yo = y(k.o), yc = y(k.c); ctx.fillRect(xx - Math.floor(bodyW/2), Math.min(yo, yc), bodyW, Math.max(1, Math.abs(yc - yo)));
     }
     ctx.restore();
-    // 線（建値・清算・注文）。画面の外の線は上下の端に矢印付きで出す。ドラッグ中の線は指の位置に描く
-    const tag = (p, col, text, dash, bold) => {
-      if (!isFinite(p)) return null;
-      const out = p > hi ? 'up' : p < lo ? 'dn' : null;
-      const yy = out === 'up' ? TOP + 9 : out === 'dn' ? TOP + priceH - 9 : Math.round(y(p)) + .5;
-      if (!out){ ctx.strokeStyle = col; ctx.lineWidth = bold ? 2 : 1; ctx.setLineDash(dash || []); ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1; }
-      ctx.fillStyle = col; ctx.fillRect(plotW, yy - 9, PADR, 18); ctx.fillStyle = C.bg; ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.fillText(fmtPx(key, p), plotW + 6, yy);
-      if (text){
-        const t = (out === 'up' ? '↑ ' : out === 'dn' ? '↓ ' : '') + text;
-        ctx.font = SANS; const tw = ctx.measureText(t).width;
-        ctx.fillStyle = col; ctx.fillRect(plotW - tw - 14, yy - 9, tw + 10, 18); ctx.fillStyle = C.bg; ctx.fillText(t, plotW - tw - 9, yy);
-      }
-      return out ? null : yy;
-    };
+    // 線（建値・清算・注文・いまの値段）。線は本当の値段の高さに引き、右の札だけは重ならないよう上下にずらす。
+    // 画面の外の線は上下の端に矢印付きの札だけ出す。ドラッグ中の線は指の位置に描く
+    const tags = [];
     for (const L of chartLines()){
       const dragging = act && act.type === 'line' && act.L.id === L.id;
-      const p = dragging ? act.np : L.p;
+      const p = dragging ? act.np : L.p; if (!isFinite(p)) continue;
       let t = L.txt; if (L.pnl) t += '  ' + moneyS(L.pnl(p));
-      const yy = tag(p, css(L.col), t, L.dash, dragging);
-      if (L.drag && yy != null) drawn.push({y: yy, L});
+      tags.push({p, col: css(L.col), text: t, dash: L.dash, bold: dragging, L});
     }
-    const lastK = a[n-1], lp = priceOf(key) ?? lastK.c; tag(lp, lastK.c >= lastK.o ? C.up : C.down, '', [1,2]);
+    const lastK = a[n-1], lp = priceOf(key) ?? lastK.c;
+    tags.push({p: lp, col: lastK.c >= lastK.o ? C.up : C.down, text: '', dash: [1,2], now: true});
+    for (const T of tags){
+      T.out = T.p > hi ? 'up' : T.p < lo ? 'dn' : null;
+      T.y = T.out === 'up' ? TOP + 9 : T.out === 'dn' ? TOP + priceH - 9 : Math.round(y(T.p)) + .5;
+      if (!T.out){ ctx.strokeStyle = T.col; ctx.lineWidth = T.bold ? 2 : 1; ctx.setLineDash(T.dash || []); ctx.beginPath(); ctx.moveTo(0, T.y); ctx.lineTo(plotW, T.y); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1; }
+      if (T.L && T.L.drag && !T.out) drawn.push({y: T.y, L: T.L});
+    }
+    // 札の高さを決める（上から順に、前の札と18px以上あける。下にはみ出たら下から詰め直す）
+    const ord = [...tags].sort((a, b) => a.y - b.y), GAP = 19, yMin = TOP + 9, yMax = TOP + priceH - 9;
+    let prev = -1e9; for (const T of ord){ T.ly = Math.max(T.y, prev + GAP, yMin); prev = T.ly; }
+    let nxt = 1e9; for (let i = ord.length - 1; i >= 0; i--){ const T = ord[i]; T.ly = Math.min(T.ly, nxt - GAP, yMax); nxt = T.ly; }
+    // 目盛りの数字（札と重なるものは出さない）
+    ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.fillStyle = C.dim;
+    for (const [p, yy] of grid) if (!tags.some(T => Math.abs(T.ly - yy) < 15)) ctx.fillText(fmtPx(key, p), plotW + 6, yy);
+    for (const T of ord){
+      if (T.L && T.L.drag && !T.out && Math.abs(T.ly - T.y) > 6) drawn.push({y: T.ly, L: T.L});   // ずらした札をつかんでも動かせる
+      if (Math.abs(T.ly - T.y) > 1 && !T.out){ ctx.strokeStyle = T.col; ctx.beginPath(); ctx.moveTo(plotW - 4, T.y); ctx.lineTo(plotW, T.ly); ctx.stroke(); }
+      ctx.fillStyle = T.col; ctx.fillRect(plotW, T.ly - 9, PADR, 18); ctx.fillStyle = C.bg; ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.fillText(fmtPx(key, T.p), plotW + 6, T.ly);
+      if (T.text){
+        const t = (T.out === 'up' ? '↑ ' : T.out === 'dn' ? '↓ ' : '') + T.text;
+        ctx.font = SANS; const tw = ctx.measureText(t).width;
+        ctx.globalAlpha = .9; ctx.fillStyle = T.col; ctx.fillRect(4, T.ly - 9, tw + 10, 18); ctx.globalAlpha = 1; ctx.fillStyle = C.bg; ctx.fillText(t, 9, T.ly);   // 名札は左端に（右側の最新の足を隠さない）
+      }
+    }
     // 十字線
     let k = lastK;
     if (hover && hover.x < plotW && !(act && act.type === 'line')){
@@ -634,10 +651,12 @@ const chart = (() => {
       ctx.fillStyle = C.panel; ctx.fillRect(hover.x - tw/2 - 5, H - PADB + 2, tw + 10, 17); ctx.fillStyle = C.fg; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillText(lbl, hover.x, H - PADB + 4); ctx.textAlign = 'left';
     }
     const ch = k.c / k.o - 1, f = v => `<span style="color:var(--fg)">${fmtPx(key, v)}</span>`;
-    $('legend').innerHTML = `${fmtTime(k.t, true)}　始 ${f(k.o)} 高 ${f(k.h)} 安 ${f(k.l)} 終 ${f(k.c)} <span class="${cls(ch)}">${fmtPct(ch)}</span>`;
+    $('legend').innerHTML = W < 560   // 幅が狭いときは1行に収める
+      ? `${fmtTime(k.t, true)}　終 ${f(k.c)} <span class="${cls(ch)}">${fmtPct(ch)}</span>`
+      : `${fmtTime(k.t, true)}　始 ${f(k.o)} 高 ${f(k.h)} 安 ${f(k.l)} 終 ${f(k.c)} <span class="${cls(ch)}">${fmtPct(ch)}</span>`;
   }
   const pos = e => { const r = cv.getBoundingClientRect(); return {x: (e.clientX - r.left) / kz, y: (e.clientY - r.top) / kz}; };
-  const hitLine = p => geo ? drawn.find(d => Math.abs(d.y - p.y) <= (matchMedia('(pointer:coarse)').matches ? 14 : 7)) : null;
+  const hitLine = p => geo && lineUnlocked() ? drawn.find(d => Math.abs(d.y - p.y) <= (matchMedia('(pointer:coarse)').matches ? 14 : 7)) : null;
   cv.addEventListener('pointerdown', e => {
     hideMenu(); if (e.button === 2) return;
     cv.setPointerCapture(e.pointerId); const p = pos(e); ptrs.set(e.pointerId, p);
@@ -668,7 +687,7 @@ const chart = (() => {
   const up = e => {
     ptrs.delete(e.pointerId); clearTimeout(lpTimer);
     if (ptrs.size < 2) pinch = null;
-    if (act && act.type === 'line' && act.moved){ const L = act.L, np = roundPx(curKey(), act.np); act = null; draw(); L.drop(np); return; }
+    if (act && act.type === 'line' && act.moved){ const L = act.L, np = roundPx(curKey(), act.np); act = null; setLineLock(true); draw(); L.drop(np); return; }
     act = null; draw();
   };
   cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
@@ -835,7 +854,7 @@ $('submit').onclick = () => {
   if (isPerp()) rows.push(['レバレッジ', `${c.lev}倍（${S.margin === 'cross' ? 'クロス' : '分離'}）`], ['必要な証拠金', money(c.margin)], ['清算価格の目安', '$' + fmtPx(k, c.liq)]);
   if (t.tp) rows.push(['利確', '$' + fmtPx(k, t.tp)]); if (t.sl) rows.push(['損切り', '$' + fmtPx(k, t.sl)]);
   rows.push(['手数料の目安', money(c.fee, 3)]);
-  preview(`${label(k)} を${sideJa}`, rows);
+  confirmChange(`${label(k)} を${sideJa}`, rows, null, '注文する');
 };
 
 // ===== いま選んでいる銘柄のポジション（注文パネルの一番上）=====
@@ -852,8 +871,33 @@ function renderPosCard(){
 }
 $('posCard').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) posAction(b.dataset.act, b.dataset.c); });
 
+// ===== 線のロック（誤ってさわって損切りなどが動かないように、普段は固定）=====
+let lineUnlockUntil = 0, lineTimer = null;
+const lineUnlocked = () => Date.now() < lineUnlockUntil;
+function setLineLock(lock){
+  lineUnlockUntil = lock ? 0 : Date.now() + 30000; clearTimeout(lineTimer);
+  if (!lock) lineTimer = setTimeout(() => setLineLock(true), 30000);
+  $('lineLock').classList.toggle('on', !lock); $('lineLock').textContent = lock ? '線を動かす' : '線を動かせます（30秒）';
+}
+$('lineLock').onclick = () => setLineLock(lineUnlocked());
+// 新しい値段にしたら「すぐ発動・すぐ約定」してしまうかを調べる（誤操作でいきなり決済されるのを防ぐ）
+function instantHit(o, p){
+  const m = priceOf(o.coin), buy = o.side === 'B', kind = o.kind || orderKind(o);
+  if (!(m > 0)) return false;
+  if (kind === 'limit') return buy ? p >= m : p <= m;
+  if (kind === 'tp') return buy ? m <= p : m >= p;
+  return buy ? m >= p : m <= p;   // 損切り・逆指値
+}
+
 // ===== 確認の窓（見本モードでは表示するだけ）=====
-function preview(title, rows, extraHtml){
+let modalOk = null;
+function confirmChange(title, rows, danger, okLabel){
+  preview(title, rows, danger ? `<div class="danger">${danger}</div>` : '', {ok: danger ? null : (okLabel || 'この内容で変更する')});
+}
+$('mOk').onclick = () => { const t = $('mTitle').textContent; closeModal(); log(`${new Date().toLocaleTimeString()} 見本: ${t}（送っていません）`); };
+function preview(title, rows, extraHtml, opts){
+  $('mOk').hidden = !(opts && opts.ok); if (opts && opts.ok) $('mOk').textContent = opts.ok;
+  $('mClose').textContent = opts && opts.ok ? 'やめる' : '閉じる';
   $('mTitle').textContent = title; $('mExtra').innerHTML = extraHtml || '';
   $('mBody').innerHTML = rows.map(([a,b]) => `<span>${a}</span><span>${b}</span>`).join('');
   $('mBody').hidden = !rows.length;
@@ -866,11 +910,14 @@ $('modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
 function modifyPreview(o, kind, from, to){
   const k = o.coin, pos = posOf(k), rows = [['銘柄', label(k)], ['変更前', '$' + fmtPx(k, from)], ['変更後', '$' + fmtPx(k, to)]];
   if (pos && (kind === 'tp' || kind === 'sl')) rows.push(['ここで決済されたときの損益', moneyS(pnlAt(pos, to))]);
-  preview(`${KIND_JA[kind]}の値段を変える`, rows); schedule();
+  rows.push(['いまの値段', '$' + fmtPx(k, priceOf(k))]);
+  const bad = instantHit(o, to) ? `この値段だと、いまの値段をもう越えているので、${kind === 'limit' ? 'すぐ約定' : 'すぐ発動して決済'}されてしまいます。変更しません。` : null;
+  confirmChange(`${KIND_JA[kind]}の値段を変える`, rows, bad); schedule();
 }
 function tpslPreview(k, kind, p){
   const pos = posOf(k), old = tpslOf(k)[kind];
-  preview(`${KIND_JA[kind]}を${old ? '変える' : '入れる'}`, [['銘柄', label(k)], [old ? '変更前' : 'いまの設定', old ? '$' + fmtPx(k, +old.triggerPx) : 'なし'], ['新しい値段', '$' + fmtPx(k, p)], ['ここで決済されたときの損益', moneyS(pnlAt(pos, p))]]);
+  const bad = instantHit({coin:k, side: +pos.szi > 0 ? 'A' : 'B', kind}, p) ? 'この値段だと、いまの値段をもう越えているので、すぐ発動して決済されてしまいます。設定しません。' : null;
+  confirmChange(`${KIND_JA[kind]}を${old ? '変える' : '入れる'}`, [['銘柄', label(k)], [old ? '変更前' : 'いまの設定', old ? '$' + fmtPx(k, +old.triggerPx) : 'なし'], ['新しい値段', '$' + fmtPx(k, p)], ['いまの値段', '$' + fmtPx(k, priceOf(k))], ['ここで決済されたときの損益', moneyS(pnlAt(pos, p))]], bad, old ? 'この内容で変更する' : 'この内容で入れる');
 }
 function tpslEditor(k){
   const pos = posOf(k), t = tpslOf(k), s = +pos.szi, e = +pos.entryPx;
@@ -886,16 +933,16 @@ function tpslEditor(k){
   $('eGo').onclick = () => {
     const tp = parseFloat($('eTp').value), sl = parseFloat($('eSl').value), m = priceOf(k);
     if ((tp > 0 && (tp - m) * s <= 0) || (sl > 0 && (sl - m) * s >= 0)){ $('eSlPv').textContent = s > 0 ? '利確はいまの値段より上、損切りは下にしてください' : '利確はいまの値段より下、損切りは上にしてください'; return; }
-    preview(`${label(k)} の利確と損切りを設定`, [['利確', tp > 0 ? '$' + fmtPx(k, tp) + '  ' + moneyS(pnlAt(pos, tp)) : 'なし'], ['損切り', sl > 0 ? '$' + fmtPx(k, sl) + '  ' + moneyS(pnlAt(pos, sl)) : 'なし']]);
+    confirmChange(`${label(k)} の利確と損切りを設定`, [['利確', tp > 0 ? '$' + fmtPx(k, tp) + '  ' + moneyS(pnlAt(pos, tp)) : 'なし'], ['損切り', sl > 0 ? '$' + fmtPx(k, sl) + '  ' + moneyS(pnlAt(pos, sl)) : 'なし']], null, 'この内容で設定する');
   };
 }
 function posAction(act, k){
   const p = posOf(k), m = priceOf(k);
   if (!p) return;
   const s = +p.szi, dir = s > 0 ? 'ロング' : 'ショート';
-  if (act === 'close') preview(`${label(k)} の${dir}を全部決済`, [['やること', `成行で ${Math.abs(s)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]]);
-  if (act === 'half') preview(`${label(k)} の${dir}を半分決済`, [['やること', `成行で ${roundSz(k, Math.abs(s)/2)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl / 2)]]);
-  if (act === 'flip') preview(`${label(k)} を${dir}から${s>0?'ショート':'ロング'}へ（ドテン）`, [['やること', `成行で ${roundSz(k, Math.abs(s)*2)} ${label(k)} を${s>0?'売る':'買う'}`], ['結果', `${s>0?'ショート':'ロング'} ${Math.abs(s)} ${label(k)}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]]);
+  if (act === 'close') confirmChange(`${label(k)} の${dir}を全部決済`, [['やること', `成行で ${Math.abs(s)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]], null, '全部決済する');
+  if (act === 'half') confirmChange(`${label(k)} の${dir}を半分決済`, [['やること', `成行で ${roundSz(k, Math.abs(s)/2)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl / 2)]], null, '半分決済する');
+  if (act === 'flip') confirmChange(`${label(k)} を${dir}から${s>0?'ショート':'ロング'}へ（ドテン）`, [['やること', `成行で ${roundSz(k, Math.abs(s)*2)} ${label(k)} を${s>0?'売る':'買う'}`], ['結果', `${s>0?'ショート':'ロング'} ${Math.abs(s)} ${label(k)}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]], null, 'ドテンする');
   if (act === 'tpsl') tpslEditor(k);
 }
 function log(t){ const d = document.createElement('div'); d.textContent = t; $('log').prepend(d); }
@@ -950,7 +997,7 @@ $('aTbl').addEventListener('click', e => {
   const t = e.target.closest('[data-c]'); if (!t) return;
   const k = t.dataset.c;
   if (t.classList.contains('coin')){ setMkt(M[k]?.kind === 'spot' ? 'spot' : 'perp'); selectCoin(k); return; }
-  if (t.dataset.act === 'cancel'){ const o = S.orders.find(x => String(x.oid) === t.dataset.oid); preview(`${label(k)} の${o ? KIND_JA[orderKind(o)] : ''}注文を取り消す`, [['値段', o ? '$' + fmtPx(k, o.isTrigger ? +o.triggerPx : +o.limitPx) : '—']]); return; }
+  if (t.dataset.act === 'cancel'){ const o = S.orders.find(x => String(x.oid) === t.dataset.oid); confirmChange(`${label(k)} の${o ? KIND_JA[orderKind(o)] : ''}注文を取り消す`, [['値段', o ? '$' + fmtPx(k, o.isTrigger ? +o.triggerPx : +o.limitPx) : '—']], null, '取り消す'); return; }
   posAction(t.dataset.act, k);
 });
 $('aTabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.aTab = b.dataset.v; renderAcct(); if (HIST_TABS.includes(S.aTab) && Date.now() - H.at > 60000) loadHist(); };
