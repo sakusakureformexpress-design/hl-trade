@@ -190,6 +190,17 @@ td.ja{font-family:var(--sans)}
 @media (max-width:720px){
   main{display:flex;flex-direction:column}
   main.big #bottom .tbl{max-height:none}
+  /* スマホ：上の部分を詰めて、チャートを早く見せる */
+  header{gap:6px 12px;padding:6px 10px}
+  header h1{font-size:14px}
+  .kpis{gap:6px 12px}
+  #strip{flex-direction:column}
+  .mkt{flex-direction:row;border-right:none;border-bottom:1px solid var(--line)}
+  .mkt button{flex:1}
+  .tools{margin-left:0;width:100%}
+  .ivs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;flex:1 1 100%;min-width:0}
+  #zoomSel{margin-top:0} .kpi small:empty{display:none}
+  .ivs button{flex:0 0 auto}
   #chartBox{height:58vh;min-height:340px;flex:0 0 auto}
   #bookBox{display:none}
   #bottom{flex:0 0 auto}
@@ -214,6 +225,7 @@ td.ja{font-family:var(--sans)}
       <div class="ccy" id="ccy"><button data-v="USD">$ ドル</button><button data-v="JPY">¥ 円</button></div>
       <button class="fx" id="fxBtn" title="押すと為替レートを自分で入れられます">1ドル = —円</button>
     </div>
+    <div class="kpi" style="align-items:center;gap:2px"><small>文字の大きさ</small><div class="ccy" id="zoomSel"><button data-z="1">小</button><button data-z="1.2">中</button><button data-z="1.4">大</button><button data-z="1.6">特大</button></div></div>
     <button class="gear" id="gear" title="口座アドレスを変える">口座</button>
   </div>
 </header>
@@ -411,6 +423,14 @@ function schedule(){ if (!dirty){ dirty = true; requestAnimationFrame(() => { di
 function renderAll(){ renderCoins(); renderHead(); renderBook(); renderTicket(); renderKpis(); chart.draw(); }
 const priceOf = key => S.mids[key] ?? M[key]?.mark;
 
+// ===== 文字の大きさ（画面全体を拡大する）=====
+function applyZoom(z){
+  S.zoom = z; store.set('zoom', z); document.documentElement.style.zoom = z;
+  [...$('zoomSel').children].forEach(b => b.classList.toggle('sel', +b.dataset.z === z));
+  requestAnimationFrame(() => { chart.resize(); schedule(); });
+}
+$('zoomSel').onclick = e => { const b = e.target.closest('button'); if (b) applyZoom(+b.dataset.z); };
+
 // ===== 円とドル =====
 function renderCcy(){ [...$('ccy').children].forEach(b => b.classList.toggle('sel', b.dataset.v === S.ccy)); $('fxBtn').textContent = S.fx ? `1ドル = ${S.fx.toFixed(2)}円${S.fxSrc === 'manual' ? '（手入力）' : ''}` : '為替レート未取得'; }
 $('ccy').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.v === 'JPY' && !S.fx){ askFx(); if (!S.fx) return; } S.ccy = b.dataset.v; store.set('ccy', S.ccy); renderCcy(); renderAcct(); schedule(); };
@@ -521,11 +541,16 @@ function chartLines(){
 // ===== チャート（ライブラリなしで描く）=====
 const chart = (() => {
   const cv = $('chart'), ctx = cv.getContext('2d');
-  let bw = 8, off = -4, W = 0, H = 0, hover = null, act = null, vman = null, geo = null, drawn = [];
+  let bw = 8, off = -4, W = 0, H = 0, kz = 1, hover = null, act = null, vman = null, geo = null, drawn = [];
   const ptrs = new Map(); let pinch = null, lpTimer = null;
   const PADR = 82, PADB = 22, TOP = 26;
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  function resize(){ const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; W = r.width; H = r.height; cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); draw(); }
+  function resize(){
+    // 文字の大きさ（拡大）に合わせて、チャートも同じ倍率で描く
+    const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1;
+    W = cv.clientWidth; H = cv.clientHeight; kz = W ? r.width / W : 1;
+    cv.width = Math.round(r.width*dpr); cv.height = Math.round(r.height*dpr); ctx.setTransform(dpr*kz,0,0,dpr*kz,0,0); draw();
+  }
   function niceStep(raw){ const p = 10 ** Math.floor(Math.log10(raw)); const f = raw / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
   function fmtTime(t, full){
     const d = new Date(t), p = n => String(n).padStart(2,'0');
@@ -611,7 +636,7 @@ const chart = (() => {
     const ch = k.c / k.o - 1, f = v => `<span style="color:var(--fg)">${fmtPx(key, v)}</span>`;
     $('legend').innerHTML = `${fmtTime(k.t, true)}　始 ${f(k.o)} 高 ${f(k.h)} 安 ${f(k.l)} 終 ${f(k.c)} <span class="${cls(ch)}">${fmtPct(ch)}</span>`;
   }
-  const pos = e => { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; };
+  const pos = e => { const r = cv.getBoundingClientRect(); return {x: (e.clientX - r.left) / kz, y: (e.clientY - r.top) / kz}; };
   const hitLine = p => geo ? drawn.find(d => Math.abs(d.y - p.y) <= (matchMedia('(pointer:coarse)').matches ? 14 : 7)) : null;
   cv.addEventListener('pointerdown', e => {
     hideMenu(); if (e.button === 2) return;
@@ -656,7 +681,7 @@ const chart = (() => {
   $('zOut').onclick = () => { bw = Math.max(1.5, bw / 1.3); draw(); };
   $('zAuto').onclick = () => { vman = null; $('zAuto').classList.add('sel'); draw(); };
   $('zLast').onclick = () => { off = -4; draw(); };
-  return {draw, reset(){ off = -4; vman = null; $('zAuto').classList.add('sel'); }, priceAt: y => geo ? yToP(y) : NaN};
+  return {draw, resize, reset(){ off = -4; vman = null; $('zAuto').classList.add('sel'); }, priceAt: y => geo ? yToP(y) : NaN};
 })();
 
 // ===== 長押し・右クリックのメニュー（その値段で注文）=====
@@ -675,9 +700,10 @@ function openMenu(pt){
   m.innerHTML = `<div class="mh">$${fmtPx(k, p)}</div>` + items.map((it, i) => `<button data-i="${i}">${it[0]}</button>`).join('');
   m.onclick = e => { const b = e.target.closest('button'); if (!b) return; hideMenu(); items[+b.dataset.i][1](); };
   m.hidden = false;
-  const wr = $('chartWrap').getBoundingClientRect();
-  m.style.left = Math.max(4, Math.min(pt.x, wr.width - m.offsetWidth - 8)) + 'px';
-  m.style.top = Math.max(4, Math.min(pt.y, wr.height - m.offsetHeight - 8)) + 'px';
+  const cw = $('chartWrap').clientWidth, ch = $('chartWrap').clientHeight;
+  m.style.maxWidth = (cw - 8) + 'px';
+  m.style.left = Math.max(4, Math.min(pt.x, cw - m.offsetWidth - 4)) + 'px';
+  m.style.top = Math.max(4, Math.min(pt.y, ch - m.offsetHeight - 4)) + 'px';
 }
 document.addEventListener('pointerdown', e => { if (!e.target.closest('#menu') && e.target.id !== 'chart') hideMenu(); });
 function fillTicket(side, type, p){ setSide(side); setOType(type); $('px').value = p; schedule(); }
@@ -1073,7 +1099,7 @@ document.addEventListener('keydown', e => {
 
 // ===== 起動 =====
 (async () => {
-  renderCcy(); connect(); subscribe({type:'allMids'}); loadFx();
+  applyZoom(store.get('zoom', matchMedia('(max-width:720px)').matches ? 1.2 : 1));   // スマホは最初から大きめ renderCcy(); connect(); subscribe({type:'allMids'}); loadFx();
   if (!S.user) $('acctBar').hidden = false;
   try { await loadMeta(); } catch (e){ log('銘柄情報を取れませんでした: ' + e.message); }
   buildCoins(); buildOType(); setOType('market'); selectCoin(curKey()); loadAcct();
