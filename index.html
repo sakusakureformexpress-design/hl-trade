@@ -138,7 +138,7 @@ input[type=range]{padding:0;border:none;background:none;accent-color:var(--accen
 #posCard .t b{font-size:13px}
 #posCard .pnl{font:600 16px var(--mono)}
 #posCard .s{font-size:11px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap}
-.acts3{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px}
+.acts3{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:4px}
 .acts3 button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 2px;font-size:12px}
 .acts3 button:hover{border-color:var(--accent)}
 .acts3 .x{border-color:var(--accent);color:var(--accent)}
@@ -895,7 +895,7 @@ function renderPosCard(){
   el.innerHTML = `<div class="t"><b class="${s>0?'up':'down'}">${label(k)} ${s>0?'ロング':'ショート'} ${Math.abs(s)}</b><span class="pnl ${cls(u)}">${moneyS(u)}</span></div>
     <div class="s"><span>建値 $${fmtPx(k,+p.entryPx)}</span><span>${p.leverage.value}倍 ${p.leverage.type==='cross'?'クロス':'分離'}</span><span>清算 ${p.liquidationPx?'$'+fmtPx(k,+p.liquidationPx):'—'}</span>
     <span class="up">利確 ${tps.tp?'$'+fmtPx(k,+tps.tp.triggerPx):'なし'}</span><span class="down">損切り ${tps.sl?'$'+fmtPx(k,+tps.sl.triggerPx):'なし'}</span></div>
-    <div class="acts3"><button class="x" data-act="close" data-c="${k}">全部決済</button><button data-act="half" data-c="${k}">半分決済</button><button data-act="flip" data-c="${k}">ドテン</button><button data-act="tpsl" data-c="${k}">利確損切</button></div>`;
+    <div class="acts3"><button class="x" data-act="close" data-c="${k}">全部決済</button><button data-act="size" data-c="${k}">増やす/減らす</button><button data-act="flip" data-c="${k}">ドテン</button><button data-act="tpsl" data-c="${k}">利確損切</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${k}">証拠金</button>` : ''}</div>`;
 }
 $('posCard').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) posAction(b.dataset.act, b.dataset.c); });
 
@@ -968,6 +968,83 @@ function tpslEditor(k){
     confirmChange(`${label(k)} の利確と損切りを設定`, [['利確', tp > 0 ? '$' + fmtPx(k, tp) + '  ' + moneyS(pnlAt(pos, tp)) : 'なし'], ['損切り', sl > 0 ? '$' + fmtPx(k, sl) + '  ' + moneyS(pnlAt(pos, sl)) : 'なし']], null, 'この内容で設定する');
   };
 }
+// ===== ポジションを増やす・減らす =====
+function sizeEditor(k, mode){
+  const pos = posOf(k); if (!pos) return;
+  const s = +pos.szi, abs = Math.abs(s), e = +pos.entryPx, long = s > 0, lev = +pos.leverage.value || 1;
+  mode = mode || 'reduce';
+  const chips = mode === 'reduce' ? [10, 25, 50, 75, 100] : [10, 25, 50, 100];
+  const box = `<div class="seg" id="zMode"><button type="button" data-m="reduce" class="${mode==='reduce'?'sel':''}">減らす（一部決済）</button><button type="button" data-m="add" class="${mode==='add'?'sel':''}">増やす（買い増し・売り増し）</button></div>
+    <label class="f" style="margin-top:10px">数量（${label(k)}）いま ${abs} 持っています
+      <div class="row"><input id="zSz" class="num" inputmode="decimal"><input id="zPct" class="num" inputmode="decimal" placeholder="%" style="width:64px;flex:0 0 64px"><span>%</span></div>
+      <div class="chips" id="zChips">${chips.map(v => `<button type="button" data-p="${v}">${v === 100 && mode === 'reduce' ? '全部' : v + '%'}</button>`).join('')}</div>
+      <span class="note">% はいまの数量に対する割合です</span></label>
+    <div class="seg" id="zType" style="margin-top:10px"><button type="button" data-t="market" class="sel">成行</button><button type="button" data-t="limit">指値</button></div>
+    <label class="f" id="zPxF" style="margin-top:8px" hidden>指値の価格（ドル）<input id="zPx" class="num" inputmode="decimal" value="${roundPx(k, priceOf(k))}"></label>
+    <div class="calc" id="zCalc" style="margin-top:10px"></div>
+    <div style="margin-top:10px;display:flex;justify-content:flex-end"><button id="zGo" style="border:none;border-radius:6px;padding:8px 14px;background:var(--accent);color:#1b1404;font-weight:700">確認へ進む</button></div>`;
+  preview(`${label(k)} ${long ? 'ロング' : 'ショート'}の数量を変える`, [], box);
+  let type = 'market';
+  const px = () => type === 'limit' ? parseFloat($('zPx').value) : priceOf(k);
+  const calc = () => {
+    const q = roundSz(k, parseFloat($('zSz').value) || 0), p = px(), rows = [];
+    if (mode === 'reduce'){
+      const qq = Math.min(q, abs), real = (p - e) * qq * Math.sign(s);
+      rows.push(['やること', `${qq} ${label(k)} を${long ? '売って' : '買って'}決済`], ['残る数量', `${roundSz(k, abs - qq)} ${label(k)}`], ['確定する損益の目安', moneyS(real)]);
+    } else {
+      const ne = (e * abs + p * q) / (abs + q);
+      rows.push(['やること', `${q} ${label(k)} を${long ? '買い増し' : '売り増し'}`], ['合計の数量', `${roundSz(k, abs + q)} ${label(k)}`], ['平均の建値（目安）', '$' + fmtPx(k, ne)], ['追加で必要な証拠金', money(p * q / lev)]);
+    }
+    $('zCalc').innerHTML = rows.map(([a,b]) => `<span>${a}</span><span>${b}</span>`).join('');
+    return {q: mode === 'reduce' ? Math.min(q, abs) : q, p, rows};
+  };
+  $('zMode').onclick = ev => { const b = ev.target.closest('button'); if (b && b.dataset.m !== mode) sizeEditor(k, b.dataset.m); };
+  $('zType').onclick = ev => { const b = ev.target.closest('button'); if (!b) return; type = b.dataset.t; [...$('zType').children].forEach(x => x.classList.toggle('sel', x === b)); $('zPxF').hidden = type !== 'limit'; calc(); };
+  $('zSz').oninput = () => { const v = parseFloat($('zSz').value); $('zPct').value = v > 0 ? +(v / abs * 100).toFixed(1) : ''; calc(); };
+  $('zPct').oninput = () => { const v = parseFloat($('zPct').value); $('zSz').value = v > 0 ? roundSz(k, abs * v / 100) : ''; calc(); };
+  $('zChips').onclick = ev => { const b = ev.target.closest('button'); if (!b) return; $('zPct').value = b.dataset.p; $('zPct').oninput(); };
+  $('zPx').oninput = calc;
+  $('zPct').value = mode === 'reduce' ? 50 : 25; $('zPct').oninput();
+  $('zGo').onclick = () => {
+    const c = calc(); if (!(c.q > 0)) { $('zCalc').insertAdjacentHTML('beforeend', '<span></span><span class="bad">数量を入れてください</span>'); return; }
+    let bad = type === 'limit' && instantHit({coin:k, side: (mode === 'reduce') === long ? 'A' : 'B', kind:'limit'}, c.p) ? 'この指値はいまの値段をもう越えているので、すぐ約定します。成行にするか値段を見直してください。' : null;
+    const av = avail(); if (!bad && mode === 'add' && av != null && c.p * c.q / lev > av) bad = `使える余力（${money(av)}）が、必要な証拠金（${money(c.p * c.q / lev)}）より少ないので増やせません。数量を減らしてください。`;
+    confirmChange(`${label(k)} を${mode === 'reduce' ? '減らす' : '増やす'}（${type === 'limit' ? '指値 $' + fmtPx(k, c.p) : '成行'}）`, c.rows, bad, mode === 'reduce' ? '減らす' : '増やす');
+  };
+}
+// ===== 分離（アイソレーテッド）の証拠金を足す・減らす =====
+function marginEditor(k, mode){
+  const pos = posOf(k); if (!pos) return;
+  const s = +pos.szi, abs = Math.abs(s), side = Math.sign(s), mUsed = +pos.marginUsed, liq = +pos.liquidationPx, lev = +pos.leverage.value || 1;
+  const l = 1 / (2 * (M[k]?.maxLev || 20)), ntl = abs * priceOf(k);
+  const maxRemove = Math.max(0, mUsed - ntl / lev);   // 設定したレバレッジの証拠金より下には減らせない（目安）
+  const av = avail() ?? 0;
+  mode = mode || 'add';
+  const box = `<div class="seg" id="gMode"><button type="button" data-m="add" class="${mode==='add'?'sel':''}">足す（清算を遠ざける）</button><button type="button" data-m="remove" class="${mode==='remove'?'sel':''}">減らして資金に戻す</button></div>
+    <p class="note" style="margin-top:8px">いまの証拠金 ${money(mUsed)} ・ ${mode === 'add' ? `足せる上限 ${money(av)}（使える余力）` : `減らせる上限の目安 ${money(maxRemove)}`}</p>
+    <label class="f" style="margin-top:6px">金額（USDC）<input id="gAmt" class="num" inputmode="decimal"></label>
+    <div class="chips" id="gChips" style="margin-top:6px"><button type="button" data-p="25">25%</button><button type="button" data-p="50">50%</button><button type="button" data-p="100">上限まで</button></div>
+    <div class="calc" id="gCalc" style="margin-top:10px"></div>
+    <div style="margin-top:10px;display:flex;justify-content:flex-end"><button id="gGo" style="border:none;border-radius:6px;padding:8px 14px;background:var(--accent);color:#1b1404;font-weight:700">確認へ進む</button></div>`;
+  preview(`${label(k)} の証拠金（分離）`, [], box);
+  const cap = mode === 'add' ? av : maxRemove;
+  const calc = () => {
+    const a = Math.min(parseFloat($('gAmt').value) || 0, cap), d = mode === 'add' ? a : -a;
+    const nl = liq ? liq - side * d / abs / (1 - l * side) : NaN;
+    const rows = [['やること', `${money(a)} を${mode === 'add' ? '証拠金に足す' : '証拠金から減らして使える資金に戻す'}`], ['新しい証拠金', money(mUsed + d)], ['実質のレバレッジ', (ntl / (mUsed + d)).toFixed(1) + '倍'], ['清算価格', `$${fmtPx(k, liq)} → $${fmtPx(k, nl)}（目安）`]];
+    $('gCalc').innerHTML = rows.map(([x,y]) => `<span>${x}</span><span>${y}</span>`).join('');
+    return {a, nl, rows};
+  };
+  $('gMode').onclick = ev => { const b = ev.target.closest('button'); if (b && b.dataset.m !== mode) marginEditor(k, b.dataset.m); };
+  $('gAmt').oninput = calc;
+  $('gChips').onclick = ev => { const b = ev.target.closest('button'); if (!b) return; $('gAmt').value = Math.floor(cap * b.dataset.p) / 100; calc(); };
+  calc();
+  $('gGo').onclick = () => {
+    const c = calc(); if (!(c.a > 0)) { $('gCalc').insertAdjacentHTML('beforeend', '<span></span><span class="bad">金額を入れてください（上限を超えた分は上限までになります）</span>'); return; }
+    const m = priceOf(k), bad = mode === 'remove' && isFinite(c.nl) && (m - c.nl) * side < m * 0.01 ? '減らすと清算価格がいまの値段に近すぎます（1%以内）。金額を減らしてください。' : null;
+    confirmChange(`${label(k)} の証拠金を${mode === 'add' ? '足す' : '減らす'}`, c.rows, bad, mode === 'add' ? '足す' : '減らす');
+  };
+}
 function posAction(act, k){
   const p = posOf(k), m = priceOf(k);
   if (!p) return;
@@ -976,6 +1053,8 @@ function posAction(act, k){
   if (act === 'half') confirmChange(`${label(k)} の${dir}を半分決済`, [['やること', `成行で ${roundSz(k, Math.abs(s)/2)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl / 2)]], null, '半分決済する');
   if (act === 'flip') confirmChange(`${label(k)} を${dir}から${s>0?'ショート':'ロング'}へ（ドテン）`, [['やること', `成行で ${roundSz(k, Math.abs(s)*2)} ${label(k)} を${s>0?'売る':'買う'}`], ['結果', `${s>0?'ショート':'ロング'} ${Math.abs(s)} ${label(k)}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]], null, 'ドテンする');
   if (act === 'tpsl') tpslEditor(k);
+  if (act === 'size') sizeEditor(k);
+  if (act === 'margin') marginEditor(k);
 }
 function log(t){ const d = document.createElement('div'); d.textContent = t; $('log').prepend(d); }
 
@@ -1011,7 +1090,7 @@ function renderAcct(){
         return `<tr><td class="coin" data-c="${k}">${label(k)}</td><td class="${s>0?'up':'down'}">${s>0?'ロング':'ショート'}</td><td>${Math.abs(s)}</td><td>${fmtPxC(k,+p.entryPx)}</td><td>${fmtPxC(k,priceOf(k))}</td>
         <td class="${cls(u)}">${moneyS(u)} (${fmtPct(+p.returnOnEquity)})</td><td>${p.leverage.value}x ${p.leverage.type==='cross'?'クロス':'分離'}</td><td>${p.liquidationPx?fmtPxC(k,+p.liquidationPx):'—'}</td>
         <td><button class="lk up" data-act="tpsl" data-c="${k}">${t.tp?fmtPxC(k,+t.tp.triggerPx):'—'}</button> / <button class="lk down" data-act="tpsl" data-c="${k}">${t.sl?fmtPxC(k,+t.sl.triggerPx):'—'}</button></td><td>${money(+p.marginUsed)}</td>
-        <td><button data-act="close" data-c="${k}">全部決済</button><button data-act="half" data-c="${k}">半分</button><button data-act="flip" data-c="${k}">ドテン</button></td></tr>`; }).join('') + '</table>';
+        <td><button data-act="close" data-c="${k}">全部決済</button><button data-act="half" data-c="${k}">半分</button><button data-act="flip" data-c="${k}">ドテン</button><button data-act="size" data-c="${k}">増減</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${k}">証拠金</button>` : ''}</td></tr>`; }).join('') + '</table>';
   } else if (S.aTab === 'ord'){
     if (!S.orders.length){ $('aTbl').innerHTML = '<div class="empty">待っている注文はありません</div>'; return; }
     $('aTbl').innerHTML = `<table><tr><th>銘柄</th><th>向き</th><th>種類</th><th>値段</th><th>数量</th><th>出した時刻</th><th></th></tr>` +
