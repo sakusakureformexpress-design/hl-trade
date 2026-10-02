@@ -253,6 +253,7 @@ td.ja{font-family:var(--sans)}
           <button id="zIn" title="拡大">＋</button>
           <button id="zAuto" title="縦の縮尺を自動に戻す" class="sel">縦自動</button>
           <button id="zLast" title="最新の足へ戻る">最新</button>
+          <button id="maBtn" title="移動平均線（7・25・75本）の表示を切り替え">平均線</button>
           <button id="lineLock" title="押すと30秒だけ、チャートの線をドラッグで動かせるようになります">線を動かす</button>
         </div>
       </div>
@@ -332,11 +333,14 @@ td.ja{font-family:var(--sans)}
 // ===== 設定（銘柄を変えたいときはここを書き換える）=====
 const PERPS = ['BTC','ETH','XRP','HYPE','SOL','DOGE','SUI','LINK','ADA','AVAX'];
 const SPOT_TOKENS = ['HYPE','UBTC','UETH','USOL'];   // 現物（相手はすべて USDC）
-const DEFAULT_ADDR = '';   // 口座アドレスは各端末で入力して、その端末だけに覚えさせる
+const DEFAULT_ADDR = '';
 const API = 'https://api.hyperliquid.xyz/info';
 const WS_URL = 'wss://api.hyperliquid.xyz/ws';
 const FEE = {perp:{taker:0.00045, maker:0.00015}, spot:{taker:0.0007, maker:0.0004}};
 const IVS = [['1m','1分',6e4],['5m','5分',3e5],['15m','15分',9e5],['30m','30分',18e5],['1h','1時間',36e5],['4h','4時間',144e5],['8h','8時間',288e5],['1d','日足',864e5],['1w','週足',6048e5],['1M','月足',2592e6]];
+// 移動平均線：暗号資産でよく使われる 7・25・75 本（短い＝緑、中間＝青、長い＝紫）
+const MAS = [{n:7, col:'#34d399'}, {n:25, col:'#60a5fa'}, {n:75, col:'#c084fc'}];
+function maAt(a, i, n){ if (i < n - 1) return null; let s = 0; for (let j = i - n + 1; j <= i; j++) s += a[j].c; return s / n; }
 const IV_MS = Object.fromEntries(IVS.map(x => [x[0], x[2]]));
 
 const $ = id => document.getElementById(id);
@@ -352,6 +356,7 @@ const S = {
   mids:{}, candles:[], book:null,
   user: store.get('addr', DEFAULT_ADDR), acct:null, spot:null, orders:[],
   side:1, otype:'market', unit:'usd', margin:'cross', lev: store.get('lev', {}),
+  ma: store.get('ma', true),
   ccy: store.get('ccy','USD'), fx: store.get('fx', null), fxSrc: store.get('fxSrc', ''), aTab:'pos'
 };
 if (!IV_MS[S.iv]) S.iv = '15m';
@@ -599,6 +604,18 @@ const chart = (() => {
       ctx.beginPath(); ctx.moveTo(xx + .5, y(k.h)); ctx.lineTo(xx + .5, y(k.l)); ctx.stroke();
       const yo = y(k.o), yc = y(k.c); ctx.fillRect(xx - Math.floor(bodyW/2), Math.min(yo, yc), bodyW, Math.max(1, Math.abs(yc - yo)));
     }
+    if (S.ma){
+      ctx.lineWidth = 1.6; ctx.lineJoin = 'round';
+      for (const m of MAS){
+        ctx.strokeStyle = m.col; ctx.beginPath(); let on = false;
+        for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++){
+          const v = maAt(a, i, m.n); if (v == null) continue;
+          const xx = x(i), yy = y(v); on ? ctx.lineTo(xx, yy) : ctx.moveTo(xx, yy); on = true;
+        }
+        ctx.stroke();
+      }
+      ctx.lineWidth = 1;
+    }
     ctx.restore();
     // 線（建値・清算・注文・いまの値段）。線は本当の値段の高さに引き、右の札だけは重ならないよう上下にずらす。
     // 画面の外の線は上下の端に矢印付きの札だけ出す。ドラッグ中の線は指の位置に描く
@@ -649,9 +666,11 @@ const chart = (() => {
       ctx.fillStyle = C.panel; ctx.fillRect(hover.x - tw/2 - 5, H - PADB + 2, tw + 10, 17); ctx.fillStyle = C.fg; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillText(lbl, hover.x, H - PADB + 4); ctx.textAlign = 'left';
     }
     const ch = k.c / k.o - 1, f = v => `<span style="color:var(--fg)">${fmtPx(key, v)}</span>`;
-    $('legend').innerHTML = W < 560   // 幅が狭いときは1行に収める
+    const ki = a.indexOf(k);
+    const maTxt = S.ma ? '<br>' + MAS.map(m => { const v = maAt(a, ki, m.n); return `<span style="color:${m.col}">MA${m.n} ${v == null ? '—' : fmtPx(key, v)}</span>`; }).join('　') : '';
+    $('legend').innerHTML = (W < 560   // 幅が狭いときは1行に収める
       ? `${fmtTime(k.t, true)}　終 ${f(k.c)} <span class="${cls(ch)}">${fmtPct(ch)}</span>`
-      : `${fmtTime(k.t, true)}　始 ${f(k.o)} 高 ${f(k.h)} 安 ${f(k.l)} 終 ${f(k.c)} <span class="${cls(ch)}">${fmtPct(ch)}</span>`;
+      : `${fmtTime(k.t, true)}　始 ${f(k.o)} 高 ${f(k.h)} 安 ${f(k.l)} 終 ${f(k.c)} <span class="${cls(ch)}">${fmtPct(ch)}</span>`) + maTxt;
   }
   const pos = e => { const r = cv.getBoundingClientRect(); return {x: (e.clientX - r.left) / kz, y: (e.clientY - r.top) / kz}; };
   const hitLine = p => geo && lineUnlocked() ? drawn.find(d => Math.abs(d.y - p.y) <= (matchMedia('(pointer:coarse)').matches ? 14 : 7)) : null;
@@ -698,6 +717,8 @@ const chart = (() => {
   $('zOut').onclick = () => { bw = Math.max(1.5, bw / 1.3); draw(); };
   $('zAuto').onclick = () => { vman = null; $('zAuto').classList.add('sel'); draw(); };
   $('zLast').onclick = () => { off = -4; draw(); };
+  $('maBtn').classList.toggle('sel', S.ma);
+  $('maBtn').onclick = () => { S.ma = !S.ma; store.set('ma', S.ma); $('maBtn').classList.toggle('sel', S.ma); draw(); };
   return {draw, resize, reset(){ off = -4; vman = null; $('zAuto').classList.add('sel'); }, priceAt: y => geo ? yToP(y) : NaN};
 })();
 
