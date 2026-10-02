@@ -1,0 +1,1086 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>HL トレード画面</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans+JP:wght@400;600;700&display=swap">
+<style>
+/* 配置：上＝口座の要約と銘柄、中央＝大きなチャート（線を直接さわって注文を動かす）、右＝注文、下＝ポジション。
+   スマホでは縦に積み、注文ボタンは画面下に固定 */
+:root{
+  --bg:#0c1016; --panel:#131922; --panel2:#18202b; --line:#222b37; --fg:#dde4ec; --dim:#7f8b9a;
+  --up:#2fbf8a; --down:#f0616d; --accent:#e8b84a; --info:#5aa2ff; --liq:#ff9f43;
+  --sans:"IBM Plex Sans JP","Hiragino Sans","Yu Gothic UI","Meiryo",system-ui,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"Consolas",monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+body{background:var(--bg);color:var(--fg);font:13px/1.4 var(--sans);display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
+input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.up{color:var(--up)} .down{color:var(--down)} .dim{color:var(--dim)}
+
+/* 上の帯 */
+header{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+header h1{font-size:15px;margin:0;font-weight:700}
+.mode{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--accent);color:var(--accent);white-space:nowrap}
+.conn{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--down)} .dot.on{background:var(--up)}
+.kpis{display:flex;gap:18px;margin-left:auto;align-items:center;flex-wrap:wrap}
+.kpi{display:flex;flex-direction:column;line-height:1.15}
+.kpi small{font-size:10px;color:var(--dim)}
+.kpi b{font:600 15px var(--mono)}
+.ccy{display:flex;border:1px solid var(--line);border-radius:99px;overflow:hidden}
+.ccy button{background:none;border:none;padding:5px 12px;font-weight:700;color:var(--dim)}
+.ccy button.sel{background:var(--accent);color:#1b1404}
+.fx{font-size:10px;color:var(--dim);background:none;border:none;padding:0;text-decoration:underline dotted}
+.gear{background:none;border:1px solid var(--line);border-radius:6px;padding:4px 8px;color:var(--dim)}
+#acctBar{display:flex;gap:8px;align-items:center;padding:6px 14px;border-bottom:1px solid var(--line);font-size:12px;flex-wrap:wrap}
+#acctBar input{width:360px;max-width:100%;font-family:var(--mono);font-size:12px}
+
+/* 銘柄の帯 */
+#strip{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}
+.mkt{display:flex;flex-direction:column;justify-content:center;gap:2px;padding:4px 8px;border-right:1px solid var(--line)}
+.mkt button{background:none;border:1px solid var(--line);border-radius:5px;padding:3px 10px;font-size:12px;color:var(--dim);white-space:nowrap}
+.mkt button.sel{color:var(--fg);border-color:var(--accent);background:var(--panel)}
+#coins{display:flex;gap:2px;padding:4px 8px;overflow-x:auto;flex:1;scrollbar-width:thin}
+#coins button{background:none;border:1px solid transparent;border-radius:7px;padding:5px 10px;text-align:left;min-width:100px;flex:0 0 auto}
+#coins button:hover{background:var(--panel)}
+#coins button.sel{background:var(--panel);border-color:var(--accent)}
+#coins .n{font-weight:700;display:flex;justify-content:space-between;gap:6px}
+#coins .k{font-size:10px;color:var(--dim);font-weight:400}
+#coins .p{font-family:var(--mono);font-size:12px}
+#coins .c{font-family:var(--mono);font-size:11px}
+
+main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 230px 330px;grid-template-rows:minmax(0,1fr) 250px;min-height:0}
+section{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;min-height:0;display:flex;flex-direction:column}
+.hd{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:12px;color:var(--dim);flex-wrap:wrap}
+.hd b{color:var(--fg);font-size:14px}
+#chartBox{grid-column:1;grid-row:1}
+#bookBox{grid-column:2;grid-row:1}
+#ticket{grid-column:3;grid-row:1 / span 2;overflow-y:auto}
+#bottom{grid-column:1 / span 2;grid-row:2}
+
+/* チャート */
+.tools{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-left:auto}
+.ivs{display:flex;gap:2px;flex-wrap:wrap}
+.ivs button,.zoom button{background:none;border:1px solid var(--line);border-radius:5px;padding:2px 7px;font-size:12px;color:var(--dim);min-width:30px}
+.ivs button.sel{color:#1b1404;background:var(--accent);border-color:var(--accent)}
+.zoom{display:flex;gap:2px}
+.zoom button.sel{color:var(--accent);border-color:var(--accent)}
+#chartWrap{flex:1;position:relative;min-height:0}
+#chart{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
+#legend{position:absolute;left:10px;top:6px;font:12px var(--mono);pointer-events:none;color:var(--dim)}
+#hint{position:absolute;left:10px;bottom:28px;font-size:11px;color:var(--dim);pointer-events:none;opacity:.8}
+#menu{position:absolute;z-index:5;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px;display:flex;flex-direction:column;min-width:200px;box-shadow:0 8px 24px #0008}
+#menu .mh{font:12px var(--mono);color:var(--dim);padding:5px 10px 3px}
+#menu button{background:none;border:none;text-align:left;padding:8px 10px;border-radius:5px;font-size:13px}
+#menu button:hover{background:var(--panel)}
+
+/* 板 */
+#book{flex:1;overflow:hidden;font-size:12px;display:flex;flex-direction:column}
+.brow{display:grid;grid-template-columns:1.1fr 1fr 1fr;padding:1px 10px;position:relative;cursor:pointer}
+.brow:hover{background:var(--panel2)}
+.brow span{position:relative;z-index:1;text-align:right}
+.brow span:first-child{text-align:left}
+.brow i{position:absolute;right:0;top:0;bottom:0;opacity:.16}
+.ask i{background:var(--down)} .bid i{background:var(--up)}
+.bhead{color:var(--dim);font-size:11px;cursor:default} .bhead:hover{background:none}
+.spread{padding:4px 10px;border-block:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono)}
+.spread b{font-size:15px}
+#asks,#bids{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#asks{justify-content:flex-end}
+
+/* 注文 */
+.op{padding:10px 12px;display:flex;flex-direction:column;gap:11px}
+.side{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border-radius:8px;padding:3px;border:1px solid var(--line)}
+.side button{border:none;border-radius:6px;padding:9px 4px;font-weight:700;background:none;color:var(--dim)}
+.side button.selL{background:var(--up);color:#04140d}
+.side button.selS{background:var(--down);color:#1a0508}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:4px}
+.seg button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 4px;font-size:12px;color:var(--dim)}
+.seg button.sel{color:var(--fg);border-color:var(--accent);background:var(--panel)}
+label.f,.f{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(--dim)}
+.row{display:flex;gap:6px;align-items:center}
+.row input{flex:1}
+.unit{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:7px 9px;font-size:12px;min-width:58px}
+.chips{display:flex;gap:4px;flex-wrap:wrap}
+.chips button{border:1px solid var(--line);background:none;border-radius:5px;padding:3px 8px;font-size:11px;color:var(--dim)}
+.chips button.sel{color:var(--accent);border-color:var(--accent)}
+.chips button:hover{color:var(--fg)}
+input[type=range]{padding:0;border:none;background:none;accent-color:var(--accent);width:100%}
+.levBtn{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 10px}
+.levBtn b{font:600 15px var(--mono);color:var(--accent)}
+#levPanel{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:8px;padding:8px}
+.toggle{display:flex;align-items:center;gap:8px;color:var(--fg);font-size:12px;cursor:pointer}
+.toggle input{width:16px;height:16px;accent-color:var(--accent)}
+.tpsl{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tpsl .f span.pv{font:11px var(--mono)}
+.tpsl .chips{gap:3px} .tpsl .chips button{padding:3px 5px}
+.calc{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;font-size:12px;background:var(--panel);border-radius:8px;padding:8px 10px}
+.calc span:nth-child(even){text-align:right;font-family:var(--mono)}
+.calc span:nth-child(odd){color:var(--dim)}
+.bad{color:var(--down)!important}
+#submit{border:none;border-radius:8px;padding:13px 6px;font-weight:700;font-size:15px;width:100%}
+#submit.L{background:var(--up);color:#04140d} #submit.S{background:var(--down);color:#1a0508}
+#submit small{display:block;font-weight:400;font-size:11px;opacity:.85}
+.note{font-size:11px;color:var(--dim);margin:0}
+#log{font-size:11px;font-family:var(--mono);color:var(--dim);display:flex;flex-direction:column;gap:2px;max-height:110px;overflow-y:auto}
+/* いま持っているポジションのカード */
+#posCard{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:7px;background:var(--panel)}
+#posCard .t{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+#posCard .t b{font-size:13px}
+#posCard .pnl{font:600 16px var(--mono)}
+#posCard .s{font-size:11px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap}
+.acts3{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:4px}
+.acts3 button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 2px;font-size:12px}
+.acts3 button:hover{border-color:var(--accent)}
+.acts3 .x{border-color:var(--accent);color:var(--accent)}
+
+/* 下：ポジション・注文 */
+.tabs{display:flex;gap:2px}
+.tabs button{background:none;border:none;border-bottom:2px solid transparent;padding:4px 8px;color:var(--dim);font-size:12px}
+.tabs button.sel{color:var(--fg);border-color:var(--accent)}
+.tbl{flex:1;overflow:auto}
+table{border-collapse:collapse;width:100%;font-size:12px;white-space:nowrap}
+th{position:sticky;top:0;background:var(--bg);color:var(--dim);font-weight:400;text-align:right;padding:5px 10px;border-bottom:1px solid var(--line)}
+td{padding:6px 10px;text-align:right;border-bottom:1px solid #1a212b;font-family:var(--mono)}
+th:first-child,td:first-child{text-align:left}
+td.coin{font-family:var(--sans);font-weight:700;cursor:pointer;text-decoration:underline dotted var(--dim)}
+td button{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:3px 9px;font:12px var(--sans);margin-left:4px}
+td button:hover{border-color:var(--accent)}
+td .lk{background:none;border:none;padding:0;margin:0;font:12px var(--mono);text-decoration:underline dotted}
+.empty{padding:20px;color:var(--dim);text-align:center;font-family:var(--sans)}
+#hTools{display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap}
+#bigBtn{background:none;border:1px solid var(--line);border-radius:5px;padding:2px 8px;font-size:12px;color:var(--dim)}
+main.big{grid-template-rows:minmax(0,1fr) 62vh}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;padding:10px}
+.card{background:var(--panel);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column;gap:2px}
+.card small{font-size:11px;color:var(--dim)}
+.card b{font:600 16px var(--mono)}
+.card.main b{font-size:20px}
+.card span{font-size:11px;color:var(--dim);font-family:var(--mono)}
+.sub{padding:4px 10px;font-size:12px;color:var(--dim);font-weight:700}
+.bar{display:inline-block;height:8px;border-radius:2px;vertical-align:middle;margin-left:6px}
+td.ja{font-family:var(--sans)}
+
+/* 確認の窓 */
+#modal{position:fixed;inset:0;background:#000a;display:flex;align-items:center;justify-content:center;z-index:9;padding:16px}
+#modal .box{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px 20px;width:min(400px,100%);display:flex;flex-direction:column;gap:12px;max-height:90vh;overflow:auto}
+#modal h2{margin:0;font-size:16px}
+#modal .warn{border:1px solid var(--accent);color:var(--accent);border-radius:6px;padding:8px 10px;font-size:12px}
+#modal .acts{display:flex;gap:8px;justify-content:flex-end}
+#modal .acts button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:8px 16px}
+
+@media (max-width:1180px){
+  body{height:auto}
+  main{grid-template-columns:minmax(0,1fr) 330px;grid-template-rows:470px 330px 300px}
+  #chartBox{grid-column:1 / span 2;grid-row:1}
+  #bookBox{grid-column:1;grid-row:2}
+  #ticket{grid-column:2;grid-row:2 / span 2}
+  #bottom{grid-column:1;grid-row:3}
+}
+@media (max-width:1180px){ main.big{grid-template-rows:470px 330px 640px} }
+@media (max-width:720px){
+  main{display:flex;flex-direction:column}
+  main.big #bottom .tbl{max-height:none}
+  #chartBox{height:58vh;min-height:340px;flex:0 0 auto}
+  #bookBox{display:none}
+  #bottom{flex:0 0 auto}
+  #bottom .tbl{max-height:320px}
+  .kpis{margin-left:0;width:100%;justify-content:space-between}
+  #ticket{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));overflow:visible}
+  #submitWrap{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
+  #hint{display:none}
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>HL トレード画面</h1>
+  <span class="mode" title="注文ボタンを押しても、内容を表示するだけで取引所へは送りません">見本モード（注文は送られません）</span>
+  <span class="conn"><span class="dot" id="dot"></span><span id="connTxt">接続中…</span></span>
+  <div class="kpis">
+    <div class="kpi"><small>口座残高</small><b id="kEq">—</b></div>
+    <div class="kpi"><small>含み損益</small><b id="kPnl">—</b></div>
+    <div class="kpi"><small>使える余力</small><b id="kAv">—</b></div>
+    <div class="kpi" style="align-items:center;gap:2px">
+      <div class="ccy" id="ccy"><button data-v="USD">$ ドル</button><button data-v="JPY">¥ 円</button></div>
+      <button class="fx" id="fxBtn" title="押すと為替レートを自分で入れられます">1ドル = —円</button>
+    </div>
+    <button class="gear" id="gear" title="口座アドレスを変える">口座</button>
+  </div>
+</header>
+<div id="acctBar" hidden><span class="dim">口座アドレス（公開情報。秘密鍵ではありません）</span><input id="addr" spellcheck="false" placeholder="0x…"></div>
+
+<div id="strip">
+  <div class="mkt" id="mkt"><button data-v="perp">先物（レバレッジ）</button><button data-v="spot">現物</button></div>
+  <nav id="coins" aria-label="銘柄"></nav>
+</div>
+
+<main>
+  <section id="chartBox">
+    <div class="hd">
+      <b id="cName">—</b>
+      <span class="num" id="cMark" style="color:var(--fg);font-size:14px"></span>
+      <span>24h <span class="num" id="cChg"></span></span>
+      <span id="cFundW">資金調達率 <span class="num" id="cFund"></span><span class="dim">/時</span></span>
+      <div class="tools">
+        <div class="ivs" id="ivs"></div>
+        <div class="zoom">
+          <button id="zOut" title="縮小（たくさんの足を表示）">−</button>
+          <button id="zIn" title="拡大">＋</button>
+          <button id="zAuto" title="縦の縮尺を自動に戻す" class="sel">縦自動</button>
+          <button id="zLast" title="最新の足へ戻る">最新</button>
+        </div>
+      </div>
+    </div>
+    <div id="chartWrap">
+      <canvas id="chart"></canvas><div id="legend"></div>
+      <div id="hint">線はドラッグで動かせます ・ 長押し（右クリック）でその値段に注文 ・ 右の目盛りを上下にドラッグで縦の縮尺</div>
+      <div id="menu" hidden></div>
+    </div>
+  </section>
+
+  <section id="bookBox">
+    <div class="hd"><b>板</b><span class="dim">押すと指値に</span></div>
+    <div id="book">
+      <div class="brow bhead"><span>価格($)</span><span>数量</span><span>累計</span></div>
+      <div id="asks"></div>
+      <div class="spread"><b class="num" id="bMid">—</b><span class="dim" id="bSpr"></span></div>
+      <div id="bids"></div>
+    </div>
+  </section>
+
+  <section id="ticket">
+    <div class="hd"><b>注文</b><span id="tCoin"></span></div>
+    <div class="op">
+      <div id="posCard" hidden></div>
+      <div class="side" id="side"><button data-v="1">ロング</button><button data-v="-1">ショート</button></div>
+      <div class="seg" id="oType"></div>
+      <label class="f" id="pxField" hidden><span id="pxLbl">指値の価格（ドル）</span>
+        <div class="row"><input id="px" class="num" inputmode="decimal"><button class="unit" id="pxMid" type="button">いまの値段</button></div>
+      </label>
+      <div class="f">
+        <span id="szLbl">注文額</span>
+        <div class="row"><input id="sz" class="num" inputmode="decimal" value="100"><button class="unit" id="unit" type="button">USD</button></div>
+        <input type="range" id="szPct" min="0" max="100" step="1" value="0" aria-label="余力に対する割合">
+        <div class="chips" id="pct"><button data-p="10">10%</button><button data-p="25">25%</button><button data-p="50">50%</button><button data-p="75">75%</button><button data-p="100">全力</button></div>
+      </div>
+      <div id="levWrap" class="f">
+        <span>レバレッジと担保の方式</span>
+        <button class="levBtn" id="levBtn" type="button"><span id="levMode">クロス</span><b id="levV">5x</b></button>
+        <div id="levPanel" hidden>
+          <input type="range" id="lev" min="1" max="40" value="5" aria-label="レバレッジ">
+          <div class="chips" id="levChips"></div>
+          <div class="seg" id="mMode"><button data-v="cross">クロス（口座全体）</button><button data-v="isolated">分離（この建玉だけ）</button></div>
+        </div>
+      </div>
+      <div id="tpslWrap" class="f">
+        <label class="toggle"><input type="checkbox" id="tpslOn"> 利確と損切りも一緒に入れる</label>
+        <div class="tpsl" id="tpslBox" hidden>
+          <label class="f">利確（ドル）<input id="tp" class="num" inputmode="decimal"><div class="chips" data-for="tp"><button data-p="1">+1%</button><button data-p="2">+2%</button><button data-p="5">+5%</button></div><span class="pv up" id="tpPv"></span></label>
+          <label class="f">損切り（ドル）<input id="sl" class="num" inputmode="decimal"><div class="chips" data-for="sl"><button data-p="1">−1%</button><button data-p="2">−2%</button><button data-p="5">−5%</button></div><span class="pv down" id="slPv"></span></label>
+        </div>
+      </div>
+      <div class="calc" id="calc"></div>
+      <div id="submitWrap"><button id="submit" class="L">ロング</button></div>
+      <p class="note">見本モード：ボタンを押すと、送るはずの注文の中身を表示するだけです。チャートの線も、離すと確認が出て元の位置に戻ります。</p>
+      <div id="log"></div>
+    </div>
+  </section>
+
+  <section id="bottom">
+    <div class="hd">
+      <div class="tabs" id="aTabs"><button data-v="pos">ポジション</button><button data-v="ord">待ち注文</button><button data-v="bal">現物の残高</button><button data-v="fills">約定履歴</button><button data-v="hist">注文履歴</button><button data-v="sum">集計</button></div>
+      <div id="hTools"><div class="chips" id="period"></div><button id="bigBtn" type="button">広げる</button></div>
+    </div>
+    <div class="tbl" id="aTbl"></div>
+  </section>
+</main>
+
+<div id="modal" hidden><div class="box">
+  <h2 id="mTitle"></h2>
+  <div id="mExtra"></div>
+  <div class="calc" id="mBody"></div>
+  <div class="warn">見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。</div>
+  <div class="acts"><button id="mClose">閉じる</button></div>
+</div></div>
+
+<script>
+'use strict';
+// ===== 設定（銘柄を変えたいときはここを書き換える）=====
+const PERPS = ['BTC','ETH','XRP','HYPE','SOL','DOGE','SUI','LINK','ADA','AVAX'];
+const SPOT_TOKENS = ['HYPE','UBTC','UETH','USOL'];   // 現物（相手はすべて USDC）
+const DEFAULT_ADDR = '';   // 口座アドレスは各端末で入力して、その端末だけに覚えさせる
+const API = 'https://api.hyperliquid.xyz/info';
+const WS_URL = 'wss://api.hyperliquid.xyz/ws';
+const FEE = {perp:{taker:0.00045, maker:0.00015}, spot:{taker:0.0007, maker:0.0004}};
+const IVS = [['1m','1分',6e4],['5m','5分',3e5],['15m','15分',9e5],['30m','30分',18e5],['1h','1時間',36e5],['4h','4時間',144e5],['8h','8時間',288e5],['1d','日足',864e5],['1w','週足',6048e5],['1M','月足',2592e6]];
+const IV_MS = Object.fromEntries(IVS.map(x => [x[0], x[2]]));
+
+const $ = id => document.getElementById(id);
+const store = {
+  get(k, d){ try { const v = localStorage.getItem('hlts.'+k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v){ try { localStorage.setItem('hlts.'+k, JSON.stringify(v)); } catch {} }
+};
+
+const M = {};               // 銘柄の情報。キーは先物なら "BTC"、現物なら "@107" のような取引所の呼び名
+const SPOT_KEYS = [];
+const S = {
+  mkt: store.get('mkt','perp'), sel: store.get('sel', {perp:'BTC', spot:null}), iv: store.get('iv','15m'),
+  mids:{}, candles:[], book:null,
+  user: store.get('addr', DEFAULT_ADDR), acct:null, spot:null, orders:[],
+  side:1, otype:'market', unit:'usd', margin:'cross', lev: store.get('lev', {}),
+  ccy: store.get('ccy','USD'), fx: store.get('fx', null), fxSrc: store.get('fxSrc', ''), aTab:'pos'
+};
+if (!IV_MS[S.iv]) S.iv = '15m';
+if (S.mkt !== 'perp' && S.mkt !== 'spot') S.mkt = 'perp';
+const curKey = () => S.sel[S.mkt];
+const cur = () => M[curKey()];
+const isPerp = () => S.mkt === 'perp';
+
+// ===== 数字の表示 =====
+function maxDec(key){ const m = M[key]; return m ? (m.kind === 'perp' ? 6 : 8) - m.szD : 4; }
+function pxDec(key, p){
+  const a = Math.abs(p), ip = a >= 1 ? Math.floor(Math.log10(a)) + 1 : 0;
+  let d = Math.max(0, 5 - ip); if (a < 1) d = Math.max(d, 4);
+  return Math.min(d, maxDec(key));
+}
+const nf = (v, d) => Number(v).toLocaleString('en-US', {minimumFractionDigits:d, maximumFractionDigits:d});
+const fmtPx = (key, p) => p == null || !isFinite(p) ? '—' : nf(p, pxDec(key, p));          // 取引所の値段（常にドル）
+function fmtPxC(key, p){                                                                    // 表示通貨での値段
+  if (p == null || !isFinite(p)) return '—';
+  if (S.ccy === 'JPY' && S.fx){ const y = p * S.fx, ip = y >= 1 ? Math.floor(Math.log10(y)) + 1 : 0; return '¥' + nf(y, Math.max(0, Math.min(3, 5 - ip))); }
+  return '$' + fmtPx(key, p);
+}
+function money(v, d){
+  if (v == null || !isFinite(v)) return '—';
+  if (S.ccy === 'JPY' && S.fx) return (v < 0 ? '−' : '') + '¥' + nf(Math.abs(v * S.fx), Math.abs(v * S.fx) < 10 ? 1 : 0);
+  return (v < 0 ? '−' : '') + '$' + nf(Math.abs(v), d ?? 2);
+}
+const moneyS = (v, d) => v == null || !isFinite(v) ? '—' : (v >= 0 ? '+' : '') + money(v, d);
+const fmtPct = v => v == null || !isFinite(v) ? '—' : (v >= 0 ? '+' : '') + (v*100).toFixed(2) + '%';
+const cls = v => v > 0 ? 'up' : v < 0 ? 'down' : '';
+// 取引所の決まり：価格は有効数字5桁まで・小数は (先物6/現物8 − 数量の小数桁) まで
+function roundPx(key, p){ if (!isFinite(p) || p <= 0) return NaN; return Number(Number(p.toPrecision(5)).toFixed(maxDec(key))); }
+function roundSz(key, sz){ const d = M[key] ? M[key].szD : 2, f = 10 ** d; return Math.floor(sz * f + 1e-9) / f; }
+const label = key => M[key]?.label ?? key;
+
+// ===== 通信 =====
+async function info(body, tries=3){
+  for (let i = 0; i < tries; i++){
+    try {
+      const r = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      if (r.status === 429){ await new Promise(s => setTimeout(s, 600 * (i+1))); continue; }
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      return await r.json();
+    } catch (e){ if (i === tries-1) throw e; await new Promise(s => setTimeout(s, 500)); }
+  }
+}
+let ws = null, wsTimer = null; const wsSubs = new Map();
+function subscribe(sub){ wsSubs.set(JSON.stringify(sub), sub); if (ws && ws.readyState === 1) ws.send(JSON.stringify({method:'subscribe', subscription:sub})); }
+function unsubscribe(sub){ const k = JSON.stringify(sub); if (!wsSubs.has(k)) return; wsSubs.delete(k); if (ws && ws.readyState === 1) ws.send(JSON.stringify({method:'unsubscribe', subscription:sub})); }
+function setConn(on, txt){ $('dot').classList.toggle('on', on); $('connTxt').textContent = txt; }
+function connect(){
+  ws = new WebSocket(WS_URL);
+  ws.onopen = () => {
+    setConn(true, 'リアルタイム');
+    for (const sub of wsSubs.values()) ws.send(JSON.stringify({method:'subscribe', subscription:sub}));
+    clearInterval(wsTimer); wsTimer = setInterval(() => ws.readyState === 1 && ws.send('{"method":"ping"}'), 30000);
+  };
+  ws.onclose = () => { setConn(false, '切れました。つなぎ直しています…'); clearInterval(wsTimer); setTimeout(connect, 2000); };
+  ws.onerror = () => ws.close();
+  ws.onmessage = ev => {
+    let m; try { m = JSON.parse(ev.data); } catch { return; }
+    if (m.channel === 'allMids'){ const d = m.data.mids; for (const k in M) if (d[k] != null) S.mids[k] = +d[k]; schedule(); }
+    else if (m.channel === 'candle') onCandle(m.data);
+    else if (m.channel === 'l2Book'){ if (m.data.coin === curKey()){ S.book = m.data; schedule(); } }
+  };
+}
+
+// ===== 画面の更新をまとめて行う =====
+let dirty = false;
+function schedule(){ if (!dirty){ dirty = true; requestAnimationFrame(() => { dirty = false; renderAll(); }); } }
+function renderAll(){ renderCoins(); renderHead(); renderBook(); renderTicket(); renderKpis(); chart.draw(); }
+const priceOf = key => S.mids[key] ?? M[key]?.mark;
+
+// ===== 円とドル =====
+function renderCcy(){ [...$('ccy').children].forEach(b => b.classList.toggle('sel', b.dataset.v === S.ccy)); $('fxBtn').textContent = S.fx ? `1ドル = ${S.fx.toFixed(2)}円${S.fxSrc === 'manual' ? '（手入力）' : ''}` : '為替レート未取得'; }
+$('ccy').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.v === 'JPY' && !S.fx){ askFx(); if (!S.fx) return; } S.ccy = b.dataset.v; store.set('ccy', S.ccy); renderCcy(); renderAcct(); schedule(); };
+function askFx(){ const v = parseFloat(prompt('1ドルは何円ですか？（例 148.5）空のまま OK で自動取得に戻します', S.fx || ''));
+  if (v > 50 && v < 500){ S.fx = v; S.fxSrc = 'manual'; } else { S.fxSrc = ''; loadFx(); }
+  store.set('fx', S.fx); store.set('fxSrc', S.fxSrc); renderCcy(); renderAcct(); schedule(); }
+$('fxBtn').onclick = askFx;
+async function loadFx(){
+  if (S.fxSrc === 'manual') return;
+  const srcs = [['https://api.frankfurter.app/latest?from=USD&to=JPY', j => j.rates.JPY], ['https://open.er-api.com/v6/latest/USD', j => j.rates.JPY]];
+  for (const [u, pick] of srcs){
+    try { const r = await fetch(u); const v = pick(await r.json()); if (v > 50){ S.fx = v; S.fxSrc = 'auto'; store.set('fx', v); store.set('fxSrc', 'auto'); renderCcy(); renderAcct(); schedule(); return; } } catch {}
+  }
+}
+
+// ===== 銘柄の帯・先物と現物 =====
+function buildCoins(){
+  const keys = isPerp() ? PERPS.filter(k => M[k]) : SPOT_KEYS;
+  $('coins').innerHTML = keys.map((k,i) => `<button data-c="${k}"><div class="n">${label(k)}<span class="k">${i < 10 ? (i+1)%10 : ''}</span></div><div class="p" id="p_${k}">—</div><div class="c" id="g_${k}">—</div></button>`).join('');
+  [...$('mkt').children].forEach(b => b.classList.toggle('sel', b.dataset.v === S.mkt));
+}
+$('coins').onclick = e => { const b = e.target.closest('button'); if (b) selectCoin(b.dataset.c); };
+function setMkt(v){ if (v === S.mkt) return; S.mkt = v; store.set('mkt', v); buildCoins(); buildOType(); }
+$('mkt').onclick = e => { const b = e.target.closest('button'); if (!b || b.dataset.v === S.mkt) return; setMkt(b.dataset.v); selectCoin(curKey()); };
+function renderCoins(){
+  for (const b of $('coins').children){
+    const k = b.dataset.c, p = priceOf(k), prev = M[k]?.prev, ch = prev ? p/prev - 1 : null;
+    $('p_'+k).textContent = fmtPxC(k, p);
+    const g = $('g_'+k); g.textContent = fmtPct(ch); g.className = 'c ' + cls(ch);
+    b.classList.toggle('sel', k === curKey());
+  }
+}
+function renderHead(){
+  const k = curKey(), m = cur(), p = priceOf(k); if (!m) return;
+  $('cName').textContent = label(k) + (m.kind === 'perp' ? '' : ' / USDC'); $('tCoin').textContent = label(k) + (m.kind === 'perp' ? '（先物）' : '（現物）');
+  $('cMark').textContent = fmtPxC(k, p);
+  const ch = m.prev ? p / m.prev - 1 : null; $('cChg').textContent = fmtPct(ch); $('cChg').className = 'num ' + cls(ch);
+  $('cFundW').hidden = m.kind !== 'perp'; $('cFund').textContent = m.funding != null ? (m.funding*100).toFixed(4) + '%' : '—';
+  document.title = `${fmtPx(k,p)} ${label(k)} | HL トレード画面`;
+}
+
+// ===== 銘柄・時間足の切り替え =====
+let candleSub = null, bookSub = null, candleReq = 0;
+function selectCoin(k){
+  if (!M[k]) k = isPerp() ? PERPS.find(x => M[x]) : SPOT_KEYS[0];
+  if (!k) return;
+  S.sel[S.mkt] = k; store.set('sel', S.sel);
+  if (bookSub) unsubscribe(bookSub); bookSub = {type:'l2Book', coin:k}; subscribe(bookSub);
+  S.book = null; $('px').value = ''; $('tp').value = ''; $('sl').value = ''; hideMenu();
+  if (S.otype !== 'market') $('px').value = roundPx(k, priceOf(k)) || '';
+  syncLev(); buildCoins(); loadCandles(); renderAcct(); schedule();
+}
+async function loadCandles(){
+  const req = ++candleReq, k = curKey(), iv = S.iv, ms = IV_MS[iv];
+  if (candleSub) unsubscribe(candleSub); candleSub = {type:'candle', coin:k, interval:iv}; subscribe(candleSub);
+  S.candles = []; chart.reset(); chart.draw();
+  const end = Date.now(), start = end - ms * 500;
+  try {
+    const d = await info({type:'candleSnapshot', req:{coin:k, interval:iv, startTime:start, endTime:end}});
+    if (req !== candleReq) return;
+    S.candles = d.map(c => ({t:c.t, o:+c.o, h:+c.h, l:+c.l, c:+c.c, v:+c.v}));
+    chart.draw();
+  } catch (e){ log('チャートを取れませんでした: ' + e.message); }
+}
+function onCandle(c){
+  if (c.s !== curKey() || c.i !== S.iv) return;
+  const bar = {t:c.t, o:+c.o, h:+c.h, l:+c.l, c:+c.c, v:+c.v}, a = S.candles, last = a[a.length-1];
+  if (last && last.t === bar.t) a[a.length-1] = bar; else if (!last || bar.t > last.t) a.push(bar);
+  schedule();
+}
+$('ivs').innerHTML = IVS.map(([k,l]) => `<button data-v="${k}">${l}</button>`).join('');
+function markIv(){ [...$('ivs').children].forEach(x => x.classList.toggle('sel', x.dataset.v === S.iv)); }
+$('ivs').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.iv = b.dataset.v; store.set('iv', S.iv); markIv(); loadCandles(); };
+markIv();
+
+// ===== 注文・ポジションの「線」をまとめる（チャートに描き、ドラッグで動かす）=====
+function orderKind(o){
+  const t = o.orderType || '';
+  if (/Take Profit/i.test(t)) return 'tp';
+  if (/Stop/i.test(t)) return o.reduceOnly ? 'sl' : 'stop';
+  return 'limit';
+}
+const KIND_JA = {tp:'利確', sl:'損切り', stop:'逆指値', limit:'指値'};
+function posOf(k){ const p = S.acct?.assetPositions?.find(a => a.position.coin === k); return p && +p.position.szi !== 0 ? p.position : null; }
+function pnlAt(pos, p){ return (p - +pos.entryPx) * +pos.szi; }
+function chartLines(){
+  const k = curKey(), L = [], pos = isPerp() ? posOf(k) : null;
+  if (pos){
+    L.push({id:'entry', p:+pos.entryPx, col:'--info', txt:'建値 ' + (+pos.szi > 0 ? 'ロング' : 'ショート'), dash:[6,4]});
+    if (pos.liquidationPx) L.push({id:'liq', p:+pos.liquidationPx, col:'--liq', txt:'清算', dash:[2,3]});
+  }
+  for (const o of S.orders.filter(o => o.coin === k)){
+    const kind = orderKind(o), p = o.isTrigger ? +o.triggerPx : +o.limitPx;
+    const col = kind === 'tp' ? '--up' : kind === 'sl' ? '--down' : '--dim';
+    L.push({id:'o' + o.oid, p, col, dash:[5,3], drag:true, txt:(o.side === 'B' ? '買い' : '売り') + KIND_JA[kind], pnl: pos && (kind === 'tp' || kind === 'sl') ? x => pnlAt(pos, x) : null,
+      drop: np => modifyPreview(o, kind, p, np)});
+  }
+  if (S.otype !== 'market'){ const p = parseFloat($('px').value); if (p > 0) L.push({id:'npx', p, col:'--fg', dash:[4,4], drag:true, txt:'新規 ' + (S.otype === 'stop' ? '逆指値' : '指値'), drop: np => { $('px').value = roundPx(k, np); schedule(); }}); }
+  if (isPerp() && $('tpslOn').checked){
+    const e = entryPx(), sz = orderCalc().sz * S.side;
+    for (const [id, col, t] of [['tp','--up','新規 利確'], ['sl','--down','新規 損切り']]){
+      const p = parseFloat($(id).value); if (p > 0) L.push({id:'n' + id, p, col, dash:[4,4], drag:true, txt:t, pnl: x => (x - e) * sz, drop: np => { $(id).value = roundPx(k, np); schedule(); }});
+    }
+  }
+  return L;
+}
+
+// ===== チャート（ライブラリなしで描く）=====
+const chart = (() => {
+  const cv = $('chart'), ctx = cv.getContext('2d');
+  let bw = 8, off = -4, W = 0, H = 0, hover = null, act = null, vman = null, geo = null, drawn = [];
+  const ptrs = new Map(); let pinch = null, lpTimer = null;
+  const PADR = 82, PADB = 22, TOP = 26;
+  const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  function resize(){ const r = cv.getBoundingClientRect(), dpr = window.devicePixelRatio || 1; W = r.width; H = r.height; cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); ctx.setTransform(dpr,0,0,dpr,0,0); draw(); }
+  function niceStep(raw){ const p = 10 ** Math.floor(Math.log10(raw)); const f = raw / p; return (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p; }
+  function fmtTime(t, full){
+    const d = new Date(t), p = n => String(n).padStart(2,'0');
+    if (S.iv === '1M') return `${d.getFullYear()}/${d.getMonth()+1}`;
+    if (S.iv === '1d' || S.iv === '1w') return full ? `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()}` : `${d.getMonth()+1}/${d.getDate()}`;
+    return full ? `${d.getMonth()+1}/${d.getDate()} ${p(d.getHours())}:${p(d.getMinutes())}` : `${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+  const yToP = y => geo.hi - (y - TOP) / geo.priceH * (geo.hi - geo.lo);
+  function draw(){
+    if (!W) return;
+    const C = {bg:css('--bg'), line:css('--line'), dim:css('--dim'), fg:css('--fg'), up:css('--up'), down:css('--down'), panel:css('--panel2')};
+    const MONO = '11px ' + css('--mono'), SANS = '11px ' + css('--sans');
+    ctx.clearRect(0,0,W,H); ctx.fillStyle = C.bg; ctx.fillRect(0,0,W,H);
+    const a = S.candles, key = curKey(), n = a.length; drawn = [];
+    if (!n){ geo = null; ctx.fillStyle = C.dim; ctx.font = '13px sans-serif'; ctx.fillText('チャートを読み込んでいます…', 16, 46); $('legend').textContent = ''; return; }
+    const plotW = W - PADR, priceH = (H - PADB - TOP) * 0.8, volTop = TOP + priceH + 6, volH = H - PADB - volTop;
+    const last = n - 1 - off, x = i => plotW - (last - i + 0.5) * bw;
+    const i0 = Math.max(0, Math.ceil(last - plotW / bw)), i1 = Math.min(n - 1, Math.floor(last));
+    let lo = Infinity, hi = -Infinity, vmax = 0;
+    for (let i = i0; i <= i1; i++){ lo = Math.min(lo, a[i].l); hi = Math.max(hi, a[i].h); vmax = Math.max(vmax, a[i].v); }
+    if (!isFinite(lo)){ lo = a[n-1].l; hi = a[n-1].h; }
+    if (vman){ lo = vman.lo; hi = vman.hi; } else { const pad = (hi - lo) * 0.08 || hi * 0.001; lo -= pad; hi += pad; }
+    geo = {plotW, priceH, lo, hi};
+    const y = p => TOP + (hi - p) / (hi - lo) * priceH;
+    // 目盛り
+    ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.fillStyle = C.dim;
+    const step = niceStep((hi - lo) / Math.max(3, priceH / 60));
+    for (let p = Math.ceil(lo / step) * step; p <= hi; p += step){ const yy = Math.round(y(p)) + .5; ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); ctx.fillText(fmtPx(key, p), plotW + 6, yy); }
+    const tStep = Math.max(1, Math.ceil(110 / bw)); ctx.textBaseline = 'top'; ctx.textAlign = 'center'; let prevDay = null;
+    for (let i = i0; i <= i1; i++){
+      if (i % tStep) continue;
+      const xx = Math.round(x(i)) + .5; ctx.beginPath(); ctx.moveTo(xx, TOP); ctx.lineTo(xx, H - PADB); ctx.stroke();
+      const day = new Date(a[i].t).getDate(); ctx.fillText(fmtTime(a[i].t, prevDay !== null && day !== prevDay && !['1d','1w','1M'].includes(S.iv)), xx, H - PADB + 5); prevDay = day;
+    }
+    ctx.textAlign = 'left';
+    // ローソク足と出来高
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, plotW, H); ctx.clip();
+    const bodyW = Math.max(1, Math.floor(bw * 0.7));
+    for (let i = i0; i <= i1; i++){
+      const k = a[i], col = k.c >= k.o ? C.up : C.down, xx = Math.round(x(i));
+      ctx.fillStyle = col; ctx.strokeStyle = col;
+      ctx.globalAlpha = .35; const vh = vmax ? k.v / vmax * volH : 0; ctx.fillRect(xx - bodyW/2, volTop + volH - vh, bodyW, vh); ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.moveTo(xx + .5, y(k.h)); ctx.lineTo(xx + .5, y(k.l)); ctx.stroke();
+      const yo = y(k.o), yc = y(k.c); ctx.fillRect(xx - Math.floor(bodyW/2), Math.min(yo, yc), bodyW, Math.max(1, Math.abs(yc - yo)));
+    }
+    ctx.restore();
+    // 線（建値・清算・注文）。画面の外の線は上下の端に矢印付きで出す。ドラッグ中の線は指の位置に描く
+    const tag = (p, col, text, dash, bold) => {
+      if (!isFinite(p)) return null;
+      const out = p > hi ? 'up' : p < lo ? 'dn' : null;
+      const yy = out === 'up' ? TOP + 9 : out === 'dn' ? TOP + priceH - 9 : Math.round(y(p)) + .5;
+      if (!out){ ctx.strokeStyle = col; ctx.lineWidth = bold ? 2 : 1; ctx.setLineDash(dash || []); ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1; }
+      ctx.fillStyle = col; ctx.fillRect(plotW, yy - 9, PADR, 18); ctx.fillStyle = C.bg; ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.fillText(fmtPx(key, p), plotW + 6, yy);
+      if (text){
+        const t = (out === 'up' ? '↑ ' : out === 'dn' ? '↓ ' : '') + text;
+        ctx.font = SANS; const tw = ctx.measureText(t).width;
+        ctx.fillStyle = col; ctx.fillRect(plotW - tw - 14, yy - 9, tw + 10, 18); ctx.fillStyle = C.bg; ctx.fillText(t, plotW - tw - 9, yy);
+      }
+      return out ? null : yy;
+    };
+    for (const L of chartLines()){
+      const dragging = act && act.type === 'line' && act.L.id === L.id;
+      const p = dragging ? act.np : L.p;
+      let t = L.txt; if (L.pnl) t += '  ' + moneyS(L.pnl(p));
+      const yy = tag(p, css(L.col), t, L.dash, dragging);
+      if (L.drag && yy != null) drawn.push({y: yy, L});
+    }
+    const lastK = a[n-1], lp = priceOf(key) ?? lastK.c; tag(lp, lastK.c >= lastK.o ? C.up : C.down, '', [1,2]);
+    // 十字線
+    let k = lastK;
+    if (hover && hover.x < plotW && !(act && act.type === 'line')){
+      const i = Math.round(last - (plotW - hover.x) / bw); if (i >= 0 && i < n) k = a[i];
+      ctx.strokeStyle = C.dim; ctx.setLineDash([3,3]);
+      ctx.beginPath(); ctx.moveTo(hover.x + .5, TOP); ctx.lineTo(hover.x + .5, H - PADB); ctx.stroke();
+      if (hover.y > TOP && hover.y < TOP + priceH){
+        ctx.beginPath(); ctx.moveTo(0, hover.y + .5); ctx.lineTo(plotW, hover.y + .5); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = C.panel; ctx.fillRect(plotW, hover.y - 9, PADR, 18); ctx.fillStyle = C.fg; ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.fillText(fmtPx(key, yToP(hover.y)), plotW + 6, hover.y);
+      }
+      ctx.setLineDash([]);
+      const lbl = fmtTime(k.t, true); ctx.font = MONO; const tw = ctx.measureText(lbl).width;
+      ctx.fillStyle = C.panel; ctx.fillRect(hover.x - tw/2 - 5, H - PADB + 2, tw + 10, 17); ctx.fillStyle = C.fg; ctx.textBaseline = 'top'; ctx.textAlign = 'center'; ctx.fillText(lbl, hover.x, H - PADB + 4); ctx.textAlign = 'left';
+    }
+    const ch = k.c / k.o - 1, f = v => `<span style="color:var(--fg)">${fmtPx(key, v)}</span>`;
+    $('legend').innerHTML = `${fmtTime(k.t, true)}　始 ${f(k.o)} 高 ${f(k.h)} 安 ${f(k.l)} 終 ${f(k.c)} <span class="${cls(ch)}">${fmtPct(ch)}</span>`;
+  }
+  const pos = e => { const r = cv.getBoundingClientRect(); return {x: e.clientX - r.left, y: e.clientY - r.top}; };
+  const hitLine = p => geo ? drawn.find(d => Math.abs(d.y - p.y) <= (matchMedia('(pointer:coarse)').matches ? 14 : 7)) : null;
+  cv.addEventListener('pointerdown', e => {
+    hideMenu(); if (e.button === 2) return;
+    cv.setPointerCapture(e.pointerId); const p = pos(e); ptrs.set(e.pointerId, p);
+    if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch = {d: Math.hypot(a.x - b.x, a.y - b.y) || 1, bw}; act = null; clearTimeout(lpTimer); return; }
+    if (!geo) return;
+    const h = hitLine(p);
+    if (h) act = {type:'line', L:h.L, np:h.L.p, y0:p.y, moved:false};
+    else if (p.x > geo.plotW) act = {type:'axis', y0:p.y, lo:geo.lo, hi:geo.hi};
+    else {
+      act = {type:'pan', x0:p.x, y0:p.y, off, lo:geo.lo, hi:geo.hi, moved:false};
+      clearTimeout(lpTimer); lpTimer = setTimeout(() => { if (act && act.type === 'pan' && !act.moved){ act = null; openMenu(p); } }, 520);
+    }
+  });
+  cv.addEventListener('pointermove', e => {
+    const p = pos(e); hover = p;
+    if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, p);
+    if (pinch && ptrs.size === 2){ const [a, b] = [...ptrs.values()]; bw = Math.min(60, Math.max(1.5, pinch.bw * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d)); draw(); return; }
+    if (!act){ cv.style.cursor = hitLine(p) || (geo && p.x > geo.plotW) ? 'ns-resize' : 'crosshair'; draw(); return; }
+    if (act.type === 'line'){ if (Math.abs(p.y - act.y0) > 3) act.moved = true; act.np = yToP(p.y); }
+    else if (act.type === 'axis'){ const f = Math.exp((p.y - act.y0) / 150), c = (act.lo + act.hi) / 2, h = (act.hi - act.lo) / 2 * f; vman = {lo: c - h, hi: c + h}; $('zAuto').classList.remove('sel'); }
+    else if (act.type === 'pan'){
+      if (Math.hypot(p.x - act.x0, p.y - act.y0) > 6){ act.moved = true; clearTimeout(lpTimer); }
+      off = Math.max(-60, Math.min(S.candles.length - 10, act.off + (p.x - act.x0) / bw));
+      if (vman){ const dp = (p.y - act.y0) / geo.priceH * (act.hi - act.lo); vman = {lo: act.lo + dp, hi: act.hi + dp}; }
+    }
+    draw();
+  });
+  const up = e => {
+    ptrs.delete(e.pointerId); clearTimeout(lpTimer);
+    if (ptrs.size < 2) pinch = null;
+    if (act && act.type === 'line' && act.moved){ const L = act.L, np = roundPx(curKey(), act.np); act = null; draw(); L.drop(np); return; }
+    act = null; draw();
+  };
+  cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+  cv.addEventListener('pointerleave', () => { if (!act){ hover = null; draw(); } });
+  cv.addEventListener('contextmenu', e => { e.preventDefault(); clearTimeout(lpTimer); act = null; if (geo) openMenu(pos(e)); });
+  cv.addEventListener('wheel', e => { e.preventDefault(); bw = Math.min(60, Math.max(1.5, bw * (e.deltaY < 0 ? 1.15 : 1/1.15))); draw(); }, {passive:false});
+  cv.addEventListener('dblclick', e => { const p = pos(e); if (geo && p.x > geo.plotW){ vman = null; $('zAuto').classList.add('sel'); } else off = -4; draw(); });
+  new ResizeObserver(resize).observe(cv);
+  $('zIn').onclick = () => { bw = Math.min(60, bw * 1.3); draw(); };
+  $('zOut').onclick = () => { bw = Math.max(1.5, bw / 1.3); draw(); };
+  $('zAuto').onclick = () => { vman = null; $('zAuto').classList.add('sel'); draw(); };
+  $('zLast').onclick = () => { off = -4; draw(); };
+  return {draw, reset(){ off = -4; vman = null; $('zAuto').classList.add('sel'); }, priceAt: y => geo ? yToP(y) : NaN};
+})();
+
+// ===== 長押し・右クリックのメニュー（その値段で注文）=====
+function hideMenu(){ $('menu').hidden = true; }
+function openMenu(pt){
+  const k = curKey(), p = roundPx(k, chart.priceAt(pt.y)), mark = priceOf(k); if (!(p > 0)) return;
+  const items = [], above = p > mark, pos = isPerp() ? posOf(k) : null;
+  const buy = isPerp() ? 'ロング' : '買う', sell = isPerp() ? 'ショート' : '売る';
+  if (above){ items.push([`ここで${sell}（指値）`, () => fillTicket(-1, 'limit', p)]); if (isPerp()) items.push([`ここを超えたら${buy}（逆指値）`, () => fillTicket(1, 'stop', p)]); }
+  else { items.push([`ここで${buy}（指値）`, () => fillTicket(1, 'limit', p)]); if (isPerp()) items.push([`ここを割ったら${sell}（逆指値）`, () => fillTicket(-1, 'stop', p)]); }
+  if (pos){
+    const long = +pos.szi > 0, isTp = long ? above : !above;
+    items.push([`${isTp ? '利確' : '損切り'}をここにする（${moneyS(pnlAt(pos, p))}）`, () => tpslPreview(k, isTp ? 'tp' : 'sl', p)]);
+  }
+  const m = $('menu');
+  m.innerHTML = `<div class="mh">$${fmtPx(k, p)}</div>` + items.map((it, i) => `<button data-i="${i}">${it[0]}</button>`).join('');
+  m.onclick = e => { const b = e.target.closest('button'); if (!b) return; hideMenu(); items[+b.dataset.i][1](); };
+  m.hidden = false;
+  const wr = $('chartWrap').getBoundingClientRect();
+  m.style.left = Math.max(4, Math.min(pt.x, wr.width - m.offsetWidth - 8)) + 'px';
+  m.style.top = Math.max(4, Math.min(pt.y, wr.height - m.offsetHeight - 8)) + 'px';
+}
+document.addEventListener('pointerdown', e => { if (!e.target.closest('#menu') && e.target.id !== 'chart') hideMenu(); });
+function fillTicket(side, type, p){ setSide(side); setOType(type); $('px').value = p; schedule(); }
+
+// ===== 板 =====
+function renderBook(){
+  const b = S.book, k = curKey();
+  if (!b){ $('asks').innerHTML = ''; $('bids').innerHTML = ''; $('bMid').textContent = '—'; $('bSpr').textContent = ''; return; }
+  const rows = Math.max(5, Math.floor(($('book').clientHeight - 60) / 2 / 19));
+  const bids = b.levels[0].slice(0, rows), asks = b.levels[1].slice(0, rows);
+  const cum = arr => { let s = 0; return arr.map(l => (s += +l.sz)); };
+  const cb = cum(bids), ca = cum(asks), mx = Math.max(cb[cb.length-1] || 0, ca[ca.length-1] || 0) || 1;
+  const row = (l, s, side) => `<div class="brow ${side}" data-px="${l.px}"><i style="width:${s/mx*100}%"></i><span class="num ${side==='ask'?'down':'up'}">${fmtPx(k,+l.px)}</span><span class="num">${(+l.sz).toLocaleString('en-US')}</span><span class="num dim">${s.toLocaleString('en-US',{maximumFractionDigits:2})}</span></div>`;
+  $('asks').innerHTML = asks.map((l,i) => row(l, ca[i], 'ask')).reverse().join('');
+  $('bids').innerHTML = bids.map((l,i) => row(l, cb[i], 'bid')).join('');
+  if (bids[0] && asks[0]){ const bb = +bids[0].px, ba = +asks[0].px, mid = (bb + ba) / 2; $('bMid').textContent = fmtPx(k, mid); $('bSpr').textContent = `差 ${((ba-bb)/mid*1e4).toFixed(2)}bps`; }
+}
+$('book').addEventListener('click', e => { const r = e.target.closest('[data-px]'); if (!r) return; if (S.otype === 'market') setOType('limit'); $('px').value = r.dataset.px; schedule(); });
+
+// ===== 注文パネル =====
+function setSide(v){ S.side = v; schedule(); }
+$('side').onclick = e => { const b = e.target.closest('button'); if (b) setSide(+b.dataset.v); };
+function buildOType(){
+  const opts = isPerp() ? [['market','成行'],['limit','指値'],['stop','逆指値']] : [['market','成行'],['limit','指値']];
+  if (!opts.find(o => o[0] === S.otype)) S.otype = 'market';
+  $('oType').innerHTML = opts.map(([v,l]) => `<button data-v="${v}" class="${v===S.otype?'sel':''}">${l}</button>`).join('');
+  $('side').children[0].textContent = isPerp() ? 'ロング（買い）' : '買う'; $('side').children[1].textContent = isPerp() ? 'ショート（売り）' : '売る';
+  $('levWrap').hidden = !isPerp(); $('tpslWrap').hidden = !isPerp(); $('pxField').hidden = S.otype === 'market';
+}
+function setOType(v){
+  S.otype = v; [...$('oType').children].forEach(b => b.classList.toggle('sel', b.dataset.v === v));
+  $('pxField').hidden = v === 'market';
+  $('pxLbl').textContent = v === 'stop' ? '発動する値段（ドル）この値段に届いたら成行で入ります' : '指値の価格（ドル）';
+  if (v !== 'market' && !$('px').value) $('px').value = roundPx(curKey(), priceOf(curKey())) || '';
+  schedule();
+}
+$('oType').onclick = e => { const b = e.target.closest('button'); if (b) setOType(b.dataset.v); };
+$('pxMid').onclick = () => { $('px').value = roundPx(curKey(), priceOf(curKey())); schedule(); };
+$('unit').onclick = () => {
+  const k = orderCalc(); S.unit = S.unit === 'usd' ? 'coin' : 'usd';
+  $('sz').value = S.unit === 'usd' ? (Math.round(k.ntl * 100) / 100 || '') : (k.sz || '');
+  schedule();
+};
+function curLev(){ const max = cur()?.maxLev || 20; return Math.min(S.lev[curKey()] || Math.min(5, max), max); }
+function syncLev(){
+  if (!isPerp()) return;
+  const max = cur()?.maxLev || 20, v = curLev();
+  if (cur()?.onlyIso) S.margin = 'isolated';
+  $('lev').max = max; $('lev').value = v; $('levV').textContent = v + 'x'; $('levMode').textContent = S.margin === 'cross' ? 'クロス（口座全体で担保）' : '分離（この建玉だけで担保）';
+  const opts = [...new Set([1,2,3,5,10,20,max].filter(x => x <= max))];
+  $('levChips').innerHTML = opts.map(x => `<button data-l="${x}" class="${x===v?'sel':''}">${x}x</button>`).join('');
+  [...$('mMode').children].forEach(b => b.classList.toggle('sel', b.dataset.v === S.margin));
+}
+function setLev(v){ S.lev[curKey()] = v; store.set('lev', S.lev); syncLev(); schedule(); }
+$('levBtn').onclick = () => { $('levPanel').hidden = !$('levPanel').hidden; };
+$('lev').oninput = e => setLev(+e.target.value);
+$('levChips').onclick = e => { const b = e.target.closest('button'); if (b) setLev(+b.dataset.l); };
+$('mMode').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.margin = b.dataset.v; syncLev(); schedule(); };
+['sz','px','tp','sl'].forEach(id => $(id).addEventListener('input', schedule));
+$('tpslOn').onchange = () => { $('tpslBox').hidden = !$('tpslOn').checked; schedule(); };
+document.querySelectorAll('.tpsl .chips').forEach(c => c.onclick = e => {
+  const b = e.target.closest('button'); if (!b) return; e.preventDefault();
+  const e0 = entryPx(), pc = +b.dataset.p / 100, dir = c.dataset.for === 'tp' ? S.side : -S.side;
+  $(c.dataset.for).value = roundPx(curKey(), e0 * (1 + dir * pc)); schedule();
+});
+function avail(){
+  if (isPerp()){
+    if (!S.acct) return null;
+    const w = +S.acct.withdrawable, sp = S.spot?.tokenToAvailableAfterMaintenance?.find(t => t[0] === 0);
+    return Math.max(w, sp ? +sp[1] : 0);
+  }
+  if (!S.spot) return null;
+  const tokIdx = S.side > 0 ? 0 : cur()?.base;
+  const b = S.spot.balances.find(x => x.token === tokIdx);
+  const free = b ? +b.total - +b.hold : 0;
+  return S.side > 0 ? free : free * (priceOf(curKey()) || 0);
+}
+const setPct = pc => {
+  const av = avail(); if (av == null){ log('口座を読めていないので、割合からの計算はできません'); return; }
+  const lev = isPerp() ? curLev() : 1, usd = av * lev * pc / 100 * 0.98, px = entryPx();
+  $('sz').value = S.unit === 'usd' ? Math.floor(usd * 100) / 100 : roundSz(curKey(), usd / px);
+  $('szPct').value = pc; schedule();
+};
+$('pct').onclick = e => { const b = e.target.closest('button'); if (b) setPct(+b.dataset.p); };
+$('szPct').oninput = e => setPct(+e.target.value);
+function entryPx(){ const k = curKey(); return S.otype === 'market' ? priceOf(k) : parseFloat($('px').value); }
+function orderCalc(){
+  const k = curKey(), m = cur() || {}, lev = isPerp() ? curLev() : 1, mm = 1 / (2 * (m.maxLev || 20));
+  const px = entryPx(), v = parseFloat($('sz').value);
+  const sz = px > 0 && v > 0 ? roundSz(k, S.unit === 'usd' ? v / px : v) : 0;
+  const ntl = sz * px, fees = FEE[isPerp() ? 'perp' : 'spot'], fee = ntl * (S.otype === 'limit' ? fees.maker : fees.taker);
+  const liq = isPerp() ? px - S.side * px * (1/lev - mm) / (1 - mm * S.side) : NaN;
+  return {k, lev, px, sz, ntl, margin: ntl / lev, fee, liq};
+}
+function tpslCheck(){
+  if (!isPerp() || !$('tpslOn').checked) return {ok:true};
+  const e = entryPx(), tp = parseFloat($('tp').value), sl = parseFloat($('sl').value), s = S.side, c = orderCalc();
+  const tpBad = tp > 0 && (tp - e) * s <= 0, slBad = sl > 0 && (sl - e) * s >= 0;
+  $('tpPv').textContent = tp > 0 ? (tpBad ? (s > 0 ? '入る値段より上にしてください' : '入る値段より下にしてください') : `${moneyS((tp - e) * c.sz * s)}（${fmtPct((tp/e - 1) * s)}）`) : '';
+  $('slPv').textContent = sl > 0 ? (slBad ? (s > 0 ? '入る値段より下にしてください' : '入る値段より上にしてください') : `${moneyS((sl - e) * c.sz * s)}（${fmtPct((sl/e - 1) * s)}）`) : '';
+  $('tpPv').className = 'pv ' + (tpBad ? 'down' : 'up');
+  return {ok: !tpBad && !slBad, tp: tp > 0 ? tp : null, sl: sl > 0 ? sl : null};
+}
+function renderTicket(){
+  const k = curKey(); if (!cur()) return;
+  const L = $('side').children; L[0].className = S.side > 0 ? 'selL' : ''; L[1].className = S.side < 0 ? 'selS' : '';
+  $('unit').textContent = S.unit === 'usd' ? 'USD' : label(k);
+  $('szLbl').textContent = S.unit === 'usd' ? (isPerp() ? '注文額（USD・レバレッジ込みの建玉の大きさ）' : '注文額（USDC）') : `数量（${label(k)}）右のボタンで USD に切り替え`;
+  const c = orderCalc(), av = avail(), t = tpslCheck();
+  const need = isPerp() ? c.margin : c.ntl, short = av != null && c.sz > 0 && need > av;
+  const rows = [['数量', c.sz ? `${c.sz} ${label(k)}` : '—'], [isPerp() ? '建玉の大きさ' : '金額', money(c.ntl)]];
+  if (isPerp()) rows.push(['必要な証拠金', money(c.margin)], ['清算価格の目安', c.sz ? '$' + fmtPx(k, c.liq) : '—']);
+  rows.push(['手数料の目安', money(c.fee, 3)], ['使える余力', av == null ? '—' : money(av)]);
+  $('calc').innerHTML = rows.map(([a,b]) => `<span>${a}</span><span class="${short && (a === '必要な証拠金' || a === '金額') ? 'bad' : ''}">${b}</span>`).join('') + (short ? '<span></span><span class="bad" style="font-family:var(--sans)">余力が足りません</span>' : '');
+  const typeJa = {market:'成行', limit:'指値', stop:'逆指値'}[S.otype];
+  const sideJa = isPerp() ? (S.side > 0 ? 'ロング' : 'ショート') : (S.side > 0 ? '買う' : '売る');
+  $('submit').className = S.side > 0 ? 'L' : 'S';
+  $('submit').innerHTML = `${sideJa}　${c.sz || ''} ${label(k)}<small>${typeJa}${S.otype !== 'market' ? ' $' + fmtPx(k, c.px) : ''}${isPerp() ? ` ・ ${c.lev}倍 ${S.margin === 'cross' ? 'クロス' : '分離'}` : ''}${t.tp || t.sl ? ' ・ 利確/損切り付き' : ''}</small>`;
+  renderPosCard();
+}
+$('submit').onclick = () => {
+  const k = curKey(), c = orderCalc(), t = tpslCheck();
+  if (!c.sz){ log('数量がゼロです。注文額か価格を確かめてください'); return; }
+  if (!t.ok){ log('利確・損切りの値段が向きと合っていません'); return; }
+  const sideJa = isPerp() ? (S.side > 0 ? 'ロング（買い）' : 'ショート（売り）') : (S.side > 0 ? '買う' : '売る');
+  const rows = [['種類', {market:'成行（すぐ約定）', limit:'指値（その値段で待つ）', stop:'逆指値（届いたら成行）'}[S.otype]],
+    ['価格', S.otype === 'market' ? `いまの値段 $${fmtPx(k, c.px)} 付近` : '$' + fmtPx(k, roundPx(k, c.px))],
+    ['数量', `${c.sz} ${label(k)}`], ['金額', money(c.ntl)]];
+  if (isPerp()) rows.push(['レバレッジ', `${c.lev}倍（${S.margin === 'cross' ? 'クロス' : '分離'}）`], ['必要な証拠金', money(c.margin)], ['清算価格の目安', '$' + fmtPx(k, c.liq)]);
+  if (t.tp) rows.push(['利確', '$' + fmtPx(k, t.tp)]); if (t.sl) rows.push(['損切り', '$' + fmtPx(k, t.sl)]);
+  rows.push(['手数料の目安', money(c.fee, 3)]);
+  preview(`${label(k)} を${sideJa}`, rows);
+};
+
+// ===== いま選んでいる銘柄のポジション（注文パネルの一番上）=====
+function tpslOf(k){ const r = {}; for (const o of S.orders.filter(o => o.coin === k && o.reduceOnly && o.isTrigger)){ const kind = orderKind(o); if (!r[kind]) r[kind] = o; } return r; }
+function renderPosCard(){
+  const k = curKey(), el = $('posCard'), p = isPerp() ? posOf(k) : null;
+  if (!p){ el.hidden = true; return; }
+  const s = +p.szi, u = +p.unrealizedPnl, tps = tpslOf(k);
+  el.hidden = false;
+  el.innerHTML = `<div class="t"><b class="${s>0?'up':'down'}">${label(k)} ${s>0?'ロング':'ショート'} ${Math.abs(s)}</b><span class="pnl ${cls(u)}">${moneyS(u)}</span></div>
+    <div class="s"><span>建値 $${fmtPx(k,+p.entryPx)}</span><span>${p.leverage.value}倍 ${p.leverage.type==='cross'?'クロス':'分離'}</span><span>清算 ${p.liquidationPx?'$'+fmtPx(k,+p.liquidationPx):'—'}</span>
+    <span class="up">利確 ${tps.tp?'$'+fmtPx(k,+tps.tp.triggerPx):'なし'}</span><span class="down">損切り ${tps.sl?'$'+fmtPx(k,+tps.sl.triggerPx):'なし'}</span></div>
+    <div class="acts3"><button class="x" data-act="close" data-c="${k}">全部決済</button><button data-act="half" data-c="${k}">半分決済</button><button data-act="flip" data-c="${k}">ドテン</button><button data-act="tpsl" data-c="${k}">利確損切</button></div>`;
+}
+$('posCard').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) posAction(b.dataset.act, b.dataset.c); });
+
+// ===== 確認の窓（見本モードでは表示するだけ）=====
+function preview(title, rows, extraHtml){
+  $('mTitle').textContent = title; $('mExtra').innerHTML = extraHtml || '';
+  $('mBody').innerHTML = rows.map(([a,b]) => `<span>${a}</span><span>${b}</span>`).join('');
+  $('mBody').hidden = !rows.length;
+  $('modal').hidden = false; $('mClose').focus();
+  log(`${new Date().toLocaleTimeString()} 見本: ${title}`);
+}
+function closeModal(){ $('modal').hidden = true; }
+$('mClose').onclick = closeModal;
+$('modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
+function modifyPreview(o, kind, from, to){
+  const k = o.coin, pos = posOf(k), rows = [['銘柄', label(k)], ['変更前', '$' + fmtPx(k, from)], ['変更後', '$' + fmtPx(k, to)]];
+  if (pos && (kind === 'tp' || kind === 'sl')) rows.push(['ここで決済されたときの損益', moneyS(pnlAt(pos, to))]);
+  preview(`${KIND_JA[kind]}の値段を変える`, rows); schedule();
+}
+function tpslPreview(k, kind, p){
+  const pos = posOf(k), old = tpslOf(k)[kind];
+  preview(`${KIND_JA[kind]}を${old ? '変える' : '入れる'}`, [['銘柄', label(k)], [old ? '変更前' : 'いまの設定', old ? '$' + fmtPx(k, +old.triggerPx) : 'なし'], ['新しい値段', '$' + fmtPx(k, p)], ['ここで決済されたときの損益', moneyS(pnlAt(pos, p))]]);
+}
+function tpslEditor(k){
+  const pos = posOf(k), t = tpslOf(k), s = +pos.szi, e = +pos.entryPx;
+  const box = `<div class="tpsl"><label class="f">利確（ドル）<input id="eTp" class="num" value="${t.tp ? t.tp.triggerPx : ''}"><span class="pv up" id="eTpPv"></span></label>
+    <label class="f">損切り（ドル）<input id="eSl" class="num" value="${t.sl ? t.sl.triggerPx : ''}"><span class="pv down" id="eSlPv"></span></label></div>
+    <div class="chips" style="margin-top:8px"><button id="eBe">損切りを建値に（同値撤退）</button></div>
+    <p class="note" style="margin-top:8px">チャート上の線をドラッグしても変えられます。</p>
+    <div style="margin-top:10px;display:flex;justify-content:flex-end"><button id="eGo" style="border:none;border-radius:6px;padding:8px 14px;background:var(--accent);color:#1b1404;font-weight:700">この内容で設定（見本）</button></div>`;
+  preview(`${label(k)} の利確と損切り`, [], box);
+  const upd = () => { for (const [id, pv] of [['eTp','eTpPv'],['eSl','eSlPv']]){ const v = parseFloat($(id).value); $(pv).textContent = v > 0 ? moneyS(pnlAt(pos, v)) : ''; } };
+  $('eTp').oninput = upd; $('eSl').oninput = upd; upd();
+  $('eBe').onclick = () => { $('eSl').value = roundPx(k, e); upd(); };
+  $('eGo').onclick = () => {
+    const tp = parseFloat($('eTp').value), sl = parseFloat($('eSl').value), m = priceOf(k);
+    if ((tp > 0 && (tp - m) * s <= 0) || (sl > 0 && (sl - m) * s >= 0)){ $('eSlPv').textContent = s > 0 ? '利確はいまの値段より上、損切りは下にしてください' : '利確はいまの値段より下、損切りは上にしてください'; return; }
+    preview(`${label(k)} の利確と損切りを設定`, [['利確', tp > 0 ? '$' + fmtPx(k, tp) + '  ' + moneyS(pnlAt(pos, tp)) : 'なし'], ['損切り', sl > 0 ? '$' + fmtPx(k, sl) + '  ' + moneyS(pnlAt(pos, sl)) : 'なし']]);
+  };
+}
+function posAction(act, k){
+  const p = posOf(k), m = priceOf(k);
+  if (!p) return;
+  const s = +p.szi, dir = s > 0 ? 'ロング' : 'ショート';
+  if (act === 'close') preview(`${label(k)} の${dir}を全部決済`, [['やること', `成行で ${Math.abs(s)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]]);
+  if (act === 'half') preview(`${label(k)} の${dir}を半分決済`, [['やること', `成行で ${roundSz(k, Math.abs(s)/2)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl / 2)]]);
+  if (act === 'flip') preview(`${label(k)} を${dir}から${s>0?'ショート':'ロング'}へ（ドテン）`, [['やること', `成行で ${roundSz(k, Math.abs(s)*2)} ${label(k)} を${s>0?'売る':'買う'}`], ['結果', `${s>0?'ショート':'ロング'} ${Math.abs(s)} ${label(k)}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]]);
+  if (act === 'tpsl') tpslEditor(k);
+}
+function log(t){ const d = document.createElement('div'); d.textContent = t; $('log').prepend(d); }
+
+// ===== 口座 =====
+async function loadAcct(){
+  const u = S.user;
+  if (!/^0x[0-9a-fA-F]{40}$/.test(u)){ S.acct = S.spot = null; S.orders = []; renderAcct(); schedule(); return; }
+  try {
+    const [a, sp, o] = await Promise.all([info({type:'clearinghouseState', user:u}), info({type:'spotClearinghouseState', user:u}), info({type:'frontendOpenOrders', user:u})]);
+    if (u !== S.user) return;
+    S.acct = a; S.spot = sp; S.orders = o || []; renderAcct(); schedule();
+  } catch (e){ log('口座を読めませんでした: ' + e.message); }
+}
+function renderKpis(){
+  const a = S.acct; if (!a){ ['kEq','kPnl','kAv'].forEach(i => $(i).textContent = '—'); return; }
+  const pnl = a.assetPositions.reduce((s,p) => s + +p.position.unrealizedPnl, 0);
+  $('kEq').textContent = money(+a.marginSummary.accountValue);
+  $('kPnl').textContent = moneyS(pnl); $('kPnl').className = cls(pnl);
+  const sp = S.spot?.tokenToAvailableAfterMaintenance?.find(t => t[0] === 0);
+  $('kAv').textContent = money(Math.max(+a.withdrawable, sp ? +sp[1] : 0));
+}
+function renderAcct(){
+  [...$('aTabs').children].forEach(b => b.classList.toggle('sel', b.dataset.v === S.aTab));
+  $('period').hidden = !HIST_TABS.includes(S.aTab);
+  if (HIST_TABS.includes(S.aTab)){ renderHist(); return; }
+  const a = S.acct;
+  if (!a){ $('aTbl').innerHTML = '<div class="empty">右上の「口座」からアドレスを入れると、ここにポジションが出ます</div>'; return; }
+  if (S.aTab === 'pos'){
+    const pos = a.assetPositions.map(p => p.position).filter(p => +p.szi !== 0);
+    if (!pos.length){ $('aTbl').innerHTML = '<div class="empty">いま持っている先物のポジションはありません</div>'; return; }
+    $('aTbl').innerHTML = `<table><tr><th>銘柄</th><th>向き</th><th>数量</th><th>建値</th><th>いまの値段</th><th>含み損益</th><th>レバレッジ</th><th>清算</th><th>利確 / 損切り</th><th>証拠金</th><th></th></tr>` +
+      pos.map(p => { const s = +p.szi, u = +p.unrealizedPnl, k = p.coin, t = tpslOf(k);
+        return `<tr><td class="coin" data-c="${k}">${label(k)}</td><td class="${s>0?'up':'down'}">${s>0?'ロング':'ショート'}</td><td>${Math.abs(s)}</td><td>${fmtPxC(k,+p.entryPx)}</td><td>${fmtPxC(k,priceOf(k))}</td>
+        <td class="${cls(u)}">${moneyS(u)} (${fmtPct(+p.returnOnEquity)})</td><td>${p.leverage.value}x ${p.leverage.type==='cross'?'クロス':'分離'}</td><td>${p.liquidationPx?fmtPxC(k,+p.liquidationPx):'—'}</td>
+        <td><button class="lk up" data-act="tpsl" data-c="${k}">${t.tp?fmtPxC(k,+t.tp.triggerPx):'—'}</button> / <button class="lk down" data-act="tpsl" data-c="${k}">${t.sl?fmtPxC(k,+t.sl.triggerPx):'—'}</button></td><td>${money(+p.marginUsed)}</td>
+        <td><button data-act="close" data-c="${k}">全部決済</button><button data-act="half" data-c="${k}">半分</button><button data-act="flip" data-c="${k}">ドテン</button></td></tr>`; }).join('') + '</table>';
+  } else if (S.aTab === 'ord'){
+    if (!S.orders.length){ $('aTbl').innerHTML = '<div class="empty">待っている注文はありません</div>'; return; }
+    $('aTbl').innerHTML = `<table><tr><th>銘柄</th><th>向き</th><th>種類</th><th>値段</th><th>数量</th><th>出した時刻</th><th></th></tr>` +
+      S.orders.map(o => { const kind = orderKind(o), p = o.isTrigger ? +o.triggerPx : +o.limitPx;
+        return `<tr><td class="coin" data-c="${o.coin}">${label(o.coin)}</td><td class="${o.side==='B'?'up':'down'}">${o.side==='B'?'買い':'売り'}</td><td style="font-family:var(--sans)">${KIND_JA[kind]}${o.isTrigger?'（届いたら成行）':''}</td><td>${fmtPxC(o.coin,p)}</td><td>${+o.sz === 0 && o.isPositionTpsl ? 'ポジション全部' : o.sz}</td><td>${new Date(o.timestamp).toLocaleString()}</td><td><button data-act="cancel" data-c="${o.coin}" data-oid="${o.oid}">取り消し</button></td></tr>`; }).join('') + '</table>';
+  } else {
+    const bals = (S.spot?.balances || []).filter(b => +b.total > 0);
+    if (!bals.length){ $('aTbl').innerHTML = '<div class="empty">現物の残高はありません</div>'; return; }
+    $('aTbl').innerHTML = `<table><tr><th>通貨</th><th>数量</th><th>うち注文や証拠金で使用中</th><th>評価額</th></tr>` +
+      bals.map(b => { const key = SPOT_KEYS.find(k => M[k].base === b.token), val = b.coin === 'USDC' ? +b.total : key ? +b.total * (priceOf(key) || 0) : null;
+        return `<tr><td class="${key?'coin':''}" ${key?`data-c="${key}"`:''} style="font-family:var(--sans);font-weight:700">${key ? label(key) : b.coin}</td><td>${(+b.total).toLocaleString('en-US',{maximumFractionDigits:6})}</td><td>${(+b.hold).toLocaleString('en-US',{maximumFractionDigits:6})}</td><td>${val == null ? '—' : money(val)}</td></tr>`; }).join('') + '</table>';
+  }
+}
+$('aTbl').addEventListener('click', e => {
+  const t = e.target.closest('[data-c]'); if (!t) return;
+  const k = t.dataset.c;
+  if (t.classList.contains('coin')){ setMkt(M[k]?.kind === 'spot' ? 'spot' : 'perp'); selectCoin(k); return; }
+  if (t.dataset.act === 'cancel'){ const o = S.orders.find(x => String(x.oid) === t.dataset.oid); preview(`${label(k)} の${o ? KIND_JA[orderKind(o)] : ''}注文を取り消す`, [['値段', o ? '$' + fmtPx(k, o.isTrigger ? +o.triggerPx : +o.limitPx) : '—']]); return; }
+  posAction(t.dataset.act, k);
+});
+$('aTabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.aTab = b.dataset.v; renderAcct(); if (HIST_TABS.includes(S.aTab) && Date.now() - H.at > 60000) loadHist(); };
+$('bigBtn').onclick = () => { const big = document.querySelector('main').classList.toggle('big'); $('bigBtn').textContent = big ? '元に戻す' : '広げる'; };
+
+// ===== 履歴と集計 =====
+const HIST_TABS = ['fills','hist','sum'];
+const H = {fills:[], funding:[], orders:[], at:0, loading:false, user:null, period: store.get('period','7d')};
+const PERIODS = [['today','今日'],['yday','昨日'],['7d','7日'],['30d','30日'],['month','今月'],['all','全部']];
+$('period').innerHTML = PERIODS.map(([v,l]) => `<button data-v="${v}">${l}</button>`).join('');
+function markPeriod(){ [...$('period').children].forEach(b => b.classList.toggle('sel', b.dataset.v === H.period)); }
+$('period').onclick = e => { const b = e.target.closest('button'); if (!b) return; H.period = b.dataset.v; store.set('period', H.period); markPeriod(); renderHist(); };
+markPeriod();
+function periodRange(){
+  const d0 = new Date(); d0.setHours(0,0,0,0); const day = 864e5, t0 = d0.getTime();
+  switch (H.period){
+    case 'today': return [t0, Infinity];
+    case 'yday': return [t0 - day, t0];
+    case '7d': return [t0 - 6*day, Infinity];
+    case '30d': return [t0 - 29*day, Infinity];
+    case 'month': return [new Date(d0.getFullYear(), d0.getMonth(), 1).getTime(), Infinity];
+    default: return [0, Infinity];
+  }
+}
+const pad2 = n => String(n).padStart(2,'0');
+const dayKey = t => { const d = new Date(t); return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`; };
+const dtStr = t => { const d = new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())}`; };
+async function loadHist(){
+  const u = S.user; if (!/^0x[0-9a-fA-F]{40}$/.test(u) || H.loading) return;
+  H.loading = true; if (HIST_TABS.includes(S.aTab) && H.user !== u) $('aTbl').innerHTML = '<div class="empty">履歴を読み込んでいます…</div>';
+  try {
+    // 約定は古い順に2000件ずつ返るので、続きがある限り取りにいく（取引所が出すのは直近1万件まで）
+    let fills = [], start = 0;
+    for (let i = 0; i < 6; i++){
+      const d = await info({type:'userFillsByTime', user:u, startTime:start, aggregateByTime:true});
+      fills.push(...d); if (d.length < 2000) break; start = d[d.length-1].time + 1;
+    }
+    let fund = [], fs = 0;
+    for (let i = 0; i < 20; i++){
+      const d = await info({type:'userFunding', user:u, startTime:fs});
+      fund.push(...d); if (d.length < 500) break; fs = d[d.length-1].time + 1;
+    }
+    const ho = await info({type:'historicalOrders', user:u});
+    if (u !== S.user) return;
+    const seen = new Set(); H.fills = fills.filter(f => { const k = f.tid + ':' + f.oid; if (seen.has(k)) return false; seen.add(k); return true; }).sort((a,b) => b.time - a.time);
+    H.funding = fund.sort((a,b) => b.time - a.time);
+    const last = new Map(); for (const h of ho){ const p = last.get(h.order.oid); if (!p || h.statusTimestamp >= p.statusTimestamp) last.set(h.order.oid, h); }
+    H.orders = [...last.values()].sort((a,b) => b.statusTimestamp - a.statusTimestamp);
+    H.at = Date.now(); H.user = u;
+  } catch (e){ log('履歴を読めませんでした: ' + e.message); }
+  finally { H.loading = false; }
+  if (HIST_TABS.includes(S.aTab)) renderHist();
+}
+const DIR_JA = {'Open Long':'ロング新規','Close Long':'ロング決済','Open Short':'ショート新規','Close Short':'ショート決済','Long > Short':'ドテン（ロング→ショート）','Short > Long':'ドテン（ショート→ロング）','Buy':'現物を買い','Sell':'現物を売り','Liquidated Isolated Long':'清算（ロング）','Liquidated Isolated Short':'清算（ショート）','Liquidated Cross Long':'清算（ロング）','Liquidated Cross Short':'清算（ショート）'};
+const ST_JA = {open:'待ち', filled:'約定', canceled:'取り消し', triggered:'発動', rejected:'拒否', marginCanceled:'証拠金不足で取り消し', reduceOnlyCanceled:'ポジションが無くなり自動取り消し', perpMarginRejected:'証拠金不足で拒否', scheduledCancel:'時間切れで取り消し', siblingFilledCanceled:'片方が約定して自動取り消し', liquidatedCanceled:'清算で取り消し', selfTradeCanceled:'自分の注文と当たり取り消し'};
+const coinLabel = c => M[c] ? label(c) : c.replace(/^xyz:/, '');
+function feeParts(f){ const all = +f.fee || 0, b = +f.builderFee || 0; return {ex: all - b, app: b, all}; }
+function summarize(fills, fund){
+  const s = {pnl:0, ex:0, app:0, fee:0, fund:0, n:fills.length, vol:0, win:0, lose:0};
+  for (const f of fills){ const p = +f.closedPnl, fp = feeParts(f); s.pnl += p; s.ex += fp.ex; s.app += fp.app; s.fee += fp.all; s.vol += +f.px * +f.sz; if (p > 0) s.win++; else if (p < 0) s.lose++; }
+  for (const x of fund) s.fund += +x.delta.usdc;
+  s.net = s.pnl - s.fee + s.fund; return s;
+}
+function renderHist(){
+  markPeriod();
+  if (!S.acct && !H.at){ $('aTbl').innerHTML = '<div class="empty">右上の「口座」からアドレスを入れると、履歴が出ます</div>'; return; }
+  if (!H.at){ $('aTbl').innerHTML = '<div class="empty">履歴を読み込んでいます…</div>'; return; }
+  const [from, to] = periodRange(), inR = t => t >= from && t < to;
+  const fills = H.fills.filter(f => inR(f.time)), fund = H.funding.filter(x => inR(x.time));
+  const oldest = H.fills.length ? dayKey(H.fills[H.fills.length-1].time) : null;
+  if (S.aTab === 'fills'){
+    if (!fills.length){ $('aTbl').innerHTML = '<div class="empty">この期間の約定はありません</div>'; return; }
+    const rows = fills.slice(0, 500);
+    $('aTbl').innerHTML = `<table><tr><th>日時</th><th>銘柄</th><th>内容</th><th>価格($)</th><th>数量</th><th>金額</th><th>確定損益</th><th>取引所の手数料</th><th>アプリの手数料</th><th>差し引き</th></tr>` +
+      rows.map(f => { const fp = feeParts(f), p = +f.closedPnl, net = p - fp.all, c = f.coin;
+        return `<tr><td>${dtStr(f.time)}</td><td class="ja"><b>${coinLabel(c)}</b></td><td class="ja ${/Long|Buy/.test(f.dir) && !/Close|>/.test(f.dir) ? 'up' : /Short|Sell/.test(f.dir) && !/Close|>/.test(f.dir) ? 'down' : ''}">${DIR_JA[f.dir] || f.dir}</td><td>${M[c] ? fmtPx(c, +f.px) : f.px}</td><td>${(+f.sz).toLocaleString('en-US')}</td><td>${money(+f.px * +f.sz)}</td>
+        <td class="${cls(p)}">${p ? moneyS(p) : '—'}</td><td class="dim">${money(fp.ex, 3)}</td><td class="dim">${fp.app ? money(fp.app, 3) : '—'}</td><td class="${cls(net)}">${moneyS(net)}</td></tr>`; }).join('') + '</table>' +
+      (fills.length > 500 ? `<div class="empty">新しい順に500件まで表示しています（この期間は全部で${fills.length}件。合計は「集計」で見られます）</div>` : '');
+  } else if (S.aTab === 'hist'){
+    const ords = H.orders.filter(h => inR(h.statusTimestamp));
+    if (!ords.length){ $('aTbl').innerHTML = '<div class="empty">この期間の注文はありません</div>'; return; }
+    $('aTbl').innerHTML = `<table><tr><th>日時</th><th>銘柄</th><th>向き</th><th>種類</th><th>値段($)</th><th>数量</th><th>結果</th></tr>` +
+      ords.slice(0, 500).map(h => { const o = h.order, kind = orderKind(o), p = o.isTrigger ? +o.triggerPx : +o.limitPx, c = o.coin;
+        return `<tr><td>${dtStr(h.statusTimestamp)}</td><td class="ja"><b>${coinLabel(c)}</b></td><td class="ja ${o.side==='B'?'up':'down'}">${o.side==='B'?'買い':'売り'}</td><td class="ja">${o.orderType === 'Market' ? '成行' : KIND_JA[kind]}${o.reduceOnly && kind === 'limit' ? '（決済用）' : ''}</td><td>${o.orderType === 'Market' ? '—' : (M[c] ? fmtPx(c, p) : p)}</td><td>${+o.origSz ? (+o.origSz).toLocaleString('en-US') : 'ポジション全部'}</td><td class="ja ${h.status === 'filled' ? 'up' : /Rejected|rejected|Canceled|canceled/.test(h.status) ? 'dim' : ''}">${ST_JA[h.status] || h.status}</td></tr>`; }).join('') + '</table>' +
+      '<div class="empty">取引所が出す注文履歴は直近2000件までです</div>';
+  } else {
+    const s = summarize(fills, fund), pl = PERIODS.find(p => p[0] === H.period)[1];
+    const card = (lbl, v, sub, main) => `<div class="card${main ? ' main' : ''}"><small>${lbl}</small><b class="${typeof v === 'number' ? cls(v) : ''}">${typeof v === 'number' ? moneyS(v) : v}</b>${sub ? `<span>${sub}</span>` : ''}</div>`;
+    let html = `<div class="cards">
+      ${card(`${pl}の純損益`, s.net, '確定損益 − 手数料 + 資金調達料', true)}
+      ${card('確定損益（手数料を引く前）', s.pnl, `勝ち ${s.win}回 / 負け ${s.lose}回`)}
+      ${card('手数料の合計', '−' + money(s.fee), `取引所 ${money(s.ex)} ・ アプリ ${money(s.app)}`)}
+      ${card('資金調達料', s.fund, s.fund >= 0 ? '受け取り' : '支払い')}
+      ${card('取引した金額', money(s.vol), `約定 ${s.n}回`)}
+      ${card('損益に対する手数料', s.pnl > 0 ? Math.round(s.fee / s.pnl * 100) + '%' : '—', s.pnl > 0 ? '利益のうち手数料に消えた割合' : '確定損益がプラスのときだけ出します')}
+    </div>`;
+    // 日ごと
+    const days = new Map();
+    for (const f of fills){ const k = dayKey(f.time); if (!days.has(k)) days.set(k, {f:[], u:[]}); days.get(k).f.push(f); }
+    for (const x of fund){ const k = dayKey(x.time); if (!days.has(k)) days.set(k, {f:[], u:[]}); days.get(k).u.push(x); }
+    const dl = [...days.entries()].sort((a,b) => a[0] < b[0] ? 1 : -1).map(([k, v]) => [k, summarize(v.f, v.u)]).filter(([,d]) => d.n || Math.abs(d.fund) > 0.005);
+    const mx = Math.max(1e-9, ...dl.map(([,d]) => Math.abs(d.net)));
+    html += `<div class="sub">日ごと</div><table><tr><th>日付</th><th>純損益</th><th>確定損益</th><th>取引所の手数料</th><th>アプリの手数料</th><th>資金調達料</th><th>約定</th><th>取引した金額</th></tr>` +
+      (dl.length ? dl.map(([k, d]) => `<tr><td>${k}</td><td class="${cls(d.net)}">${moneyS(d.net)}<span class="bar" style="width:${Math.round(Math.abs(d.net)/mx*60)}px;background:var(${d.net >= 0 ? '--up' : '--down'})"></span></td><td class="${cls(d.pnl)}">${moneyS(d.pnl)}</td><td class="dim">${money(d.ex)}</td><td class="dim">${money(d.app)}</td><td class="${cls(d.fund)}">${moneyS(d.fund)}</td><td>${d.n}</td><td>${money(d.vol, 0)}</td></tr>`).join('') : '<tr><td colspan="8" class="ja dim">この期間の取引はありません</td></tr>') + '</table>';
+    // 銘柄ごと
+    const coins = new Map();
+    for (const f of fills){ if (!coins.has(f.coin)) coins.set(f.coin, {f:[], u:[]}); coins.get(f.coin).f.push(f); }
+    for (const x of fund){ const c = x.delta.coin; if (!coins.has(c)) coins.set(c, {f:[], u:[]}); coins.get(c).u.push(x); }
+    const cl = [...coins.entries()].map(([c, v]) => [c, summarize(v.f, v.u)]).sort((a,b) => a[1].net - b[1].net);
+    if (cl.length) html += `<div class="sub">銘柄ごと</div><table><tr><th>銘柄</th><th>純損益</th><th>確定損益</th><th>手数料</th><th>資金調達料</th><th>約定</th></tr>` +
+      cl.map(([c, d]) => `<tr><td class="ja"><b>${coinLabel(c)}</b></td><td class="${cls(d.net)}">${moneyS(d.net)}</td><td class="${cls(d.pnl)}">${moneyS(d.pnl)}</td><td class="dim">${money(d.fee)}</td><td class="${cls(d.fund)}">${moneyS(d.fund)}</td><td>${d.n}</td></tr>`).join('') + '</table>';
+    html += `<div class="empty">取引所から取れた範囲（${oldest || '—'} 以降）の集計です。「アプリの手数料」は Phantom など、注文を通したアプリが上乗せする手数料です。</div>`;
+    $('aTbl').innerHTML = html;
+  }
+}
+setInterval(() => { if (HIST_TABS.includes(S.aTab) && Date.now() - H.at > 60000) loadHist(); }, 15000);
+$('gear').onclick = () => { $('acctBar').hidden = !$('acctBar').hidden; };
+$('addr').value = S.user;
+$('addr').onchange = e => { S.user = e.target.value.trim(); store.set('addr', S.user); H.at = 0; loadAcct(); if (HIST_TABS.includes(S.aTab)) loadHist(); };
+
+// ===== 銘柄情報（最大レバレッジ・資金調達率・前日の値段）=====
+async function loadMeta(){
+  const [[pm, pc], [sm, sc]] = await Promise.all([info({type:'metaAndAssetCtxs'}), info({type:'spotMetaAndAssetCtxs'})]);
+  pm.universe.forEach((u, i) => {
+    if (!PERPS.includes(u.name)) return; const x = pc[i];
+    M[u.name] = Object.assign(M[u.name] || {}, {key:u.name, label:u.name, kind:'perp', szD:u.szDecimals, maxLev:u.maxLeverage, onlyIso:!!u.onlyIsolated, mark:+x.markPx, prev:+x.prevDayPx, funding:+x.funding});
+  });
+  const tok = Object.fromEntries(sm.tokens.map(t => [t.index, t]));
+  for (const name of SPOT_TOKENS){
+    const t = sm.tokens.find(x => x.name === name); if (!t) continue;
+    const u = sm.universe.find(x => x.tokens[0] === t.index && tok[x.tokens[1]]?.name === 'USDC'); if (!u) continue;
+    const x = sc[u.index] || {};
+    const lbl = /^Unit /.test(t.fullName || '') ? name.slice(1) : name;
+    M[u.name] = Object.assign(M[u.name] || {}, {key:u.name, label:lbl, kind:'spot', szD:t.szDecimals, base:t.index, mark:+x.markPx, prev:+x.prevDayPx});
+    if (!SPOT_KEYS.includes(u.name)) SPOT_KEYS.push(u.name);
+  }
+  if (!S.sel.spot || !M[S.sel.spot]) S.sel.spot = SPOT_KEYS[0];
+}
+
+// ===== キー操作：1〜0で銘柄、Esc で閉じる =====
+document.addEventListener('keydown', e => {
+  if (e.target.tagName === 'INPUT') return;
+  if (e.key === 'Escape'){ closeModal(); hideMenu(); return; }
+  const n = '1234567890'.indexOf(e.key), b = $('coins').children[n]; if (n >= 0 && b) selectCoin(b.dataset.c);
+});
+
+// ===== 起動 =====
+(async () => {
+  renderCcy(); connect(); subscribe({type:'allMids'}); loadFx();
+  if (!S.user) $('acctBar').hidden = false;
+  try { await loadMeta(); } catch (e){ log('銘柄情報を取れませんでした: ' + e.message); }
+  buildCoins(); buildOType(); setOType('market'); selectCoin(curKey()); loadAcct();
+  setInterval(loadAcct, 3000);
+  setInterval(() => loadMeta().then(schedule).catch(() => {}), 30000);
+  setInterval(loadFx, 3600e3);
+})();
+</script>
+</body>
+</html>
