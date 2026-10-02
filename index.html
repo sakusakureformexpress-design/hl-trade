@@ -78,6 +78,9 @@ section{border-right:1px solid var(--line);border-bottom:1px solid var(--line);m
 /* 全画面：画面いっぱいにチャートだけを出す（横向きにすると横いっぱい） */
 #chartBox.fs{position:fixed;inset:0;z-index:8;height:auto!important;min-height:0!important;background:var(--bg);padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
 body.fsOn{overflow:hidden}
+#toasts{position:fixed;top:10px;left:8px;right:8px;margin:0 auto;max-width:520px;z-index:10;display:flex;flex-direction:column;gap:6px;pointer-events:none}
+.toast{background:var(--panel2);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;font-size:15px;box-shadow:0 8px 24px #0009;transition:opacity .5s}
+.toast.out{opacity:0}
 #fsBtn.on{color:#1b1404;background:var(--accent);border-color:var(--accent)}
 .zoom button,.ivs button{white-space:nowrap}
 #chartBox.fs #hint{display:none}
@@ -238,6 +241,7 @@ td.ja{font-family:var(--sans)}
       <button class="fx" id="fxBtn" title="押すと為替レートを自分で入れられます">1ドル = —円</button>
     </div>
     <div class="kpi" style="align-items:center;gap:2px"><small>文字の大きさ</small><div class="ccy" id="zoomSel"><button data-z="1">小</button><button data-z="1.2">中</button><button data-z="1.4">大</button><button data-z="1.6">特大</button></div></div>
+    <div class="kpi" style="align-items:center;gap:2px"><small>約定の音</small><div class="ccy" id="sndSel"><button data-s="1">鳴らす</button><button data-s="0">消す</button></div></div>
     <button class="gear" id="gear" title="口座アドレスを変える">口座</button>
   </div>
 </header>
@@ -248,6 +252,7 @@ td.ja{font-family:var(--sans)}
   <nav id="coins" aria-label="銘柄"></nav>
 </div>
 
+<div id="toasts"></div>
 <main>
   <section id="chartBox">
     <div class="hd">
@@ -431,8 +436,53 @@ function connect(){
     if (m.channel === 'allMids'){ const d = m.data.mids; for (const k in M) if (d[k] != null) S.mids[k] = +d[k]; schedule(); }
     else if (m.channel === 'candle') onCandle(m.data);
     else if (m.channel === 'l2Book'){ if (m.data.coin === curKey()){ S.book = m.data; schedule(); } }
+    else if (m.channel === 'userFills') onFills(m.data);
   };
 }
+
+// ===== 約定したら音とお知らせ（この画面でも Phantom でも、同じ口座の約定なら鳴る） =====
+let fillSub = null, actx = null;
+S.sound = store.get('sound', true);
+function watchFills(){
+  if (fillSub) unsubscribe(fillSub); fillSub = null;
+  if (/^0x[0-9a-fA-F]{40}$/.test(S.user)){ fillSub = {type:'userFills', user:S.user}; subscribe(fillSub); }
+}
+// 音は、画面を一度さわったあとでないと鳴らせない（ブラウザの決まり）ので、最初のタッチで準備する
+addEventListener('pointerdown', () => { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch {} }, {capture:true});
+function chime(close){
+  if (!S.sound || !actx) return;
+  // 「ティロン」：新しく建てたときは上がる音、決済のときは下がる音
+  const notes = close ? [1568, 1175] : [1175, 1568], t0 = actx.currentTime;
+  notes.forEach((f, i) => {
+    const o = actx.createOscillator(), g = actx.createGain(), t = t0 + i * 0.13;
+    o.type = 'sine'; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.62);
+  });
+}
+function toast(html){
+  const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = html; $('toasts').prepend(d);
+  setTimeout(() => d.classList.add('out'), 5000); setTimeout(() => d.remove(), 5600);
+}
+function onFills(d){
+  if (!d || d.isSnapshot || d.user?.toLowerCase() !== S.user.toLowerCase() || !d.fills?.length) return;
+  const close = d.fills.some(f => /Close|Sell/.test(f.dir || '') && +f.closedPnl !== 0);
+  chime(close);
+  for (const f of d.fills.slice(0, 3)){
+    const pnl = +f.closedPnl, k = f.coin;
+    const what = (f.dir || (f.side === 'B' ? '買い' : '売り')).replace('Open Long','ロングを建てた').replace('Open Short','ショートを建てた').replace('Close Long','ロングを決済').replace('Close Short','ショートを決済').replace('Buy','買い').replace('Sell','売り');
+    const msg = `約定　${label(k) || k}　${what}　${f.sz} @ ${M[k] ? fmtPx(k, +f.px) : f.px}` + (pnl ? `　<span class="${cls(pnl)}">${moneyS(pnl)}</span>` : '');
+    toast(msg); log(msg.replace(/<[^>]+>/g, ''));
+  }
+  loadAcct(); H.at = 0; if (HIST_TABS.includes(S.aTab)) loadHist();
+}
+$('sndSel').onclick = e => {
+  const b = e.target.closest('button'); if (!b) return;
+  S.sound = b.dataset.s === '1'; store.set('sound', S.sound);
+  [...$('sndSel').children].forEach(x => x.classList.toggle('sel', x === b));
+  if (S.sound) setTimeout(() => chime(false), 50);
+};
+[...$('sndSel').children].forEach(x => x.classList.toggle('sel', (x.dataset.s === '1') === S.sound));
 
 // ===== 画面の更新をまとめて行う =====
 let dirty = false;
@@ -1272,7 +1322,7 @@ function renderHist(){
 setInterval(() => { if (HIST_TABS.includes(S.aTab) && Date.now() - H.at > 60000) loadHist(); }, 15000);
 $('gear').onclick = () => { $('acctBar').hidden = !$('acctBar').hidden; };
 $('addr').value = S.user;
-$('addr').onchange = e => { S.user = e.target.value.trim(); store.set('addr', S.user); H.at = 0; loadAcct(); if (HIST_TABS.includes(S.aTab)) loadHist(); };
+$('addr').onchange = e => { S.user = e.target.value.trim(); store.set('addr', S.user); H.at = 0; watchFills(); loadAcct(); if (HIST_TABS.includes(S.aTab)) loadHist(); };
 
 // ===== 銘柄情報（最大レバレッジ・資金調達率・前日の値段）=====
 async function loadMeta(){
@@ -1302,7 +1352,8 @@ document.addEventListener('keydown', e => {
 
 // ===== 起動 =====
 (async () => {
-  applyZoom(store.get('zoom', matchMedia('(max-width:720px)').matches ? 1.2 : 1));   // スマホは最初から大きめ renderCcy(); connect(); subscribe({type:'allMids'}); loadFx();
+  applyZoom(store.get('zoom', matchMedia('(max-width:720px)').matches ? 1.2 : 1));   // スマホは最初から大きめ
+  renderCcy(); connect(); subscribe({type:'allMids'}); watchFills(); loadFx();
   if (!S.user) $('acctBar').hidden = false;
   try { await loadMeta(); } catch (e){ log('銘柄情報を取れませんでした: ' + e.message); }
   buildCoins(); buildOType(); setOType('market'); selectCoin(curKey()); loadAcct();
