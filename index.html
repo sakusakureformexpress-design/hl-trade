@@ -29,7 +29,17 @@ input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--l
 /* 上の帯 */
 header{display:flex;align-items:center;gap:14px;padding:8px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
 header h1{font-size:15px;margin:0;font-weight:700}
-.mode{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--accent);color:var(--accent);white-space:nowrap}
+.mode{font-size:11px;padding:2px 8px;border-radius:99px;border:1px solid var(--accent);color:var(--accent);background:none;white-space:nowrap;cursor:pointer;font-family:inherit}
+.mode.live{background:#b4473f;border-color:#b4473f;color:#fff;font-weight:700}
+.mode.locked{background:none;border-color:#c96a62;color:#e08a82}
+body.live #submit{box-shadow:0 0 0 2px #b4473f inset}
+#modeNote.live{color:#e08a82;font-weight:700}
+#modal .warn.live{border-color:#c96a62;color:#e08a82;font-weight:700}
+.lv{display:flex;flex-direction:column;gap:10px;font-size:14px}.lv input{font-size:16px;padding:8px;width:100%;box-sizing:border-box}
+.lv .btns{display:flex;gap:8px;flex-wrap:wrap}.lv .btns button{border:none;border-radius:6px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--line);color:var(--fg)}
+.lv .btns button.pri{background:var(--accent);color:#1b1404}.lv .btns button.red{background:#b4473f;color:#fff}
+.lv .msg{min-height:1.2em}
+
 .conn{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--dim)}
 .dot{width:8px;height:8px;border-radius:50%;background:var(--down)} .dot.on{background:var(--up)}
 .kpis{display:flex;gap:18px;margin-left:auto;align-items:center;flex-wrap:wrap}
@@ -302,7 +312,7 @@ td.ja{font-family:var(--sans)}
 <body>
 <header>
   <h1>HL トレード画面</h1>
-  <span class="mode" title="注文ボタンを押しても、内容を表示するだけで取引所へは送りません">見本モード（注文は送られません）</span>
+  <button class="mode" id="modeBtn" title="押すと、本番の注文の設定（鍵・暗証番号・練習／本番の切り替え）を開きます">練習モード（注文は送られません）</button>
   <span class="conn"><span class="dot" id="dot"></span><span id="connTxt">接続中…</span></span>
   <div class="kpis">
     <div class="kpi"><small>口座残高</small><b id="kEq">—</b></div>
@@ -400,7 +410,7 @@ td.ja{font-family:var(--sans)}
       </div>
       <div class="calc" id="calc"></div>
       <div id="submitWrap"><button id="submit" class="L">ロング</button><div id="quick" style="display:none"><button id="qL" class="qk L"></button><button id="qS" class="qk S"></button></div></div>
-      <p class="note">見本モード：ボタンを押すと、送るはずの注文の中身を表示するだけです。チャートの線も、離すと確認が出て元の位置に戻ります。</p>
+      <p class="note" id="modeNote">練習モード：ボタンを押すと、送るはずの注文の中身を表示するだけです。チャートの線も、離すと確認が出て元の位置に戻ります。</p>
       <div id="log"></div>
     </div>
   </section>
@@ -443,6 +453,142 @@ td.ja{font-family:var(--sans)}
 </div></div>
 
 <script>
+// ===== 本番の注文に署名する部品（外部ライブラリなし。鍵はこの端末の中だけで使い、どこにも送らない） =====
+const HLSign = (() => {
+  // --- Keccak-256（イーサリアムの方式。SHA3 とは詰め物が違う） ---
+  const M64 = (1n << 64n) - 1n;
+  const RC = [0x1n,0x8082n,0x800000000000808an,0x8000000080008000n,0x808bn,0x80000001n,0x8000000080008081n,0x8000000000008009n,0x8an,0x88n,0x80008009n,0x8000000an,0x8000808bn,0x800000000000008bn,0x8000000000008089n,0x8000000000008003n,0x8000000000008002n,0x8000000000000080n,0x800an,0x800000008000000an,0x8000000080008081n,0x8000000000008080n,0x80000001n,0x8000000080008008n];
+  const ROT = [0,1,62,28,27,36,44,6,55,20,3,10,43,25,39,41,45,15,21,8,18,2,61,56,14];
+  const rotl = (x, n) => n === 0 ? x : ((x << BigInt(n)) | (x >> BigInt(64 - n))) & M64;
+  function keccakF(A){
+    for (let r = 0; r < 24; r++){
+      const C = [0,1,2,3,4].map(x => A[x] ^ A[x+5] ^ A[x+10] ^ A[x+15] ^ A[x+20]);
+      for (let x = 0; x < 5; x++){ const D = C[(x+4)%5] ^ rotl(C[(x+1)%5], 1); for (let y = 0; y < 25; y += 5) A[y+x] ^= D; }
+      const B = new Array(25);
+      for (let x = 0; x < 5; x++) for (let y = 0; y < 5; y++) B[y + 5*((2*x + 3*y) % 5)] = rotl(A[x + 5*y], ROT[x + 5*y]);
+      for (let x = 0; x < 5; x++) for (let y = 0; y < 25; y += 5) A[y+x] = B[y+x] ^ ((~B[y+(x+1)%5] & M64) & B[y+(x+2)%5]);
+      A[0] ^= RC[r];
+    }
+  }
+  function keccak256(bytes){
+    const rate = 136, q = rate - (bytes.length % rate), p = new Uint8Array(bytes.length + q);
+    p.set(bytes); p[bytes.length] ^= 0x01; p[p.length - 1] ^= 0x80;
+    const A = new Array(25).fill(0n);
+    for (let o = 0; o < p.length; o += rate){
+      for (let i = 0; i < rate / 8; i++){ let v = 0n; for (let b = 7; b >= 0; b--) v = (v << 8n) | BigInt(p[o + i*8 + b]); A[i] ^= v; }
+      keccakF(A);
+    }
+    const out = new Uint8Array(32);
+    for (let i = 0; i < 4; i++){ let v = A[i]; for (let b = 0; b < 8; b++){ out[i*8 + b] = Number(v & 0xffn); v >>= 8n; } }
+    return out;
+  }
+  // --- SHA-256 と HMAC（署名の乱数を鍵と内容から決める RFC6979 に使う） ---
+  const K256 = new Uint32Array([0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2]);
+  function sha256(msg){
+    const l = msg.length, n = ((l + 9 + 63) >> 6) << 6, p = new Uint8Array(n); p.set(msg); p[l] = 0x80;
+    const dv = new DataView(p.buffer); dv.setUint32(n - 4, l * 8); dv.setUint32(n - 8, Math.floor(l / 0x20000000));
+    const H = new Uint32Array([0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19]), W = new Uint32Array(64);
+    const r = (x, k) => (x >>> k) | (x << (32 - k));
+    for (let o = 0; o < n; o += 64){
+      for (let i = 0; i < 16; i++) W[i] = dv.getUint32(o + i*4);
+      for (let i = 16; i < 64; i++){ const s0 = r(W[i-15],7) ^ r(W[i-15],18) ^ (W[i-15] >>> 3), s1 = r(W[i-2],17) ^ r(W[i-2],19) ^ (W[i-2] >>> 10); W[i] = (W[i-16] + s0 + W[i-7] + s1) | 0; }
+      let [a,b,c,d,e,f,g,h] = H;
+      for (let i = 0; i < 64; i++){
+        const t1 = (h + (r(e,6) ^ r(e,11) ^ r(e,25)) + ((e & f) ^ (~e & g)) + K256[i] + W[i]) | 0, t2 = ((r(a,2) ^ r(a,13) ^ r(a,22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+        h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+      }
+      H[0] += a; H[1] += b; H[2] += c; H[3] += d; H[4] += e; H[5] += f; H[6] += g; H[7] += h;
+    }
+    const out = new Uint8Array(32), ov = new DataView(out.buffer); H.forEach((v, i) => ov.setUint32(i*4, v)); return out;
+  }
+  function hmac(key, msg){
+    if (key.length > 64) key = sha256(key);
+    const k = new Uint8Array(64); k.set(key);
+    return sha256(cat(k.map(x => x ^ 0x5c), sha256(cat(k.map(x => x ^ 0x36), msg))));
+  }
+  // --- 小道具 ---
+  function cat(...a){ const n = a.reduce((s, x) => s + x.length, 0), o = new Uint8Array(n); let i = 0; for (const x of a){ o.set(x, i); i += x.length; } return o; }
+  const hex = b => [...b].map(x => x.toString(16).padStart(2, '0')).join('');
+  const unhex = h => { h = h.replace(/^0x/, ''); if (h.length % 2 || /[^0-9a-fA-F]/.test(h)) throw new Error('16進数ではありません'); const o = new Uint8Array(h.length / 2); for (let i = 0; i < o.length; i++) o[i] = parseInt(h.substr(i*2, 2), 16); return o; };
+  const toBig = b => BigInt('0x' + (hex(b) || '0'));
+  const be = (v, n) => unhex(v.toString(16).padStart(n * 2, '0'));
+  const utf8 = s => new TextEncoder().encode(s);
+  // --- secp256k1 ---
+  const P = 0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffefffffc2fn, N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141n;
+  const G = [0x79be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798n, 0x483ada7726a3c4655da4fbfc0e1108a8fd17b448a68554199c47d08ffb10d4b8n];
+  const mod = (a, m = P) => { const r = a % m; return r < 0n ? r + m : r; };
+  function inv(a, m = P){ let [x, y, r0, r1] = [0n, 1n, m, mod(a, m)]; while (r1){ const q = r0 / r1; [x, y] = [y, x - q*y]; [r0, r1] = [r1, r0 - q*r1]; } return mod(x, m); }
+  // ヤコビ座標
+  function dbl([X, Y, Z]){ if (!Y) return [0n, 1n, 0n]; const S = mod(4n*X*Y*Y), M = mod(3n*X*X), X3 = mod(M*M - 2n*S); return [X3, mod(M*(S - X3) - 8n*Y**4n), mod(2n*Y*Z)]; }
+  function add(p, q){
+    if (!p[2]) return q; if (!q[2]) return p;
+    const Z1Z1 = mod(p[2]*p[2]), Z2Z2 = mod(q[2]*q[2]), U1 = mod(p[0]*Z2Z2), U2 = mod(q[0]*Z1Z1), S1 = mod(p[1]*q[2]*Z2Z2), S2 = mod(q[1]*p[2]*Z1Z1);
+    if (U1 === U2) return S1 === S2 ? dbl(p) : [0n, 1n, 0n];
+    const H = mod(U2 - U1), R = mod(S2 - S1), H2 = mod(H*H), H3 = mod(H*H2), X3 = mod(R*R - H3 - 2n*U1*H2);
+    return [X3, mod(R*(U1*H2 - X3) - S1*H3), mod(H*p[2]*q[2])];
+  }
+  function mul(k, pt = G){ let R = [0n, 1n, 0n], Q = [pt[0], pt[1], 1n]; while (k > 0n){ if (k & 1n) R = add(R, Q); Q = dbl(Q); k >>= 1n; } const zi = inv(R[2]); return [mod(R[0]*zi*zi), mod(R[1]*zi*zi*zi)]; }
+  function privOf(keyHex){ const d = toBig(unhex(keyHex)); if (unhex(keyHex).length !== 32 || d <= 0n || d >= N) throw new Error('鍵の形が正しくありません（0x のあとに英数字64文字）'); return d; }
+  function addressOf(keyHex){ const [x, y] = mul(privOf(keyHex)); return '0x' + hex(keccak256(cat(be(x, 32), be(y, 32)))).slice(24); }
+  function sign(hash, keyHex){
+    const d = privOf(keyHex), h = toBig(hash) % N, x = be(d, 32), hb = be(h, 32);
+    let V = new Uint8Array(32).fill(1), K = new Uint8Array(32);
+    K = hmac(K, cat(V, [0], x, hb)); V = hmac(K, V); K = hmac(K, cat(V, [1], x, hb)); V = hmac(K, V);
+    for (;;){
+      V = hmac(K, V); const k = toBig(V);
+      if (k > 0n && k < N){
+        const R = mul(k), r = R[0] % N;
+        if (r){ let s = mod(inv(k, N) * (h + r*d), N), rec = Number(R[1] & 1n) | (R[0] >= N ? 2 : 0);
+          if (s){ if (s > N / 2n){ s = N - s; rec ^= 1; } return {r: '0x' + hex(be(r, 32)), s: '0x' + hex(be(s, 32)), v: 27 + rec}; } }
+      }
+      K = hmac(K, cat(V, [0])); V = hmac(K, V);
+    }
+  }
+  // 署名から相手のアドレスを逆算する（自分の署名の確かめ用）
+  function recover(hash, sig){
+    const r = BigInt(sig.r), s = BigInt(sig.s), rec = sig.v - 27, x = r + (rec & 2 ? N : 0n);
+    let y = 1n, b = mod(x*x*x + 7n), e = (P + 1n) / 4n, base = b; while (e){ if (e & 1n) y = mod(y*base); base = mod(base*base); e >>= 1n; }
+    if ((y & 1n) !== BigInt(rec & 1)) y = P - y;
+    const ri = inv(r, N), u1 = mod(-toBig(hash) * ri, N), u2 = mod(s * ri, N);
+    const a = mul(u1), c = mul(u2, [x, y]), Q = add([a[0], a[1], 1n], [c[0], c[1], 1n]), zi = inv(Q[2]);
+    return '0x' + hex(keccak256(cat(be(mod(Q[0]*zi*zi), 32), be(mod(Q[1]*zi*zi*zi), 32)))).slice(24);
+  }
+  // --- msgpack（取引所の Python 版と同じ並び・同じ詰め方） ---
+  function pack(v){
+    const out = []; const u = (n, b) => { for (let i = b - 1; i >= 0; i--) out.push(Number((BigInt(n) >> BigInt(i*8)) & 0xffn)); };
+    (function w(v){
+      if (v === null || v === undefined) out.push(0xc0);
+      else if (v === true) out.push(0xc3); else if (v === false) out.push(0xc2);
+      else if (typeof v === 'number' || typeof v === 'bigint'){
+        if (typeof v === 'number' && !Number.isInteger(v)) throw new Error('小数は文字にしてから送ります: ' + v);
+        const n = BigInt(v);
+        if (n >= 0n){ if (n < 128n) out.push(Number(n)); else if (n < 256n){ out.push(0xcc); u(n, 1); } else if (n < 65536n){ out.push(0xcd); u(n, 2); } else if (n < 4294967296n){ out.push(0xce); u(n, 4); } else { out.push(0xcf); u(n, 8); } }
+        else { if (n >= -32n) out.push(Number(n + 256n)); else if (n >= -128n){ out.push(0xd0); u(n + 256n, 1); } else if (n >= -32768n){ out.push(0xd1); u(n + 65536n, 2); } else if (n >= -2147483648n){ out.push(0xd2); u(n + 4294967296n, 4); } else { out.push(0xd3); u(n + 18446744073709551616n, 8); } }
+      }
+      else if (typeof v === 'string'){ const b = utf8(v), l = b.length; if (l < 32) out.push(0xa0 | l); else if (l < 256) out.push(0xd9, l); else if (l < 65536){ out.push(0xda); u(l, 2); } else { out.push(0xdb); u(l, 4); } out.push(...b); }
+      else if (Array.isArray(v)){ const l = v.length; if (l < 16) out.push(0x90 | l); else if (l < 65536){ out.push(0xdc); u(l, 2); } else { out.push(0xdd); u(l, 4); } v.forEach(w); }
+      else { const ks = Object.keys(v).filter(k => v[k] !== undefined), l = ks.length; if (l < 16) out.push(0x80 | l); else { out.push(0xde); u(l, 2); } for (const k of ks){ w(k); w(v[k]); } }
+    })(v);
+    return new Uint8Array(out);
+  }
+  // --- Hyperliquid の署名（L1 action：EIP-712 の Agent 型） ---
+  const ZERO32 = new Uint8Array(32);
+  const DOMAIN_SEP = keccak256(cat(keccak256(utf8('EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)')), keccak256(utf8('Exchange')), keccak256(utf8('1')), be(1337n, 32), ZERO32));
+  const AGENT_TYPE = keccak256(utf8('Agent(string source,bytes32 connectionId)'));
+  function actionHash(action, nonce){ return keccak256(cat(pack(action), be(BigInt(nonce), 8), [0])); }
+  function digest(action, nonce, mainnet = true){
+    const struct = keccak256(cat(AGENT_TYPE, keccak256(utf8(mainnet ? 'a' : 'b')), actionHash(action, nonce)));
+    return keccak256(cat([0x19, 0x01], DOMAIN_SEP, struct));
+  }
+  function signAction(action, nonce, keyHex, mainnet = true){ return sign(digest(action, nonce, mainnet), keyHex); }
+  // 数字を取引所の書き方の文字にする（末尾の0を取る。8桁で丸めて誤差があれば止める）
+  function wire(x){
+    const s = (+x).toFixed(8);
+    if (Math.abs(+s - x) >= 1e-12) throw new Error('数字の桁が多すぎます: ' + x);
+    let t = s.replace(/\.?0+$/, ''); if (t === '-0') t = '0'; return t;
+  }
+  return {keccak256, sha256, hmac, addressOf, sign, recover, pack, digest, signAction, actionHash, wire, hex, unhex, utf8};
+})();
 'use strict';
 // ===== 設定（銘柄を変えたいときはここを書き換える）=====
 const PERPS = ['BTC','ETH','XRP','HYPE','SOL','DOGE','SUI','LINK','ADA','AVAX'];
@@ -1482,7 +1628,17 @@ $('submit').onclick = () => {
   rows.push(['手数料の目安', money(c.fee, 3)]);
   // 確認画面を開いた時点の中身を固定して持っておく（本番ではこの中身だけを送る）
   S.pendingOrder = {coin:k, side:S.side, type:S.otype, alo, px: S.otype === 'market' ? null : roundPx(k, c.px), sz:c.sz, lev:c.lev, margin:S.margin, tp:t.tp, sl:t.sl, at:Date.now()};
-  confirmChange(`${label(k)} を${sideJa}`, rows, bads.length ? bads.join('<br><br>') : null, '注文する');
+  const po = S.pendingOrder;
+  confirmChange(`${label(k)} を${sideJa}`, rows, bads.length ? bads.join('<br><br>') : null, '注文する', () => {
+    const k = po.coin, buy = po.side > 0, steps = [];
+    if (M[k]?.kind === 'perp' && !posOf(k)) steps.push({label:`倍率を${po.lev}倍・${po.margin === 'cross' ? 'クロス' : '分離'}にする`, action:HLX.lev(k, po.lev, po.margin === 'cross')});
+    const main = po.type === 'market' ? HLX.market(k, buy, po.sz, false) : po.type === 'limit' ? HLX.limit(k, buy, po.px, po.sz, false, po.alo) : HLX.trig(k, buy, po.px, po.sz, false, 'sl');
+    const list = [main];
+    if (po.tp) list.push(HLX.trig(k, !buy, po.tp, po.sz, true, 'tp'));
+    if (po.sl) list.push(HLX.trig(k, !buy, po.sl, po.sz, true, 'sl'));
+    steps.push({label: list.length > 1 ? '注文（利確・損切り付き）' : '注文', action:HLX.orders(list, list.length > 1 ? 'normalTpsl' : 'na')});
+    return steps;
+  });
 };
 
 // ===== いま選んでいる銘柄のポジション（注文パネルの一番上）=====
@@ -1518,11 +1674,26 @@ function instantHit(o, p){
 }
 
 // ===== 確認の窓（見本モードでは表示するだけ）=====
-let modalOk = null;
-function confirmChange(title, rows, danger, okLabel){
+let modalRun = null, modalAt = 0;
+// run は「本番で送る中身」を作る関数。押した瞬間の値段・数量で作り直し、手順の配列（{label, action}）を返す
+function confirmChange(title, rows, danger, okLabel, run){
   preview(title, rows, danger ? `<div class="danger">${danger}</div>` : '', {ok: danger ? null : (okLabel || 'この内容で変更する')});
+  modalRun = danger ? null : (run || null); modalAt = Date.now();
 }
-$('mOk').onclick = () => { const t = $('mTitle').textContent; closeModal(); log(`${new Date().toLocaleTimeString()} 見本: ${t}（送っていません）`); };
+$('mOk').onclick = async () => {
+  const t = $('mTitle').textContent, run = modalRun; modalRun = null;
+  if (!S.live){ closeModal(); log(`${new Date().toLocaleTimeString()} 練習: ${t}（送っていません）`); return; }
+  if (!run){ closeModal(); toast('この操作は本番の送信につながっていません。何も送っていません。', 6000); return; }
+  if (!LIVE.ready()){ closeModal(); toast('鍵が閉じているので送れません。暗証番号を入れてください。', 6000); openLiveSetup(); return; }
+  if (Date.now() - modalAt > 60000){ preview(t + '：送りませんでした', [['理由', '確認画面を開いてから1分以上たったので、値段が変わっているかもしれません。もう一度やり直してください。']], '', {info:true}); return; }
+  let steps; try { steps = run(); } catch (e){ preview(t + '：送りませんでした', [['理由', esc(e.message)]], '', {info:true}); return; }
+  $('mOk').disabled = $('mClose').disabled = true; $('mOk').textContent = '送っています…';
+  const r = await LIVE.runSteps(steps);
+  $('mOk').disabled = $('mClose').disabled = false;
+  preview(`${t}：${r.ok ? '完了' : 'うまくいきませんでした'}`, r.rows, r.ok ? '' : '<div class="danger">途中で止めました。ポジションと注文の欄で、いまの状態を確かめてください。</div>', {info:true});
+  log(`${new Date().toLocaleTimeString()} 本番: ${t} → ${r.ok ? '完了' : '失敗'}`);
+  loadAcct(); setTimeout(loadAcct, 1500); setTimeout(loadAcct, 5000);
+};
 function preview(title, rows, extraHtml, opts){
   $('mOk').hidden = !(opts && opts.ok); if (opts && opts.ok) $('mOk').textContent = opts.ok;
   $('mClose').textContent = opts && opts.ok ? 'やめる' : '閉じる';
@@ -1530,7 +1701,6 @@ function preview(title, rows, extraHtml, opts){
   $('mBody').innerHTML = rows.map(([a,b]) => `<span>${a}</span><span>${b}</span>`).join('');
   $('mBody').hidden = !rows.length;
   $('modal').hidden = false; $('mClose').focus();
-  log(`${new Date().toLocaleTimeString()} 見本: ${title}`);
 }
 function closeModal(){ $('modal').hidden = true; }
 $('mClose').onclick = closeModal;
@@ -1541,7 +1711,17 @@ function modifyPreview(o, kind, from, to){
   rows.push(['いまの値段', '$' + fmtPx(k, priceOf(k))]);
   let bad = instantHit(o, to) ? `この値段だと、いまの値段をもう越えているので、${kind === 'limit' ? 'すぐ約定' : 'すぐ発動して決済'}されてしまいます。変更しません。` : null;
   if (!bad && pos && kind === 'sl') bad = slBeyondLiq(pos, to);
-  confirmChange(`${KIND_JA[kind]}の値段を変える`, rows, bad); schedule();
+  confirmChange(`${KIND_JA[kind]}の値段を変える`, rows, bad, null, () => {
+    const k = o.coin, buy = o.side === 'B', pz = posOf(k);
+    if (o.reduceOnly && !pz) throw new Error('ポジションがもうありません');
+    const sz = +o.sz > 0 ? +o.sz : Math.abs(+pz?.szi || 0);
+    const order = kind === 'limit' ? HLX.limit(k, buy, to, sz, o.reduceOnly, o.tif === 'Alo')
+      : /Limit/i.test(o.orderType || '') ? HLX.ord(k, buy, +o.limitPx + (to - +o.triggerPx), sz, o.reduceOnly, {trigger:{isMarket:false, triggerPx:HLX.px(k, to), tpsl: kind === 'tp' ? 'tp' : 'sl'}})
+      : HLX.trig(k, buy, to, sz, o.reduceOnly, kind === 'tp' ? 'tp' : 'sl');
+    // ポジション全体の利確・損切り（数量0で出ているもの）は、新しく出してから古い方を消す。ふつうの注文はそのまま値段だけ変える
+    if (o.isPositionTpsl || !(+o.sz > 0)) return [{label:`新しい${KIND_JA[kind]}を出す`, action:HLX.orders([order])}, {label:`前の${KIND_JA[kind]}を取り消す`, action:HLX.cancel(k, o.oid)}];
+    return [{label:'値段を変える', action:HLX.modify(o.oid, order)}];
+  }); schedule();
 }
 // 損切りが清算価格より先（ロングなら下）にあると、損切りの前にロスカットされる
 function slBeyondLiq(pos, sl){
@@ -1554,7 +1734,14 @@ function tpslPreview(k, kind, p, opt){
   if (!bad && opt && opt.be && old && (+old.triggerPx - p) * Math.sign(+pos.szi) > 0)
     bad = `いまの損切り（$${fmtPx(k, +old.triggerPx)}）のほうが建値より有利です。「建値へ」にすると損切りが不利な側に下がるので、変えません。`;
   if (!bad) bad = instantHit({coin:k, side: +pos.szi > 0 ? 'A' : 'B', kind}, p) ? 'この値段だと、いまの値段をもう越えているので、すぐ発動して決済されてしまいます。設定しません。' : null;
-  confirmChange(`${KIND_JA[kind]}を${old ? '変える' : '入れる'}`, [['銘柄', label(k)], [old ? '変更前' : 'いまの設定', old ? '$' + fmtPx(k, +old.triggerPx) : 'なし'], ['新しい値段', '$' + fmtPx(k, p)], ['いまの値段', '$' + fmtPx(k, priceOf(k))], ['ここで決済されたときの損益', moneyS(pnlAt(pos, p))]], bad, old ? 'この内容で変更する' : 'この内容で入れる');
+  confirmChange(`${KIND_JA[kind]}を${old ? '変える' : '入れる'}`, [['銘柄', label(k)], [old ? '変更前' : 'いまの設定', old ? '$' + fmtPx(k, +old.triggerPx) : 'なし'], ['新しい値段', '$' + fmtPx(k, p)], ['いまの値段', '$' + fmtPx(k, priceOf(k))], ['ここで決済されたときの損益', moneyS(pnlAt(pos, p))]], bad, old ? 'この内容で変更する' : 'この内容で入れる', () => tpslSteps(k, kind, p, old));
+}
+// 利確・損切りを出す手順：先に新しい方を出し、うまくいったら古い方を取り消す（間に「何もない時間」を作らない）
+function tpslSteps(k, kind, p, old){
+  const pz = posOf(k); if (!pz) throw new Error('ポジションがもうありません');
+  const long = +pz.szi > 0, steps = [{label:`${KIND_JA[kind]}を出す（$${fmtPx(k, p)}）`, action:HLX.orders([HLX.trig(k, !long, p, Math.abs(+pz.szi), true, kind)])}];
+  if (old) steps.push({label:`前の${KIND_JA[kind]}（$${fmtPx(k, +old.triggerPx)}）を取り消す`, action:HLX.cancel(k, old.oid)});
+  return steps;
 }
 function tpslEditor(k){
   const pos = posOf(k), t = tpslOf(k), s = +pos.szi, e = +pos.entryPx;
@@ -1563,7 +1750,7 @@ function tpslEditor(k){
     <div class="tpsl">${pctFieldHtml('eTp', 'tp')}${pctFieldHtml('eSl', 'sl')}</div>
     <div class="chips" style="margin-top:8px"><button id="eBe">損切りを建値に（同値撤退）</button></div>
     <p class="note" style="margin-top:8px">チャート上の線をドラッグしても変えられます。</p>
-    <div style="margin-top:10px;display:flex;justify-content:flex-end"><button id="eGo" style="border:none;border-radius:6px;padding:8px 14px;background:var(--accent);color:#1b1404;font-weight:700">この内容で設定（見本）</button></div>`;
+    <div style="margin-top:10px;display:flex;justify-content:flex-end"><button id="eGo" style="border:none;border-radius:6px;padding:8px 14px;background:var(--accent);color:#1b1404;font-weight:700">確認へ進む</button></div>`;
   preview(`${label(k)} の利確と損切り`, [], box); markPctMode();
   $('eTp').value = t.tp ? t.tp.triggerPx : ''; $('eSl').value = t.sl ? t.sl.triggerPx : '';
   const ectx = () => ({k, e, side: Math.sign(s), lev: +pos.leverage.value || 1});
@@ -1574,7 +1761,15 @@ function tpslEditor(k){
   $('eGo').onclick = () => {
     const tp = parseFloat($('eTp').value), sl = parseFloat($('eSl').value), m = priceOf(k);
     if ((tp > 0 && (tp - m) * s <= 0) || (sl > 0 && (sl - m) * s >= 0)){ $('eSlPv').textContent = s > 0 ? '利確はいまの値段より上、損切りは下にしてください' : '利確はいまの値段より下、損切りは上にしてください'; return; }
-    confirmChange(`${label(k)} の利確と損切りを設定`, [['利確', tp > 0 ? '$' + fmtPx(k, tp) + '  ' + moneyS(pnlAt(pos, tp)) : 'なし'], ['損切り', sl > 0 ? '$' + fmtPx(k, sl) + '  ' + moneyS(pnlAt(pos, sl)) : 'なし']], null, 'この内容で設定する');
+    const same = (o, v) => o && Math.abs(+o.triggerPx - v) < 1e-12, keep = o => o ? `変えない（いまの $${fmtPx(k, +o.triggerPx)} のまま）` : 'なし';
+    if (sl > 0 && slBeyondLiq(pos, sl)){ $('eSlPv').textContent = '損切りが清算価格より先です'; return; }
+    confirmChange(`${label(k)} の利確と損切りを設定`, [['利確', tp > 0 ? '$' + fmtPx(k, tp) + '  ' + moneyS(pnlAt(pos, tp)) : keep(t.tp)], ['損切り', sl > 0 ? '$' + fmtPx(k, sl) + '  ' + moneyS(pnlAt(pos, sl)) : keep(t.sl)]], null, 'この内容で設定する', () => {
+      const steps = [];
+      if (tp > 0 && !same(t.tp, roundPx(k, tp))) steps.push(...tpslSteps(k, 'tp', tp, t.tp));
+      if (sl > 0 && !same(t.sl, roundPx(k, sl))) steps.push(...tpslSteps(k, 'sl', sl, t.sl));
+      if (!steps.length) throw new Error('変えるところがありません');
+      return steps;
+    });
   };
 }
 // ===== ポジションを増やす・減らす =====
@@ -1618,7 +1813,11 @@ function sizeEditor(k, mode){
     const c = calc(); if (!(c.q > 0)) { $('zCalc').insertAdjacentHTML('beforeend', '<span></span><span class="bad">数量を入れてください</span>'); return; }
     let bad = type === 'limit' && instantHit({coin:k, side: (mode === 'reduce') === long ? 'A' : 'B', kind:'limit'}, c.p) ? 'この指値はいまの値段をもう越えているので、すぐ約定します。成行にするか値段を見直してください。' : null;
     const av = perpAvail(); if (!bad && mode === 'add' && av != null && c.p * c.q / lev > av) bad = `使える余力（${money(av)}）が、必要な証拠金（${money(c.p * c.q / lev)}）より少ないので増やせません。数量を減らしてください。`;
-    confirmChange(`${label(k)} を${mode === 'reduce' ? '減らす' : '増やす'}（${type === 'limit' ? '指値 $' + fmtPx(k, c.p) : '成行'}）`, c.rows, bad, mode === 'reduce' ? '減らす' : '増やす');
+    confirmChange(`${label(k)} を${mode === 'reduce' ? '減らす' : '増やす'}（${type === 'limit' ? '指値 $' + fmtPx(k, c.p) : '成行'}）`, c.rows, bad, mode === 'reduce' ? '減らす' : '増やす', () => {
+      if (!posOf(k)) throw new Error('ポジションがもうありません');
+      const red = mode === 'reduce', buy = red ? !long : long;
+      return [{label: red ? '一部決済' : '買い増し・売り増し', action:HLX.orders([type === 'limit' ? HLX.limit(k, buy, c.p, c.q, red, false) : HLX.market(k, buy, c.q, red)])}];
+    });
   };
 }
 // ===== 分離（アイソレーテッド）の証拠金を足す・減らす =====
@@ -1651,16 +1850,19 @@ function marginEditor(k, mode){
   $('gGo').onclick = () => {
     const c = calc(); if (!(c.a > 0)) { $('gCalc').insertAdjacentHTML('beforeend', '<span></span><span class="bad">金額を入れてください（上限を超えた分は上限までになります）</span>'); return; }
     const m = priceOf(k), bad = mode === 'remove' && isFinite(c.nl) && (m - c.nl) * side < m * 0.03 ? '減らすと清算価格がいまの値段に近すぎます（3%以内）。金額を減らしてください。' : null;
-    confirmChange(`${label(k)} の証拠金を${mode === 'add' ? '足す' : '減らす'}`, c.rows, bad, mode === 'add' ? '足す' : '減らす');
+    confirmChange(`${label(k)} の証拠金を${mode === 'add' ? '足す' : '減らす'}`, c.rows, bad, mode === 'add' ? '足す' : '減らす', () => {
+      if (!posOf(k)) throw new Error('ポジションがもうありません');
+      return [{label:'証拠金を変える', action:HLX.margin(k, side > 0, mode === 'add' ? c.a : -c.a)}];
+    });
   };
 }
 function posAction(act, k){
   const p = posOf(k), m = priceOf(k);
   if (!p) return;
   const s = +p.szi, dir = s > 0 ? 'ロング' : 'ショート';
-  if (act === 'close') confirmChange(`${label(k)} の${dir}を全部決済`, [['やること', `成行で ${Math.abs(s)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]], null, '全部決済する');
-  if (act === 'half') confirmChange(`${label(k)} の${dir}を半分決済`, [['やること', `成行で ${roundSz(k, Math.abs(s)/2)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl / 2)]], null, '半分決済する');
-  if (act === 'flip') confirmChange(`${label(k)} を${dir}から${s>0?'ショート':'ロング'}へ（ドテン）`, [['やること', `成行で ${roundSz(k, Math.abs(s)*2)} ${label(k)} を${s>0?'売る':'買う'}`], ['結果', `${s>0?'ショート':'ロング'} ${Math.abs(s)} ${label(k)}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]], null, 'ドテンする');
+  if (act === 'close') confirmChange(`${label(k)} の${dir}を全部決済`, [['やること', `成行で ${Math.abs(s)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]], null, '全部決済する', () => { const q = posOf(k); if (!q) throw new Error('ポジションがもうありません'); return [{label:'全部決済', action:HLX.orders([HLX.market(k, +q.szi < 0, Math.abs(+q.szi), true)])}]; });
+  if (act === 'half') confirmChange(`${label(k)} の${dir}を半分決済`, [['やること', `成行で ${roundSz(k, Math.abs(s)/2)} ${label(k)} を${s>0?'売る':'買う'}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl / 2)]], null, '半分決済する', () => { const q = posOf(k); if (!q) throw new Error('ポジションがもうありません'); return [{label:'半分決済', action:HLX.orders([HLX.market(k, +q.szi < 0, roundSz(k, Math.abs(+q.szi) / 2), true)])}]; });
+  if (act === 'flip') confirmChange(`${label(k)} を${dir}から${s>0?'ショート':'ロング'}へ（ドテン）`, [['やること', `成行で ${roundSz(k, Math.abs(s)*2)} ${label(k)} を${s>0?'売る':'買う'}`], ['結果', `${s>0?'ショート':'ロング'} ${Math.abs(s)} ${label(k)}`], ['いまの値段', fmtPxC(k,m)], ['確定する損益の目安', moneyS(+p.unrealizedPnl)]], null, 'ドテンする', () => { const q = posOf(k); if (!q) throw new Error('ポジションがもうありません'); return [{label:'ドテン', action:HLX.orders([HLX.market(k, +q.szi < 0, Math.abs(+q.szi) * 2, false)])}]; });
   if (act === 'tpsl') tpslEditor(k);
   if (act === 'size') sizeEditor(k);
   if (act === 'margin') marginEditor(k);
@@ -1670,6 +1872,163 @@ function posAction(act, k){
     tpslPreview(k, 'sl', be, {be:true});
   }
 }
+// ===== 本番の注文の中身を作る（取引所の決まった形・決まった順番） =====
+const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で、すぐ約定する分だけ約定させる（残りは取り消し）
+const HLX = {
+  aid(k){ const a = M[k]?.aid; if (a == null) throw new Error('銘柄の番号がわかりません。ページを開き直してください'); return a; },
+  px(k, p){ const r = roundPx(k, p); if (!(r > 0)) throw new Error('値段が正しくありません'); return HLSign.wire(r); },
+  sz(k, q){ const r = roundSz(k, q); if (!(r > 0)) throw new Error('数量がゼロです'); return HLSign.wire(r); },
+  ord(k, buy, p, q, reduce, t){ return {a:HLX.aid(k), b:!!buy, p:HLX.px(k, p), s:HLX.sz(k, q), r:!!reduce, t}; },
+  market(k, buy, q, reduce){ const m = priceOf(k); if (!(m > 0)) throw new Error('いまの値段が取れていません'); return HLX.ord(k, buy, m * (buy ? 1 + SLIP : 1 - SLIP), q, reduce, {limit:{tif:'Ioc'}}); },
+  limit(k, buy, p, q, reduce, alo){ return HLX.ord(k, buy, p, q, reduce, {limit:{tif: alo ? 'Alo' : 'Gtc'}}); },
+  // 届いたら成行（利確・損切り・逆指値）。成行の幅は取引所の決まりどおり10%
+  trig(k, buy, trig, q, reduce, tpsl){ return HLX.ord(k, buy, trig * (buy ? 1.1 : 0.9), q, reduce, {trigger:{isMarket:true, triggerPx:HLX.px(k, trig), tpsl}}); },
+  orders(list, grouping){ return {type:'order', orders:list, grouping: grouping || 'na'}; },
+  cancel(k, oid){ return {type:'cancel', cancels:[{a:HLX.aid(k), o:+oid}]}; },
+  modify(oid, order){ return {type:'batchModify', modifies:[{oid:+oid, order}]}; },
+  lev(k, lev, cross){ return {type:'updateLeverage', asset:HLX.aid(k), isCross:!!cross, leverage:Math.max(1, Math.round(lev))}; },
+  margin(k, isBuy, usd){ const n = Math.round(usd * 1e6); if (!n) throw new Error('金額がゼロです'); return {type:'updateIsolatedMargin', asset:HLX.aid(k), isBuy:!!isBuy, ntli:n}; },
+};
+
+// ===== 本番の送信（鍵はこの端末の中だけ。暗証番号で暗号化して保存し、取引所へ送るのは署名だけ）=====
+const LIVE = (() => {
+  let key = null, lastNonce = 0;
+  const saved = () => store.get('agentKey', null);
+  const b64 = u => btoa(String.fromCharCode(...u)), unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
+  async function kdf(pin, salt){
+    const base = await crypto.subtle.importKey('raw', HLSign.utf8(pin), 'PBKDF2', false, ['deriveKey']);
+    return crypto.subtle.deriveKey({name:'PBKDF2', salt, iterations:310000, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['encrypt', 'decrypt']);
+  }
+  async function save(k, pin){
+    k = k.trim(); if (!/^(0x)?[0-9a-fA-F]{64}$/.test(k)) throw new Error('鍵の形が違います（0x のあとに英数字64文字）。');
+    if (!k.startsWith('0x')) k = '0x' + k;
+    if (!/^\d{6,12}$/.test(pin)) throw new Error('暗証番号は数字6〜12桁にしてください。');
+    const addr = HLSign.addressOf(k), salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, await kdf(pin, salt), HLSign.utf8(k)));
+    store.set('agentKey', {addr, salt:b64(salt), iv:b64(iv), ct:b64(ct)}); key = k; return addr;
+  }
+  async function unlock(pin){
+    const sv = saved(); if (!sv) throw new Error('鍵が保存されていません');
+    try { key = new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(sv.iv)}, await kdf(pin, unb64(sv.salt)), unb64(sv.ct))); }
+    catch { throw new Error('暗証番号が違います'); }
+  }
+  // この鍵が、いまの口座に登録された注文用の鍵か（取引所に問い合わせる。鍵そのものは送らない）
+  async function check(){
+    const sv = saved(); if (!sv || !/^0x[0-9a-fA-F]{40}$/.test(S.user)) return {ok:false, why:'口座アドレスか鍵がありません'};
+    const list = await info({type:'extraAgents', user:S.user});
+    const hit = (list || []).find(x => x.address.toLowerCase() === sv.addr.toLowerCase());
+    if (!hit) return {ok:false, why:'この鍵は、いまの口座の注文用の鍵として登録されていません'};
+    if (hit.validUntil && hit.validUntil < Date.now()) return {ok:false, why:'この鍵は期限切れです。作り直してください'};
+    return {ok:true, name:hit.name, until:hit.validUntil};
+  }
+  async function send(action){
+    if (!key) throw new Error('鍵が閉じています');
+    let nonce = Date.now(); if (nonce <= lastNonce) nonce = lastNonce + 1; lastNonce = nonce;
+    const signature = HLSign.signAction(action, nonce, key);
+    const r = await fetch(API.replace(/\/info$/, '/exchange'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, nonce, signature, vaultAddress:null})});
+    const t = await r.text(); try { return JSON.parse(t); } catch { return {status:'err', response:t || ('HTTP ' + r.status)}; }
+  }
+  async function runSteps(steps){
+    const rows = []; let ok = true;
+    for (const st of steps){
+      let res; try { res = await send(st.action); } catch (e){ rows.push([esc(st.label), `<span class="bad">送れませんでした：${esc(e.message)}</span>`]); ok = false; break; }
+      const ex = explainRes(res); rows.push([esc(st.label), ex.lines.map(x => ex.ok ? esc(x) : `<span class="bad">${esc(x)}</span>`).join('<br>')]);
+      if (!ex.ok){ ok = false; break; }
+    }
+    return {ok, rows};
+  }
+  function setLive(on){ S.live = !!on; store.set('live', S.live); renderMode(); }
+  return {saved, save, unlock, check, runSteps, setLive, ready: () => !!key, lock(){ key = null; renderMode(); }, forget(){ key = null; store.set('agentKey', null); setLive(false); }};
+})();
+S.live = store.get('live', false) && !!LIVE.saved();
+// 取引所の返事を日本語にする
+const ERR_JA = [[/insufficient margin|not enough margin/i, '証拠金（余力）が足りません'], [/could not immediately match/i, 'すぐ約定する相手がいませんでした（値段が急に動いたかもしれません）。何も約定していません'],
+  [/post only.*immediately matched|would have immediately matched/i, 'メイカー専用なのに、すぐ約定する値段だったので取り消されました'], [/does not exist/i, 'この鍵が口座に登録されていません（作り直しが必要かもしれません）'],
+  [/reduce only.*increase/i, '決済用の注文なのに、ポジションが増える向きでした'], [/tick size|divisible/i, '値段の刻みが合っていません'], [/minimum value|min.*\$10/i, '注文額が小さすぎます（10ドル以上が必要）'],
+  [/leverage/i, '倍率の設定でエラーになりました'], [/rate limit|too many/i, '短い時間に送りすぎました。少し待ってください'], [/never placed|already canceled|filled/i, 'もう約定したか、取り消し済みです']];
+const jaErr = m => { m = String(m ?? ''); const hit = ERR_JA.find(([re]) => re.test(m)); return hit ? `${hit[1]}（取引所: ${m}）` : `取引所のエラー: ${m}`; };
+function explainRes(res){
+  if (!res || res.status !== 'ok') return {ok:false, lines:[jaErr(typeof res?.response === 'string' ? res.response : JSON.stringify(res))]};
+  const st = res.response?.data?.statuses; if (!st) return {ok:true, lines:['受け付けられました']};
+  let ok = true;
+  const lines = st.map(x => {
+    if (x === 'success') return '完了しました';
+    if (x === 'waitingForFill') return '本体の注文の約定を待っています（約定したら有効になります）';
+    if (x === 'waitingForTrigger') return '発動の値段を待っています';
+    if (x?.filled) return `約定しました：${x.filled.totalSz} 枚、平均 $${x.filled.avgPx}`;
+    if (x?.resting) return '注文を出しました（板で待っています）';
+    if (x?.error){ ok = false; return jaErr(x.error); }
+    return JSON.stringify(x);
+  });
+  return {ok, lines};
+}
+function renderMode(){
+  const b = $('modeBtn'), on = S.live, rdy = LIVE.ready();
+  b.textContent = on ? (rdy ? '本番（注文が出ます）' : '本番・鍵が閉じています') : '練習モード（注文は送られません）';
+  b.classList.toggle('live', on && rdy); b.classList.toggle('locked', on && !rdy);
+  document.body.classList.toggle('live', on);
+  $('modeNote').classList.toggle('live', on);
+  $('modeNote').textContent = on ? '本番：確認画面で「注文する」などを押すと、実際に取引所へ送られます。' : '練習モード：ボタンを押すと、送るはずの注文の中身を表示するだけです。チャートの線も、離すと確認が出て元の位置に戻ります。';
+  $('mWarn').classList.toggle('live', on);
+  $('mWarn').textContent = on ? '本番です。下のボタンを押すと、この内容で実際に取引所へ送ります。' : '練習モードなので、この注文は送られません。本番にするには、上の「練習モード」ボタンから設定します。';
+}
+function openLiveSetup(){
+  const sv = LIVE.saved(), rdy = LIVE.ready();
+  let h = '<div class="lv">';
+  if (!sv) h += `<p>注文用の鍵（API の秘密鍵）を入れてください。<b>この端末の中にだけ</b>、暗証番号をかけて保存します。取引所にもほかのどこにも鍵は送りません（送るのは署名だけです）。</p>
+    <p class="note">この鍵は注文だけができる種類で、お金の引き出しや送金はできません。PC とスマホでは、それぞれ入れる必要があります。</p>
+    <label class="f">注文用の鍵<input id="lvKey" type="password" autocomplete="off" spellcheck="false" placeholder="0x で始まる英数字"></label>
+    <label class="f">暗証番号（数字6〜12桁。この端末で鍵を開けるときに使います）<input id="lvPin" type="password" inputmode="numeric" autocomplete="new-password"></label>
+    <label class="f">暗証番号をもう一度<input id="lvPin2" type="password" inputmode="numeric" autocomplete="new-password"></label>
+    <div class="btns"><button class="pri" id="lvSave">この端末に保存する</button></div>`;
+  else if (!rdy) h += `<p>鍵は保存されていますが、閉じています。暗証番号を入れて開けてください。</p>
+    <label class="f">暗証番号<input id="lvPin" type="password" inputmode="numeric" autocomplete="current-password"></label>
+    <div class="btns"><button class="pri" id="lvOpen">鍵を開ける</button>${S.live ? '<button id="lvOff">練習モードに戻す</button>' : ''}<button id="lvForget">鍵を消す</button></div>`;
+  else h += `<p>鍵は開いています。鍵のアドレス（公開情報）：<br><span class="num" style="word-break:break-all">${esc(sv.addr)}</span></p>
+    <p id="lvChk" class="note">口座に登録されているか確かめています…</p>
+    <p>いまは <b>${S.live ? '本番（注文が出ます）' : '練習モード（注文は送られません）'}</b> です。</p>
+    <div class="btns"><button id="lvTest">つながりを確かめる（お金は動きません）</button></div>
+    <p class="note">最初に一度押してください。ポジションも注文もない銘柄の倍率を「いまと同じ値」に設定し直して、取引所が署名を受け付けるかだけを確かめます。</p>
+    <div class="btns">${S.live ? '<button class="pri" id="lvOff">練習モードに戻す</button>' : '<button class="red" id="lvOn" disabled>本番にする</button>'}<button id="lvLock">鍵を閉じる</button><button id="lvForget">鍵を消す</button></div>`;
+  h += '<p class="msg bad" id="lvMsg"></p></div>';
+  preview('本番の注文の設定', [], h, {info:true});
+  const msg = t => $('lvMsg').textContent = t;
+  if ($('lvSave')) $('lvSave').onclick = async () => {
+    if ($('lvPin').value !== $('lvPin2').value) return msg('暗証番号が2回で違います');
+    try { $('lvSave').disabled = true; await LIVE.save($('lvKey').value, $('lvPin').value); $('lvKey').value = ''; renderMode(); openLiveSetup(); }
+    catch (e){ $('lvSave').disabled = false; msg(e.message); }
+  };
+  if ($('lvOpen')){ const go = async () => { try { $('lvOpen').disabled = true; await LIVE.unlock($('lvPin').value); renderMode(); openLiveSetup(); } catch (e){ $('lvOpen').disabled = false; msg(e.message); } };
+    $('lvOpen').onclick = go; $('lvPin').onkeydown = e => { if (e.key === 'Enter') go(); }; $('lvPin').focus(); }
+  if ($('lvOff')) $('lvOff').onclick = () => { LIVE.setLive(false); openLiveSetup(); };
+  if ($('lvTest')) $('lvTest').onclick = async () => {
+    const b = $('lvTest'); b.disabled = true; b.textContent = '確かめています…';
+    try {
+      const k = PERPS.find(c => M[c] && !posOf(c) && !S.orders.some(o => o.coin === c)); if (!k) throw new Error('使える銘柄がありません');
+      const d = await info({type:'activeAssetData', user:S.user, coin:k}), lv = d?.leverage; if (!lv) throw new Error('いまの倍率が読めませんでした');
+      const r = await LIVE.runSteps([{label:'', action:HLX.lev(k, +lv.value, lv.type === 'cross')}]);
+      b.textContent = r.ok ? `✓ 取引所が受け付けました（${label(k)} の倍率 ${lv.value}倍・${lv.type === 'cross' ? 'クロス' : '分離'} のまま）` : '✗ うまくいきませんでした';
+      if (!r.ok) msg(r.rows.map(x => x[1].replace(/<[^>]+>/g, '')).join(' '));
+    } catch (e){ b.disabled = false; b.textContent = 'つながりを確かめる（お金は動きません）'; msg(e.message); }
+  };
+  if ($('lvLock')) $('lvLock').onclick = () => { LIVE.lock(); openLiveSetup(); };
+  if ($('lvForget')) $('lvForget').onclick = () => {
+    if ($('lvForget').dataset.sure){ LIVE.forget(); openLiveSetup(); return; }
+    $('lvForget').dataset.sure = 1; $('lvForget').textContent = '本当に消す（もう一度押す）';
+  };
+  if ($('lvChk')) LIVE.check().then(r => {
+    if (!$('lvChk')) return;
+    $('lvChk').innerHTML = r.ok ? `<span class="up">この口座の注文用の鍵として登録されています</span>${r.name ? '（名前: ' + esc(r.name) + '）' : ''}${r.until ? '。期限 ' + new Date(r.until).toLocaleDateString('ja-JP') : ''}` : `<span class="bad">${esc(r.why)}</span>`;
+    const on = $('lvOn'); if (!on || !r.ok) return;
+    on.disabled = false;
+    on.onclick = () => {
+      if (!on.dataset.sure){ on.dataset.sure = 1; on.textContent = '本当に本番にする（注文が実際に出ます）'; return; }
+      LIVE.setLive(true); openLiveSetup(); toast('本番になりました。確認画面のボタンを押すと、実際に注文が出ます。', 6000);
+    };
+  }).catch(e => { if ($('lvChk')) $('lvChk').innerHTML = `<span class="bad">確かめられませんでした：${esc(e.message)}</span>`; });
+}
+$('modeBtn').onclick = openLiveSetup;
+renderMode();
 function log(t){ const d = document.createElement('div'); d.textContent = t; $('log').prepend(d); }
 
 // ===== 口座 =====
@@ -1722,7 +2081,7 @@ $('aTbl').addEventListener('click', e => {
   const t = e.target.closest('[data-c]'); if (!t) return;
   const k = t.dataset.c;
   if (t.classList.contains('coin')){ setMkt(M[k]?.kind === 'spot' ? 'spot' : 'perp'); selectCoin(k); return; }
-  if (t.dataset.act === 'cancel'){ const o = S.orders.find(x => String(x.oid) === t.dataset.oid); confirmChange(`${label(k)} の${o ? KIND_JA[orderKind(o)] : ''}注文を取り消す`, [['値段', o ? '$' + fmtPx(k, o.isTrigger ? +o.triggerPx : +o.limitPx) : '—']], null, '取り消す'); return; }
+  if (t.dataset.act === 'cancel'){ const o = S.orders.find(x => String(x.oid) === t.dataset.oid); confirmChange(`${label(k)} の${o ? KIND_JA[orderKind(o)] : ''}注文を取り消す`, [['値段', o ? '$' + fmtPx(k, o.isTrigger ? +o.triggerPx : +o.limitPx) : '—']], o ? null : 'この注文が見つかりません', '取り消す', () => [{label:'取り消す', action:HLX.cancel(k, o.oid)}]); return; }
   posAction(t.dataset.act, k);
 });
 $('aTabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.aTab = b.dataset.v; renderAcct(); if (HIST_TABS.includes(S.aTab) && Date.now() - H.at > 60000) loadHist(); };
@@ -1849,7 +2208,7 @@ async function loadMeta(){
   const [[pm, pc], [sm, sc]] = await Promise.all([info({type:'metaAndAssetCtxs'}), info({type:'spotMetaAndAssetCtxs'})]);
   pm.universe.forEach((u, i) => {
     if (!PERPS.includes(u.name)) return; const x = pc[i];
-    M[u.name] = Object.assign(M[u.name] || {}, {key:u.name, label:u.name, kind:'perp', szD:u.szDecimals, maxLev:u.maxLeverage, onlyIso:!!u.onlyIsolated, mark:+x.markPx, prev:+x.prevDayPx, funding:+x.funding});
+    M[u.name] = Object.assign(M[u.name] || {}, {key:u.name, aid:i, label:u.name, kind:'perp', szD:u.szDecimals, maxLev:u.maxLeverage, onlyIso:!!u.onlyIsolated, mark:+x.markPx, prev:+x.prevDayPx, funding:+x.funding});
   });
   const tok = Object.fromEntries(sm.tokens.map(t => [t.index, t]));
   for (const name of SPOT_TOKENS){
@@ -1857,7 +2216,7 @@ async function loadMeta(){
     const u = sm.universe.find(x => x.tokens[0] === t.index && tok[x.tokens[1]]?.name === 'USDC'); if (!u) continue;
     const x = sc[u.index] || {};
     const lbl = /^Unit /.test(t.fullName || '') ? name.slice(1) : name;
-    M[u.name] = Object.assign(M[u.name] || {}, {key:u.name, label:lbl, kind:'spot', szD:t.szDecimals, base:t.index, mark:+x.markPx, prev:+x.prevDayPx});
+    M[u.name] = Object.assign(M[u.name] || {}, {key:u.name, aid:10000 + u.index, label:lbl, kind:'spot', szD:t.szDecimals, base:t.index, mark:+x.markPx, prev:+x.prevDayPx});
     if (!SPOT_KEYS.includes(u.name)) SPOT_KEYS.push(u.name);
   }
   if (!S.sel.spot || !M[S.sel.spot]) S.sel.spot = SPOT_KEYS[0];
