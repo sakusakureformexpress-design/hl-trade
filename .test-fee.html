@@ -3395,6 +3395,8 @@ async function loadAcct(){
     const [a, sp, o] = await Promise.all([info({type:'clearinghouseState', user:u}), info({type:'spotClearinghouseState', user:u}), info({type:'frontendOpenOrders', user:u})]);
     if (u !== S.user) return;
     S.acct = a; S.spot = sp; S.orders = o || []; renderAcct(); schedule();
+    const pk = isPerp() ? (p => p ? p.leverage.type + p.leverage.value : '')(posOf(curKey())) : '';   // ポジションの有無や倍率が変わったときだけ、倍率の欄を作り直す
+    if (pk !== S.levKey){ S.levKey = pk; syncLev(); }
     loadAad(isPerp() ? curKey() : firstPerp());
   } catch (e){ log(_('口座を読めませんでした: ') + e.message); }
 }

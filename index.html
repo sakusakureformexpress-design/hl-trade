@@ -220,8 +220,8 @@ input[type=range]{padding:0;border:none;background:none;accent-color:var(--accen
 #posCard .t b{font-size:13px}
 #posCard .pnl{font:600 16px var(--mono)}
 #posCard .s{font-size:11px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap}
-.acts3{display:grid;grid-template-columns:repeat(auto-fit,minmax(64px,1fr));gap:4px}
-.acts3 button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 2px;font-size:12px}
+.acts3{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:4px}
+.acts3 button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 4px;font-size:12px;white-space:nowrap}
 .acts3 button:hover{border-color:var(--accent)}
 .acts3 .x{border-color:var(--accent);color:var(--accent)}
 
@@ -631,10 +631,10 @@ ko: {
   "いまの値段 ${0} 付近": "현재가 ${0} 부근",
   "レバレッジ": "레버리지",
   "{0}倍（{1}）": "{0}배 ({1})",
-  "手数料の目安（取引所）": "수수료 (예상·거래소)",
+  "手数料の目安（取引所）": "거래소 수수료 (예상)",
   "アプリの手数料": "앱 수수료",
+  "{0}%（約 {1}）": "{0}% (약 {1})",
   "承認がまだです": "승인 필요",
-  "約定額の {0}%（約 {1}）{2}": "체결 금액의 {0}% (약 {1}){2}",
   "なし（現物の買いは対象外）": "없음 (현물 매수는 대상 아님)",
   "{0} を{1}": "{0} {1}",
   "注文する": "주문하기",
@@ -1174,8 +1174,8 @@ en: {
   "{0}倍（{1}）": "{0}x ({1})",
   "手数料の目安（取引所）": "Est. fee (exchange)",
   "アプリの手数料": "App fee",
+  "{0}%（約 {1}）": "{0}% (about {1})",
   "承認がまだです": "Approval needed",
-  "約定額の {0}%（約 {1}）{2}": "{0}% of the filled amount (about {1}){2}",
   "なし（現物の買いは対象外）": "None (spot buys are exempt)",
   "{0} を{1}": "{1} {0}",
   "注文する": "Place order",
@@ -2910,7 +2910,7 @@ $('submit').onclick = () => {
   rows.push([BUILD.on() ? _('手数料の目安（取引所）') : _('手数料の目安'), money(c.fee, 3)]);
   if (BUILD.on()){
     const applies = isPerp() || S.side < 0;   // 現物の買いには、アプリの手数料はかかりません
-    rows.push([_('アプリの手数料'), applies ? _('約定額の {0}%（約 {1}）{2}', BUILD.rate(BUILDER.fee), money(c.ntl * BUILDER.fee / 100000, 3), BUILD.ok() ? '' : ` <b>${_('承認がまだです')}</b>`) : _('なし（現物の買いは対象外）')]);
+    rows.push([_('アプリの手数料'), applies ? _('{0}%（約 {1}）', BUILD.rate(BUILDER.fee), money(c.ntl * BUILDER.fee / 100000, 3)) + (BUILD.ok() ? '' : ` <b class="bad">${_('承認がまだです')}</b>`) : _('なし（現物の買いは対象外）')]);
   }
   // 確認画面を開いた時点の中身を固定して持っておく（本番ではこの中身だけを送る）
   S.pendingOrder = {coin:k, side:S.side, type:S.otype, alo, px: S.otype === 'market' ? null : roundPx(k, c.px), sz:c.sz, lev:c.lev, margin:S.margin, tp:t.tp, sl:t.sl, at:Date.now()};
@@ -3395,6 +3395,8 @@ async function loadAcct(){
     const [a, sp, o] = await Promise.all([info({type:'clearinghouseState', user:u}), info({type:'spotClearinghouseState', user:u}), info({type:'frontendOpenOrders', user:u})]);
     if (u !== S.user) return;
     S.acct = a; S.spot = sp; S.orders = o || []; renderAcct(); schedule();
+    const pk = isPerp() ? (p => p ? p.leverage.type + p.leverage.value : '')(posOf(curKey())) : '';   // ポジションの有無や倍率が変わったときだけ、倍率の欄を作り直す
+    if (pk !== S.levKey){ S.levKey = pk; syncLev(); }
     loadAad(isPerp() ? curKey() : firstPerp());
   } catch (e){ log(_('口座を読めませんでした: ') + e.message); }
 }
@@ -3589,8 +3591,9 @@ async function loadMeta(){
 
 // ===== キー操作：1〜0で銘柄、Esc で閉じる =====
 document.addEventListener('keydown', e => {
-  if (e.target.tagName === 'INPUT') return;
-  if (e.key === 'Escape'){ closeModal(); hideMenu(); return; }
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+  if (e.key === 'Escape'){ closeModal(); hideMenu(); closePicker(); return; }
+  if (e.key === '/' && $('modal').hidden){ e.preventDefault(); openPicker(); return; }   // / で銘柄の検索窓を開く
   if (!$('modal').hidden) return;   // 確認画面が出ている間は、ほかの操作をしない
   const n = '1234567890'.indexOf(e.key), b = $('coins').children[n]; if (n >= 0 && b) selectCoin(b.dataset.c);
 });
