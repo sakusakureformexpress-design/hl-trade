@@ -1197,7 +1197,7 @@ function chartLines(){
       drop: np => modifyPreview(o, kind, p, np)});
   }
   for (const al of (S.alerts[k] || [])) L.push({id:'al' + al.p, p: al.p, col:'--accent', dash:[2,4], txt:'🔔'});
-  for (const d of (S.draw[k] || [])) if (d.type === 'h') L.push({id:'d' + d.id, p: d.p, raw: DRAW_COL, dash:[], txt:''});
+  for (const d of (S.draw[k] || [])) if (d.type === 'h') L.push({id:'d' + d.id, p: d.p, raw: DRAW_COL, dash:[], txt:'', drag:true, free:true, drop: np => { d.p = np; saveDraw(); chart.draw(); }});
   if (S.otype !== 'market'){ const p = parseFloat($('px').value); if (p > 0) L.push({id:'npx', p, col:'--fg', dash:[4,4], drag:true, txt:'新' + (S.otype === 'stop' ? '逆指値' : '指値'), drop: np => { $('px').value = roundPx(k, np); schedule(); }}); }
   if (isPerp() && $('tpslOn').checked){
     const e = entryPx(), sz = orderCalc().sz * S.side;
@@ -1259,7 +1259,7 @@ const chart = (() => {
     if (vman){ lo = vman.lo; hi = vman.hi; } else { const pad = (hi - lo) * 0.08 || hi * 0.001; lo -= pad; hi += pad; }
     const y = p => TOP + (hi - p) / (hi - lo) * priceH;
     // 時刻 ⇔ 横の位置（足が等間隔に並ぶとして、未来や過去の外側にも伸ばせる）
-    const ms = IV_MS[S.iv] || 60000, t0 = a[0].t, tX = t => x((t - t0) / ms), xT = xx => t0 + (last - (plotW - xx) / bw - 0.5) * ms;
+    const ms = IV_MS[S.iv] || 60000, t0 = a[0].t, tX = t => x((t - t0) / ms), xT = xx => t0 + (last - (plotW - xx) / bw + 0.5) * ms;
     geo = {plotW, priceH, lo, hi, y, tX, xT};
     // 目盛り
     ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.fillStyle = C.dim;
@@ -1394,14 +1394,29 @@ const chart = (() => {
       : `${fmtTime(k.t, true)}　始 ${f(k.o)} 高 ${f(k.h)} 安 ${f(k.l)} 終 ${f(k.c)} <span class="${cls(ch)}">${fmtPct(ch)}</span>`) + maTxt;
   }
   const pos = e => { const r = cv.getBoundingClientRect(); return {x: (e.clientX - r.left) / kz, y: (e.clientY - r.top) / kz}; };
+  // トレンドラインをつかむ（線を動かせる間だけ）：端の丸ならその端、線の途中なら線ごと
+  function hitTrend(p){
+    if (!geo || !lineUnlocked() || drawMode) return null;
+    const lim = matchMedia('(pointer:coarse)').matches ? 16 : 8;
+    for (const d of (S.draw[curKey()] || [])){
+      if (d.type !== 't') continue;
+      const x1 = geo.tX(d.t1), y1 = geo.y(d.p1), x2 = geo.tX(d.t2), y2 = geo.y(d.p2);
+      if (Math.hypot(p.x - x1, p.y - y1) <= lim) return {d, which:1};
+      if (Math.hypot(p.x - x2, p.y - y2) <= lim) return {d, which:2};
+      const dx = x2 - x1, dy = y2 - y1, u = Math.max(0, ((p.x - x1) * dx + (p.y - y1) * dy) / (dx * dx + dy * dy || 1));
+      if (Math.hypot(x1 + u * dx - p.x, y1 + u * dy - p.y) <= lim) return {d, which:0};
+    }
+    return null;
+  }
   const hitLine = p => geo && lineUnlocked() ? drawn.find(d => Math.abs(d.y - p.y) <= (matchMedia('(pointer:coarse)').matches ? 14 : 7)) : null;
   cv.addEventListener('pointerdown', e => {
     hideMenu(); if (e.button === 2) return;
     cv.setPointerCapture(e.pointerId); const p = pos(e); ptrs.set(e.pointerId, p);
     if (ptrs.size === 2){ const [a, b] = [...ptrs.values()]; pinch = {d: Math.hypot(a.x - b.x, a.y - b.y) || 1, bw}; act = null; clearTimeout(lpTimer); return; }
     if (!geo) return;
-    const h = hitLine(p);
-    if (h) act = {type:'line', L:h.L, np:h.L.p, y0:p.y, moved:false};
+    const tl = hitTrend(p), h = tl ? null : hitLine(p);
+    if (tl) act = tl.which ? {type:'tpt', d:tl.d, which:tl.which, moved:false, x0:p.x, y0:p.y} : {type:'tmove', d:tl.d, x0:p.x, y0:p.y, o:{...tl.d}, moved:false};
+    else if (h) act = {type:'line', L:h.L, np:h.L.p, y0:p.y, moved:false};
     else if (p.x > geo.plotW){ if (e.pointerType === 'mouse') act = {type:'axis', y0:p.y, lo:geo.lo, hi:geo.hi}; }
     else {
       act = {type:'pan', x0:p.x, y0:p.y, off, lo:geo.lo, hi:geo.hi, moved:false};
@@ -1412,8 +1427,13 @@ const chart = (() => {
     const p = pos(e); hover = p;
     if (ptrs.has(e.pointerId)) ptrs.set(e.pointerId, p);
     if (pinch && ptrs.size === 2){ const [a, b] = [...ptrs.values()]; bw = Math.min(60, Math.max(1.5, pinch.bw * Math.hypot(a.x - b.x, a.y - b.y) / pinch.d)); draw(); return; }
-    if (!act){ cv.style.cursor = hitLine(p) || (geo && p.x > geo.plotW) ? 'ns-resize' : 'crosshair'; draw(); return; }
+    if (!act){ const tl = hitTrend(p); cv.style.cursor = tl ? 'move' : hitLine(p) || (geo && p.x > geo.plotW) ? 'ns-resize' : 'crosshair'; draw(); return; }
     if (act.type === 'line'){ if (Math.abs(p.y - act.y0) > 3) act.moved = true; act.np = yToP(p.y); }
+    else if (act.type === 'tpt'){ if (Math.hypot(p.x - act.x0, p.y - act.y0) > 3) act.moved = true; const k = curKey();
+      if (act.which === 1){ act.d.t1 = geo.xT(Math.min(p.x, geo.plotW)); act.d.p1 = roundPx(k, yToP(p.y)); } else { act.d.t2 = geo.xT(Math.min(p.x, geo.plotW)); act.d.p2 = roundPx(k, yToP(p.y)); } }
+    else if (act.type === 'tmove'){ if (Math.hypot(p.x - act.x0, p.y - act.y0) > 3) act.moved = true; const k = curKey(), o = act.o;
+      const dt = geo.xT(p.x) - geo.xT(act.x0), dp = yToP(p.y) - yToP(act.y0);
+      act.d.t1 = o.t1 + dt; act.d.t2 = o.t2 + dt; act.d.p1 = roundPx(k, o.p1 + dp); act.d.p2 = roundPx(k, o.p2 + dp); }
     else if (act.type === 'axis'){ const f = Math.exp((p.y - act.y0) / 150), c = (act.lo + act.hi) / 2, h = (act.hi - act.lo) / 2 * f; vman = {lo: c - h, hi: c + h}; $('zAuto').classList.remove('sel'); }
     else if (act.type === 'pan'){
       if (Math.hypot(p.x - act.x0, p.y - act.y0) > 6){ act.moved = true; clearTimeout(lpTimer); }
@@ -1425,7 +1445,8 @@ const chart = (() => {
   const up = e => {
     ptrs.delete(e.pointerId); clearTimeout(lpTimer);
     if (ptrs.size < 2) pinch = null;
-    if (act && act.type === 'line' && act.moved){ const L = act.L, np = roundPx(curKey(), act.np); act = null; setLineLock(true); draw(); L.drop(np); return; }
+    if (act && act.type === 'line' && act.moved){ const L = act.L, np = roundPx(curKey(), act.np); act = null; if (!L.free) setLineLock(true); draw(); L.drop(np); return; }
+    if (act && (act.type === 'tpt' || act.type === 'tmove')){ const moved = act.moved; act = null; if (moved){ saveDraw(); } draw(); return; }
     if (act && act.type === 'pan' && !act.moved && drawMode && geo){ act = null; drawTap(pos(e)); return; }
     act = null; draw();
   };
@@ -1486,7 +1507,7 @@ $('drawBtn').onclick = e => {
   if (drawMode){ setDrawMode(null); return; }
   const k = curKey(), n = (S.draw[k] || []).length, m = $('menu');
   const items = [['水平線を引く', () => setDrawMode('h')], ['トレンドラインを引く（2点をタップ）', () => setDrawMode('t')]];
-  if (n) items.push([`線を消す（消したい線をタップ）`, () => setDrawMode('del')], [`この銘柄の線を全部消す（${n}本）`, () => { delete S.draw[k]; saveDraw(); chart.draw(); }]);
+  if (n) items.push([`引いた線を動かす（30秒。線や端の丸をドラッグ）`, () => setLineLock(false)], [`線を消す（消したい線をタップ）`, () => setDrawMode('del')], [`この銘柄の線を全部消す（${n}本）`, () => { delete S.draw[k]; saveDraw(); chart.draw(); }]);
   m.innerHTML = `<div class="mh">${label(k)} の線</div>` + items.map((it, i) => `<button data-i="${i}">${it[0]}</button>`).join('');
   m.onclick = ev => { const b = ev.target.closest('button'); if (!b) return; hideMenu(); items[+b.dataset.i][1](); };
   m.hidden = false; m.style.maxWidth = ($('chartWrap').clientWidth - 8) + 'px';
