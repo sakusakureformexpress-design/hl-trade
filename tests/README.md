@@ -19,6 +19,7 @@ pip install hyperliquid-python-sdk eth-account   # 署名の照合に使う公�
 | `flows.js` | 鍵を開ける → 手数料を承認 → 成行・指値・取り消し・利確損切の変更・ドテン・全部決済・現物。**取引所に送る署名を、画面とは別の実装（msgpack + ethers）で検証** |
 | `markets.js` | 全銘柄の読み込み・検索・並べ替え・お気に入り・分離のみの銘柄・現物・一覧ページ・4画面 |
 | `parity.js` + `parity.py` | 署名を 250 通りランダムに作り、公式 Python SDK と数値まで一致するか |
+| `mobile_pos.js` | スマホ・タブレット・パソコンの幅で、ポジションの表に銘柄名が見える（操作ボタンの列が隠さない） |
 | `preview.js` | `tools/make-preview.py` で作った 1 枚のデモ版が動く |
 
 `HL_HTML=/path/to/index.html` で、別のファイルを試せます。

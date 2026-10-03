@@ -237,8 +237,10 @@ td{padding:6px 10px;text-align:right;border-bottom:1px solid #1a212b;font-family
 th:first-child,td:first-child{text-align:left}
 td.coin{font-family:var(--sans);font-weight:700;cursor:pointer;text-decoration:underline dotted var(--dim)}
 /* ポジション・待ち注文の表は、横に長くても操作ボタンの列を右に固定して、いつも押せるようにする */
-#aTbl[data-t=pos] td:last-child,#aTbl[data-t=ord] td:last-child{position:sticky;right:0;background:var(--bg);box-shadow:-10px 0 8px -8px #000c;z-index:1}
-#aTbl[data-t=pos] th:last-child,#aTbl[data-t=ord] th:last-child{right:0;z-index:2}
+@media (min-width:721px){
+  #aTbl[data-t=pos] td:last-child,#aTbl[data-t=ord] td:last-child{position:sticky;right:0;background:var(--bg);box-shadow:-10px 0 8px -8px #000c;z-index:1}
+  #aTbl[data-t=pos] th:last-child,#aTbl[data-t=ord] th:last-child{right:0;z-index:2}
+}
 #calc span:nth-child(even){white-space:nowrap}
 td button{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:3px 9px;font:12px var(--sans);margin-left:4px}
 td button:hover{border-color:var(--accent)}

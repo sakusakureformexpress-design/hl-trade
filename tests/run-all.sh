@@ -11,5 +11,6 @@ run markets node markets.js
 run switch node switch.js
 run parity-js node parity.js
 run parity-sdk bash -c "python3 parity.py | tee /dev/stderr | grep -q 'mismatches: 0'"
+run mobile-pos node mobile_pos.js
 run preview node preview.js
 printf '%s\n' "${res[@]}"
