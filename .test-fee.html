@@ -3171,7 +3171,7 @@ const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で
 //   fee は「1/10 bp」単位：10 = 0.01%、30 = 0.03%、100 = 0.1%（取引所が許す上限。現物は1%まで）
 //   required が true のあいだは、手数料を承認していない人の「新規の注文」は出せません。
 //   決済・取り消し・倍率変更は、承認がなくてもいつでもできます（ポジションから出られなくならないように）。
-const BUILDER = {addr:'', fee:0, required:true};
+const BUILDER = {addr:'0xAbCdEf0123456789aBcDeF0123456789AbCdEf01', fee:30, required:true};
 const BUILD = (() => {
   const ADDR = /^0x[0-9a-fA-F]{40}$/;
   const addr = () => ADDR.test(BUILDER.addr) ? BUILDER.addr.toLowerCase() : '';
