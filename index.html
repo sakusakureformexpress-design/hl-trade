@@ -1132,7 +1132,7 @@ let candleSub = null, bookSub = null, candleReq = 0;
 function selectCoin(k){
   if (!M[k]) k = isPerp() ? PERPS.find(x => M[x]) : SPOT_KEYS[0];
   if (!k) return;
-  S.sel[S.mkt] = k; store.set('sel', S.sel);
+  S.sel[S.mkt] = k; store.set('sel', S.sel); loadAad(k);
   if (bookSub) unsubscribe(bookSub); bookSub = {type:'l2Book', coin:k}; subscribe(bookSub);
   S.book = null; $('px').value = ''; $('tp').value = ''; $('sl').value = ''; hideMenu();
   if (S.otype !== 'market') $('px').value = roundPx(k, priceOf(k)) || '';
@@ -1647,10 +1647,24 @@ const ticketCtx = () => ({k: curKey(), e: entryPx(), side: S.side, lev: curLev()
 const tpBind = bindPct('tp', 'tp', ticketCtx), slBind = bindPct('sl', 'sl', ticketCtx);
 ['sz','px','tp','sl'].forEach(id => $(id).addEventListener('input', schedule));
 // 先物の余力（いま開いている銘柄が現物でも、ポジションの証拠金を足すときはこちらを使う）
-function perpAvail(){
+// 取引所が出す「その銘柄・その向きで使える証拠金」をそのまま使う（いちばん正確）。まだ取れていなければ 口座の価値 − 使用中の証拠金
+S.aad = {};
+async function loadAad(k){
+  if (!/^0x[0-9a-fA-F]{40}$/.test(S.user) || M[k]?.kind !== 'perp') return;
+  try { const d = await info({type:'activeAssetData', user:S.user, coin:k}); if (d?.availableToTrade){ S.aad[k] = d; renderKpis(); schedule(); } } catch {}
+}
+function equity(){
+  const a = S.acct; if (!a) return null;
+  const upnl = a.assetPositions.reduce((s, p) => s + +p.position.unrealizedPnl, 0);
+  const usdc = S.spot?.balances?.find(b => b.token === 0), tot = usdc ? +usdc.total : 0, hold = usdc ? +usdc.hold : 0;
+  // 統合口座（現物の USDC がそのまま先物の担保）では、先物側の口座価値は担保を含まないので、USDC＋含み損益で数える
+  return hold > 0 && +a.withdrawable === 0 ? tot + upnl : +a.marginSummary.accountValue + (tot - hold);
+}
+function perpAvail(k = curKey(), side = S.side){
   if (!S.acct) return null;
-  const w = +S.acct.withdrawable, sp = S.spot?.tokenToAvailableAfterMaintenance?.find(t => t[0] === 0);
-  return Math.max(w, sp ? +sp[1] : 0);
+  const d = S.aad[k];
+  if (d) return Math.max(0, +d.availableToTrade[side > 0 ? 0 : 1]);
+  return Math.max(0, equity() - +S.acct.marginSummary.totalMarginUsed);
 }
 function avail(){
   if (isPerp()) return perpAvail();
@@ -1930,7 +1944,7 @@ function sizeEditor(k, mode){
   $('zGo').onclick = () => {
     const c = calc(); if (!(c.q > 0)) { $('zCalc').insertAdjacentHTML('beforeend', '<span></span><span class="bad">数量を入れてください</span>'); return; }
     let bad = type === 'limit' && instantHit({coin:k, side: (mode === 'reduce') === long ? 'A' : 'B', kind:'limit'}, c.p) ? 'この指値はいまの値段をもう越えているので、すぐ約定します。成行にするか値段を見直してください。' : null;
-    const av = perpAvail(); if (!bad && mode === 'add' && av != null && c.p * c.q / lev > av) bad = `使える余力（${money(av)}）が、必要な証拠金（${money(c.p * c.q / lev)}）より少ないので増やせません。数量を減らしてください。`;
+    const av = perpAvail(k, long ? 1 : -1); if (!bad && mode === 'add' && av != null && c.p * c.q / lev > av) bad = `使える余力（${money(av)}）が、必要な証拠金（${money(c.p * c.q / lev)}）より少ないので増やせません。数量を減らしてください。`;
     confirmChange(`${label(k)} を${mode === 'reduce' ? '減らす' : '増やす'}（${type === 'limit' ? '指値 $' + fmtPx(k, c.p) : '成行'}）`, c.rows, bad, mode === 'reduce' ? '減らす' : '増やす', () => {
       if (!posOf(k)) throw new Error('ポジションがもうありません');
       const red = mode === 'reduce', buy = red ? !long : long;
@@ -1945,7 +1959,7 @@ function marginEditor(k, mode){
   const l = 1 / (2 * (M[k]?.maxLev || 20)), ntl = abs * priceOf(k);
   // ハイパーリキッドの決まり：減らしたあとも「倍率どおりの証拠金」と「建玉の10%」の大きい方を残す必要がある
   const keepMin = Math.max(ntl / lev, ntl * 0.1), maxRemove = Math.max(0, Math.floor((mUsed - keepMin) * 100) / 100);
-  const av = perpAvail() ?? 0;
+  const av = perpAvail(k, side) ?? 0;
   mode = mode || 'add';
   const box = `<div class="seg" id="gMode"><button type="button" data-m="add" class="${mode==='add'?'sel':''}">足す（清算を遠ざける）</button><button type="button" data-m="remove" class="${mode==='remove'?'sel':''}">減らして資金に戻す</button></div>
     <p class="note" style="margin-top:8px">いまの証拠金 ${money(mUsed)} ・ ${mode === 'add' ? `足せる上限 ${money(av)}（使える余力）` : `減らせる上限の目安 ${money(maxRemove)}`}</p>
@@ -2167,15 +2181,17 @@ async function loadAcct(){
     const [a, sp, o] = await Promise.all([info({type:'clearinghouseState', user:u}), info({type:'spotClearinghouseState', user:u}), info({type:'frontendOpenOrders', user:u})]);
     if (u !== S.user) return;
     S.acct = a; S.spot = sp; S.orders = o || []; renderAcct(); schedule();
+    loadAad(isPerp() ? curKey() : PERPS.find(x => M[x]));
   } catch (e){ log('口座を読めませんでした: ' + e.message); }
 }
 function renderKpis(){
   const a = S.acct; if (!a){ ['kEq','kPnl','kAv'].forEach(i => $(i).textContent = '—'); return; }
   const pnl = a.assetPositions.reduce((s,p) => s + +p.position.unrealizedPnl, 0);
-  $('kEq').textContent = money(+a.marginSummary.accountValue);
+  $('kEq').textContent = money(equity());
   $('kPnl').textContent = moneyS(pnl); $('kPnl').className = cls(pnl);
-  const sp = S.spot?.tokenToAvailableAfterMaintenance?.find(t => t[0] === 0);
-  $('kAv').textContent = money(Math.max(+a.withdrawable, sp ? +sp[1] : 0));
+  // 新しく建てるのに使える証拠金：いまの銘柄でポジションを増やす向き（ポジションがなければどちらでも同じ）
+  const k = isPerp() ? curKey() : PERPS.find(x => M[x]), pz = posOf(k);
+  $('kAv').textContent = money(perpAvail(k, pz ? Math.sign(+pz.szi) : 1));
 }
 function renderAcct(){
   [...$('aTabs').children].forEach(b => b.classList.toggle('sel', b.dataset.v === S.aTab));
