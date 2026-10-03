@@ -94,6 +94,17 @@ body.fsOn{overflow:hidden}
 #prefs{display:contents}
 #prefsBtn{display:none}
 
+/* ウォレット接続ボタン（右上） */
+.wallet{order:5;margin-left:auto;background:var(--accent);color:#1b1404;border:none;border-radius:99px;padding:6px 14px;font-weight:700;font-size:13px;white-space:nowrap}
+.wallet.on{background:var(--panel2);color:var(--fg);border:1px solid var(--line);font-family:var(--mono);font-weight:600}
+.wallet.on::first-letter{color:var(--up)}
+@media (min-width:721px){ header .conn{order:4} header .kpis{order:6} }
+@media (max-width:720px){ header h1{order:-2;margin-right:0} .wallet{order:-1;margin-left:auto;padding:5px 12px} }
+.wm{display:flex;flex-direction:column;gap:10px;font-size:14px}
+.wm .addr{font-family:var(--mono);word-break:break-all;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px}
+.wm .btns{display:flex;gap:8px;flex-wrap:wrap}
+.wm .btns button{border:none;border-radius:6px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--line);color:var(--fg)}
+.wm .btns button.pri{background:var(--accent);color:#1b1404}
 /* 言語の切り替え・銘柄の検索・お気に入り・デモの帯 */
 #langSel button{padding:4px 9px;font-size:12px}
 .star{background:none;border:none;color:var(--dim);font-size:18px;line-height:1;padding:0 2px}
@@ -327,6 +338,7 @@ td.ja{font-family:var(--sans)}
 <header>
   <h1>HL トレード画面</h1>
   <div class="ccy" id="langSel" role="group" aria-label="Language"></div>
+  <button class="wallet" id="walletBtn" type="button">ウォレット接続</button>
   <button class="mode" id="modeBtn" title="押すと、本番の注文の設定（鍵・暗証番号・練習／本番の切り替え）を開きます">練習モード（注文は送られません）</button>
   <span class="conn"><span class="dot" id="dot"></span><span id="connTxt">接続中…</span></span>
   <div class="kpis">
@@ -346,7 +358,7 @@ td.ja{font-family:var(--sans)}
   </div>
 </header>
 <div id="demoBar" hidden>デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。</div>
-<div id="acctBar" hidden><span class="dim">口座アドレス（公開情報。秘密鍵ではありません）</span><input id="addr" spellcheck="false" placeholder="0x…"><button class="gear" id="addrWallet" type="button">ウォレットから入れる</button></div>
+<div id="acctBar" hidden><span class="dim">口座アドレス（公開情報。秘密鍵ではありません）</span><input id="addr" spellcheck="false" placeholder="0x…"></div>
 
 <nav id="pages"><button data-p="trade">📈 トレード</button><button data-p="multi">▦ 4画面チャート</button><button data-p="list">📊 銘柄一覧</button></nav>
 <div id="strip">
@@ -956,6 +968,17 @@ ko: {
   "銘柄ごと": "종목별",
   "手数料": "수수료",
   "取引所から取れた範囲（{0} 以降）の集計です。「アプリの手数料」は Phantom など、注文を通したアプリが上乗せする手数料です。": "거래소에서 가져올 수 있는 범위({0} 이후)의 집계입니다. '앱 수수료'는 Phantom 등 주문을 중개한 앱이 추가로 붙이는 수수료입니다.",
+  "ウォレット接続": "지갑 연결",
+  "ウォレットをつなぎました（{0}）": "지갑을 연결했습니다 ({0})",
+  "つないでいる口座のアドレス": "연결된 계좌 주소",
+  "アドレスをコピー": "주소 복사",
+  "ウォレットを切り替える": "지갑 전환",
+  "本番の注文の設定を開く": "실전 주문 설정 열기",
+  "アドレスを手で入れる": "주소 직접 입력",
+  "接続を外す": "연결 해제",
+  "ウォレット": "지갑",
+  "コピーしました": "복사했습니다",
+  "接続を外しました": "연결을 해제했습니다",
   "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "데모 표시: 가상의 데이터입니다. 거래소에 연결되어 있지 않습니다 (주문도 실제로 나가지 않습니다).",
   "デモの暗証番号は {0} です。": "데모용 PIN은 {0}입니다.",
   "銘柄情報を取れませんでした: ": "종목 정보를 가져오지 못했습니다: ",
@@ -974,7 +997,6 @@ ko: {
   "試す": "테스트",
   "口座": "계좌",
   "口座アドレス（公開情報。秘密鍵ではありません）": "계좌 주소 (공개 정보. 비밀키가 아닙니다)",
-  "ウォレットから入れる": "지갑에서 가져오기",
   "📈 トレード": "📈 트레이드",
   "▦ 4画面チャート": "▦ 4분할 차트",
   "📊 銘柄一覧": "📊 종목 목록",
@@ -1510,6 +1532,17 @@ en: {
   "銘柄ごと": "By market",
   "手数料": "Fees",
   "取引所から取れた範囲（{0} 以降）の集計です。「アプリの手数料」は Phantom など、注文を通したアプリが上乗せする手数料です。": "Totals for the range available from the exchange (since {0}). \"App fee\" is the fee added by the app that routed the order, such as Phantom.",
+  "ウォレット接続": "Connect wallet",
+  "ウォレットをつなぎました（{0}）": "Wallet connected ({0})",
+  "つないでいる口座のアドレス": "Connected account address",
+  "アドレスをコピー": "Copy address",
+  "ウォレットを切り替える": "Switch wallet",
+  "本番の注文の設定を開く": "Open live trading setup",
+  "アドレスを手で入れる": "Enter address manually",
+  "接続を外す": "Disconnect",
+  "ウォレット": "Wallet",
+  "コピーしました": "Copied",
+  "接続を外しました": "Disconnected",
   "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "Demo: this is simulated data. It is not connected to the exchange (no real orders are sent).",
   "デモの暗証番号は {0} です。": "The demo PIN is {0}.",
   "銘柄情報を取れませんでした: ": "Couldn't load market info: ",
@@ -1528,7 +1561,6 @@ en: {
   "試す": "Test",
   "口座": "Account",
   "口座アドレス（公開情報。秘密鍵ではありません）": "Account address (public info — not a private key)",
-  "ウォレットから入れる": "Use wallet address",
   "📈 トレード": "📈 Trade",
   "▦ 4画面チャート": "▦ 4-chart view",
   "📊 銘柄一覧": "📊 Markets",
@@ -3649,9 +3681,41 @@ function renderHist(){
 setInterval(() => { if (HIST_TABS.includes(S.aTab) && Date.now() - H.at > 60000) loadHist(); }, 15000);
 $('gear').onclick = () => { $('acctBar').hidden = !$('acctBar').hidden; };
 $('addr').value = S.user;
-function setUser(a){ S.user = String(a || '').trim(); store.set('addr', S.user); $('addr').value = S.user; BUILD.refresh(); H.at = 0; watchFills(); loadAcct(); if (HIST_TABS.includes(S.aTab)) loadHist(); }
+function setUser(a){ S.user = String(a || '').trim(); store.set('addr', S.user); $('addr').value = S.user; renderWallet(); BUILD.refresh(); H.at = 0; watchFills(); loadAcct(); if (HIST_TABS.includes(S.aTab)) loadHist(); }
+// ===== ウォレット接続ボタン（右上）=====
+const shortAddr = a => a.slice(0, 6) + '…' + a.slice(-4);
+const hasUser = () => /^0x[0-9a-fA-F]{40}$/.test(S.user);
+function renderWallet(){
+  const b = $('walletBtn'), on = hasUser();
+  b.classList.toggle('on', on); b.textContent = on ? '● ' + shortAddr(S.user) : _('ウォレット接続'); b.title = on ? S.user : '';
+}
+async function connectWallet(){
+  try { const a = await WALLET.connect(); store.set('wallet', true); setUser(a); toast(_('ウォレットをつなぎました（{0}）', shortAddr(a)), 4000); return a; }
+  catch (e){ toast(esc(e.message || String(e)), 7000); }
+}
+function openWalletMenu(){
+  const h = `<div class="wm"><p class="note">${_('つないでいる口座のアドレス')}</p><div class="addr" id="wmAddr">${esc(S.user)}</div>
+    <div class="btns"><button id="wmCopy" type="button">${_('アドレスをコピー')}</button><button id="wmSwitch" type="button">${_('ウォレットを切り替える')}</button></div>
+    <div class="btns"><button class="pri" id="wmLive" type="button">${_('本番の注文の設定を開く')}</button><button id="wmManual" type="button">${_('アドレスを手で入れる')}</button><button id="wmOff" type="button">${_('接続を外す')}</button></div></div>`;
+  preview(_('ウォレット'), [], h, {info:true});
+  $('wmCopy').onclick = async () => { try { await navigator.clipboard.writeText(S.user); $('wmCopy').textContent = _('コピーしました'); } catch { const r = document.createRange(); r.selectNodeContents($('wmAddr')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } };
+  $('wmSwitch').onclick = async () => {
+    const eth = WALLET.provider(); closeModal();
+    try { if (eth) await eth.request({method:'wallet_requestPermissions', params:[{eth_accounts:{}}]}); } catch (e){ if (WALLET.rejected(e)) return; }
+    await connectWallet();
+  };
+  $('wmLive').onclick = () => { closeModal(); openLiveSetup(); };
+  $('wmManual').onclick = () => { closeModal(); $('acctBar').hidden = false; $('addr').focus(); };
+  $('wmOff').onclick = () => { closeModal(); store.set('wallet', false); setUser(''); toast(_('接続を外しました'), 3000); };
+}
+$('walletBtn').onclick = () => { if (hasUser()) openWalletMenu(); else connectWallet(); };
+// 前につないだウォレットは、開いたときに自動でつなぎ直す（確認の画面は出ない）。ウォレット側でアカウントを変えたら、画面も合わせる
+(async () => {
+  const eth = WALLET.provider(); if (!eth || !store.get('wallet', false)) return;
+  try { const a = await eth.request({method:'eth_accounts'}); if (a && a[0] && a[0].toLowerCase() !== S.user.toLowerCase()) setUser(a[0]); } catch {}
+  if (eth.on) eth.on('accountsChanged', a => { if (store.get('wallet', false)) setUser((a && a[0]) || ''); });
+})();
 $('addr').onchange = e => setUser(e.target.value);
-$('addrWallet').onclick = async () => { try { setUser(await WALLET.connect()); } catch (e){ toast(esc(e.message || String(e)), 6000); } };
 
 // ===== 銘柄情報（取引所にある先物・現物のぜんぶ。最大レバレッジ・資金調達率・前日の値段・出来高）=====
 async function loadMeta(){
@@ -3707,14 +3771,14 @@ function relocalize(){
   $('fsBtn').textContent = $('chartBox').classList.contains('fs') ? _('戻る') : _('全画面');
   $('bigBtn').textContent = document.querySelector('main').classList.contains('big') ? _('元に戻す') : _('広げる');
   $('drawBtn').textContent = drawBtnText();
-  renderAcct(); renderAll(); MC.refreshCoins(); renderMarketViews(); renderFav(); renderDemoBar();
+  renderAcct(); renderAll(); MC.refreshCoins(); renderMarketViews(); renderFav(); renderDemoBar(); renderWallet();
 }
 
 // ===== 起動 =====
 (async () => {
   collectStatic(document.documentElement); applyStatic(); renderDemoBar();
   applyZoom(store.get('zoom', matchMedia('(max-width:720px)').matches ? 1.2 : 1));   // スマホは最初から大きめ
-  loadFxState(); renderLangSel(); renderCcy(); connect(); subscribe({type:'allMids'}); watchFills(); loadFx();
+  loadFxState(); renderLangSel(); renderCcy(); renderWallet(); connect(); subscribe({type:'allMids'}); watchFills(); loadFx();
   try { await loadMeta(); } catch (e){ log(_('銘柄情報を取れませんでした: ') + e.message); }
   buildCoins(); buildOType(); setOType('market'); selectCoin(curKey()); loadAcct(); setPage(S.page);
   setInterval(loadAcct, 3000);

@@ -50,11 +50,11 @@ async function open(browser, o = {}){
     for (const [k, v] of Object.entries(ls)) localStorage.setItem('hlts.' + k, JSON.stringify(v));
     if (noSeed) window.__HL_NO_SEED_KEY = true;
     if (!noWallet) window.ethereum = { request: async ({ method, params }) => {
-      if (method === 'eth_requestAccounts') return [wallet.toLowerCase()];
-      if (method === 'wallet_switchEthereumChain') return null;
+      if (method === 'eth_requestAccounts' || method === 'eth_accounts') return [wallet.toLowerCase()];
+      if (method === 'wallet_switchEthereumChain' || method === 'wallet_requestPermissions') return null;
       if (method === 'eth_signTypedData_v4'){ if (reject){ const e = new Error('User rejected the request.'); e.code = 4001; throw e; } return window.__signTyped(params[1]); }
       throw new Error('unsupported ' + method);
-    } };
+    }, on(){} };
   }, { ls: { addr: WALLET.address, ...ls }, wallet: WALLET.address, noSeed, reject, noWallet });
   await page.route('**/*', r => { const u = r.request().url(); if (u.startsWith('file://')) return r.continue(); return r.abort(); });
   let file = HTML;

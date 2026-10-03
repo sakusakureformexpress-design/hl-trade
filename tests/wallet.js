@@ -60,11 +60,22 @@ async function run(lang, w = 1440, h = 900){
     await page.click('.lv details summary'); await page.fill('#lvKey', '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d'); await page.click('#lvSave'); await page.waitForSelector('#lvTest', { timeout: 8000 });
     ok(await page.evaluate(() => LIVE.ready()), '鍵を貼り付ける方法でも保存できる');
     ok(errors.length === 0, 'JSエラーなし', errors.join(' | ')); await ctx.close(); }
-  // --- D) 口座アドレスをウォレットから入れる ---
+  // --- D) 右上の「ウォレット接続」ボタン ---
   { const { page, errors, ctx } = await L.open(b, { lang, w, h, ls: { addr: '' }, noSeed: true });
-    if (w < 800) await page.click('#prefsBtn');
-    await page.click('#gear'); await page.click('#addrWallet'); await page.waitForTimeout(500);
-    ok((await page.inputValue('#addr')).toLowerCase() === L.WALLET.address.toLowerCase(), '「ウォレットから入れる」で口座アドレスが入る');
+    ok(!(await page.evaluate(() => $('walletBtn').classList.contains('on'))), '最初は「接続」の表示');
+    ok(await page.isVisible('#walletBtn'), '右上のボタンが見える');
+    const box = await page.evaluate(() => { const r = $('walletBtn').getBoundingClientRect(); return [r.left, r.right, innerWidth]; });
+    ok(box[0] >= 0 && box[1] <= box[2], 'ボタンが画面からはみ出さない', box.join(','));
+    await page.click('#walletBtn'); await page.waitForTimeout(500);
+    const short = L.WALLET.address.slice(0, 6).toLowerCase();
+    ok((await page.textContent('#walletBtn')).toLowerCase().includes(short), '押すと短いアドレスの表示に変わる', await page.textContent('#walletBtn'));
+    ok((await page.evaluate(() => S.user)).toLowerCase() === L.WALLET.address.toLowerCase(), '口座アドレスが入る');
+    ok(/./.test(await page.textContent('#toast, .toast')), '押したあとにお知らせが出る');
+    await page.click('#walletBtn'); await page.waitForSelector('#wmOff');
+    ok(await page.isVisible('#wmCopy') && await page.isVisible('#wmSwitch') && await page.isVisible('#wmLive'), 'メニューが出る');
+    await page.click('#wmOff'); await page.waitForTimeout(400);
+    ok((await page.evaluate(() => S.user)) === '', '接続を外すと口座が空になる');
+    ok(!(await page.evaluate(() => $('walletBtn').classList.contains('on'))), '表示が「接続」に戻る');
     ok(errors.length === 0, 'JSエラーなし', errors.join(' | ')); await ctx.close(); }
   await b.close();
 }
