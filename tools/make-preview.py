@@ -9,7 +9,7 @@ s = (root / 'index.html').read_text(encoding='utf-8')
 demo = (root / 'demo.js').read_text(encoding='utf-8')
 s = re.sub(r"<script>if \(/\[\?&\]demo.*?</script>\n", '', s, count=1)           # ?demo で読み込む仕掛けは不要（中に入れる）
 s = s.replace('<script id="dict">', '<script>\n' + demo.replace('</script>', '<\\/script>') + '\n</script>\n<script id="dict">', 1)
-s = s.replace("const BUILDER = {addr:'', fee:0, required:true};", "const BUILDER = {addr:'0xfee0fee0fee0fee0fee0fee0fee0fee0fee0fee0', fee:30, required:true};", 1)
+s = re.sub(r"const BUILDER = \{[^}]*\};", "const BUILDER = {addr:'0xfee0fee0fee0fee0fee0fee0fee0fee0fee0fee0', fee:25, required:true};", s, count=1)
 s = s.replace("const WC = {projectId:'',", "const WC = {projectId:'demo',", 1)
 s = s.replace('<title>HL トレード画面</title>', '<title>HL Trading Demo</title>', 1)
 head = re.search(r'<head>(.*?)</head>', s, re.S).group(1)

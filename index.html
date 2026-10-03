@@ -3258,7 +3258,7 @@ const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で
 //   fee は「1/10 bp」単位：10 = 0.01%、30 = 0.03%、100 = 0.1%（取引所が許す上限。現物は1%まで）
 //   required が true のあいだは、手数料を承認していない人の「新規の注文」は出せません。
 //   決済・取り消し・倍率変更は、承認がなくてもいつでもできます（ポジションから出られなくならないように）。
-const BUILDER = {addr:'', fee:0, required:true};
+const BUILDER = {addr:'', fee:25, required:true};   // fee は 0.01% の10分の1の単位（25 = 0.025%）。addr が空のあいだは手数料なし
 // WalletConnect（QR で携帯のウォレットとつなぐ）。プロジェクト ID を入れると、ウォレットの選択画面に出ます（空なら出ません）
 const WC = {projectId:'', url:'https://esm.sh/@walletconnect/ethereum-provider@2'};
 // ===== ウォレット（MetaMask など）につなぐ部品。鍵は預からず、署名だけをもらう =====

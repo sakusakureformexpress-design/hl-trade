@@ -72,7 +72,7 @@ async function open(browser, o = {}){
   }, { ls: { addr: WALLET.address, ...ls }, wallet: WALLET.address, noSeed, reject, noWallet, multi, wc });
   await page.route('**/*', r => { const u = r.request().url(); if (u.startsWith('file://')) return r.continue(); return r.abort(); });
   let file = HTML;
-  if (fee || wc){ let s = fs.readFileSync(HTML, 'utf8'); if (fee) s = s.replace("const BUILDER = {addr:'', fee:0, required:true};", `const BUILDER = {addr:'${fee.addr}', fee:${fee.fee}, required:${fee.required !== false}};`); if (wc) s = s.replace("const WC = {projectId:'',", "const WC = {projectId:'test-project',"); file = HTML.replace(/index\.html$/, '.test-fee.html'); fs.writeFileSync(file, s); }
+  if (fee || wc){ let s = fs.readFileSync(HTML, 'utf8'); if (fee) s = s.replace(/const BUILDER = \{[^}]*\};/, `const BUILDER = {addr:'${fee.addr}', fee:${fee.fee}, required:${fee.required !== false}};`); if (wc) s = s.replace("const WC = {projectId:'',", "const WC = {projectId:'test-project',"); file = HTML.replace(/index\.html$/, '.test-fee.html'); fs.writeFileSync(file, s); }
   await page.goto('file://' + file + '?demo&lang=' + lang + hash);
   await page.waitForFunction(() => window.__HL_MOCK && document.querySelectorAll('#coins button').length > 0 && document.querySelector('#cMark') && document.querySelector('#cMark').textContent.length > 1, null, { timeout: 15000 });
   await page.waitForTimeout(600);
