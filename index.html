@@ -106,6 +106,16 @@ body.fsOn{overflow:hidden}
 .wm .btns button{border:none;border-radius:6px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--line);color:var(--fg)}
 .wm .btns button.pri{background:var(--accent);color:#1b1404}
 .wp{display:flex;flex-direction:column;gap:10px}
+.terms{max-height:calc(38vh / var(--z,1));overflow:auto;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg);font-size:13px;line-height:1.7}
+.terms h4{margin:12px 0 4px;font-size:13.5px;color:var(--accent)}.terms h4:first-child{margin-top:0}
+.terms p{margin:4px 0}.terms ul{margin:4px 0;padding-left:20px}
+.tchk{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;margin:8px 0}
+.tchk input{margin-top:3px;flex:0 0 auto;width:18px;height:18px}
+.tgo{width:100%;padding:12px;border:none;border-radius:8px;background:var(--accent);color:#1b1404;font-weight:700;font-size:15px}
+.tgo:disabled{opacity:.35}
+#foot{text-align:center;padding:14px 10px 22px}
+#foot button{background:none;border:none;color:var(--dim);font-size:12px;text-decoration:underline}
+body.helpPg #foot{padding-bottom:30px}
 .guide{max-width:880px;margin:0 auto;padding:6px 4px 48px;line-height:1.75;font-size:14px}
 .guide h2{font-size:18px;margin:30px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
 .guide h3{font-size:15px;margin:20px 0 6px;color:var(--accent)}
@@ -502,6 +512,7 @@ td.ja{font-family:var(--sans)}
 </div>
 <!-- 使い方 -->
 <div id="vHelp" class="view" hidden></div>
+<div id="foot"><button type="button" id="termsLink">利用規約・リスク・手数料</button></div>
 <!-- 銘柄をえらぶ窓 -->
 <div id="picker" hidden><div class="pbox">
   <div class="phead"><b>銘柄をえらぶ</b><button id="pClose" type="button">閉じる</button></div>
@@ -856,6 +867,7 @@ ko: {
   "口座アドレスか鍵がありません": "계좌 주소 또는 키가 없습니다",
   "この鍵は、いまの口座の注文用の鍵として登録されていません": "이 키는 현재 계좌의 주문용 키로 등록되어 있지 않습니다",
   "この鍵は期限切れです。作り直してください": "이 키는 만료되었습니다. 다시 만들어 주세요",
+  "先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。": "먼저 이용약관에 동의해 주세요 (화면 아래의 \"이용약관·위험·수수료\").",
   "鍵が閉じています": "키가 잠겨 있습니다",
   "アプリの手数料の承認がまだなので、新しい注文は出せません。「本番の注文の設定」から承認してください（決済・取り消しは承認なしでもできます）。": "앱 수수료 승인이 아직이라 새 주문을 낼 수 없습니다. '실전 주문 설정'에서 승인하세요 (청산·취소는 승인 없이도 가능합니다).",
   "送れませんでした：{0}": "전송하지 못했습니다: {0}",
@@ -1037,6 +1049,35 @@ ko: {
   "接続を外しました": "연결을 해제했습니다",
   "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "데모 표시: 가상의 데이터입니다. 거래소에 연결되어 있지 않습니다 (주문도 실제로 나가지 않습니다).",
   "デモの暗証番号は {0} です。": "데모용 PIN은 {0}입니다.",
+  "アプリの手数料：{0}（約定額に対する割合。この画面の運営者が受け取ります）。": "앱 수수료: {0} (체결 금액에 대한 비율. 이 화면의 운영자가 받습니다).",
+  "アプリの手数料：いまはかかりません。": "앱 수수료: 현재는 없습니다.",
+  "1. リスクについて": "1. 위험에 대하여",
+  "この画面は投資の助言ではありません。利益は保証されません。暗号資産の価格は大きく動き、レバレッジをかけると、口座に入れたお金をすべて失うことがあります。取引は、自分の判断と責任で行ってください。": "이 화면은 투자 조언이 아닙니다. 수익은 보장되지 않습니다. 암호자산 가격은 크게 움직이며, 레버리지를 사용하면 계좌에 넣은 돈을 모두 잃을 수 있습니다. 거래는 본인의 판단과 책임으로 하세요.",
+  "2. お金と鍵の管理": "2. 자금과 키 관리",
+  "お金は取引所（Hyperliquid）のあなたの口座にあり、この画面は預かりません。ウォレットの秘密鍵と注文用の鍵は、あなたが管理します。端末の紛失・盗難・ウイルスなどで鍵が漏れて生じた損失について、運営者は責任を負いません。": "자금은 거래소(Hyperliquid)의 내 계좌에 있으며, 이 화면은 자금을 맡아 두지 않습니다. 지갑의 비밀 키와 주문용 키는 본인이 관리합니다. 기기 분실·도난·바이러스 등으로 키가 유출되어 생긴 손실에 대해 운영자는 책임지지 않습니다.",
+  "3. 手数料": "3. 수수료",
+  "Hyperliquid の取引手数料：取引所が決めます。約定のたびにかかります。": "Hyperliquid 거래 수수료: 거래소가 정합니다. 체결될 때마다 부과됩니다.",
+  "アプリの手数料は、最初にウォレットの署名で承認します。承認は、いつでも取り消せます。": "앱 수수료는 처음에 지갑 서명으로 승인합니다. 승인은 언제든 취소할 수 있습니다.",
+  "ネットワークの利用料や、入出金のときの費用は、別にかかることがあります。": "네트워크 이용료나 입출금 시 비용은 별도로 발생할 수 있습니다.",
+  "4. サービスについて": "4. 서비스에 대하여",
+  "この画面は、現状のまま、保証なしで提供します。バグ・表示の遅れや誤り・取引所の障害・通信の途切れなどで、注文が出ない、遅れる、意図と違う結果になることがあります。法令で認められる範囲で、これらによる損害について運営者は責任を負いません。": "이 화면은 현재 상태 그대로, 보증 없이 제공됩니다. 버그·표시 지연이나 오류·거래소 장애·통신 끊김 등으로 주문이 나가지 않거나 늦어지거나 의도와 다른 결과가 될 수 있습니다. 법령이 허용하는 범위에서 이로 인한 손해에 대해 운영자는 책임지지 않습니다.",
+  "5. 使える人と地域": "5. 이용 가능한 사람과 지역",
+  "お住まいの国・地域の法令で、この画面や暗号資産のデリバティブ取引が禁止・制限されている場合は、使えません。取引所が利用を制限している地域の方や、制裁の対象になっている方も使えません。税金の申告は、自分で行ってください。": "거주하는 국가·지역의 법령으로 이 화면이나 암호자산 파생상품 거래가 금지·제한되어 있다면 사용할 수 없습니다. 거래소가 이용을 제한한 지역의 분이나 제재 대상인 분도 사용할 수 없습니다. 세금 신고는 본인이 하세요.",
+  "6. 個人情報と保存するもの": "6. 개인정보와 저장되는 것",
+  "この画面には、利用者の情報を集めるサーバーはありません。設定、暗証番号をかけた鍵、同意した記録は、この端末の中にだけ保存されます。画面は、取引所の API、為替レートの API、フォントの配信元などに接続します。WalletConnect を使うときは、その接続先にも接続します。": "이 화면에는 이용자 정보를 수집하는 서버가 없습니다. 설정, 비밀번호를 건 키, 동의 기록은 이 기기 안에만 저장됩니다. 화면은 거래소 API, 환율 API, 글꼴 제공처 등에 접속합니다. WalletConnect를 사용할 때는 그 접속처에도 접속합니다.",
+  "7. 規約の変更": "7. 약관 변경",
+  "この規約は変更することがあります。変更したときは、もう一度同意をお願いします。": "이 약관은 변경될 수 있습니다. 변경되면 다시 동의를 요청드립니다.",
+  "運営者：{0}": "운영자: {0}",
+  "連絡先：{0}": "연락처: {0}",
+  "アプリの手数料 {0}": "앱 수수료 {0}",
+  "アプリの手数料（いまはなし）": "앱 수수료(현재는 없음)",
+  "取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。": "거래에는 돈을 모두 잃을 수 있는 큰 위험이 있으며 자기 책임으로 한다는 것을 이해했습니다.",
+  "上の手数料（取引所の手数料と、{0}）を確認し、同意します。": "위의 수수료(거래소 수수료와 {0})를 확인했으며 동의합니다.",
+  "利用規約を読み、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "이용약관을 읽었으며, 거주하는 국가·지역의 법령으로 이 화면의 이용이 금지·제한되어 있지 않음을 확인했습니다.",
+  "同意して続ける": "동의하고 계속",
+  "同意ずみ：{0}": "동의 완료: {0}",
+  "使う前に、次の内容を確認してください。同意しないと、ウォレットの接続や本番の注文はできません（画面を見るだけなら、同意なしで使えます）。": "사용하기 전에 아래 내용을 확인해 주세요. 동의하지 않으면 지갑 연결이나 실전 주문을 할 수 없습니다(화면을 보기만 하는 것은 동의 없이 가능합니다).",
+  "利用規約・リスク・手数料": "이용약관·위험·수수료",
   "はじめに（画面の見方）": "시작하기 (화면 보는 법)",
   "この画面は、取引所 Hyperliquid に、あなたのウォレットからつないで取引するための画面です。お金は取引所のあなたの口座にあり、この画面は預かりません。": "이 화면은 내 지갑을 거래소 Hyperliquid에 연결해 거래하기 위한 화면입니다. 자금은 거래소의 내 계좌에 있으며, 이 화면은 자금을 맡아 두지 않습니다.",
   "最初は「練習モード」です。ボタンを押しても注文の中身を確認する画面が出るだけで、取引所には何も送られません。本番にする方法は「注文用の鍵」の項目を見てください。": "처음에는 \"연습 모드\"입니다. 버튼을 눌러도 주문 내용을 확인하는 화면만 나오고 거래소에는 아무것도 전송되지 않습니다. 실전으로 바꾸는 방법은 \"주문용 키\" 항목을 보세요.",
@@ -1525,6 +1566,7 @@ en: {
   "口座アドレスか鍵がありません": "Missing account address or key",
   "この鍵は、いまの口座の注文用の鍵として登録されていません": "This key isn't registered as an order key for the current account",
   "この鍵は期限切れです。作り直してください": "This key has expired. Please create a new one",
+  "先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。": "Please agree to the terms first (see \"Terms, risks & fees\" at the bottom of the screen).",
   "鍵が閉じています": "The key is locked",
   "アプリの手数料の承認がまだなので、新しい注文は出せません。「本番の注文の設定」から承認してください（決済・取り消しは承認なしでもできます）。": "The app fee hasn't been approved yet, so new orders can't be placed. Approve it in \"Live trading setup\" (closing positions and canceling work without approval).",
   "送れませんでした：{0}": "Couldn't send: {0}",
@@ -1706,6 +1748,35 @@ en: {
   "接続を外しました": "Disconnected",
   "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "Demo: this is simulated data. It is not connected to the exchange (no real orders are sent).",
   "デモの暗証番号は {0} です。": "The demo PIN is {0}.",
+  "アプリの手数料：{0}（約定額に対する割合。この画面の運営者が受け取ります）。": "App fee: {0} (a percentage of the traded amount, received by the operator of this screen).",
+  "アプリの手数料：いまはかかりません。": "App fee: none at the moment.",
+  "1. リスクについて": "1. Risks",
+  "この画面は投資の助言ではありません。利益は保証されません。暗号資産の価格は大きく動き、レバレッジをかけると、口座に入れたお金をすべて失うことがあります。取引は、自分の判断と責任で行ってください。": "This screen is not investment advice. Profit is not guaranteed. Crypto prices move sharply, and with leverage you can lose all the money in your account. Trade on your own judgment and at your own risk.",
+  "2. お金と鍵の管理": "2. Funds and key management",
+  "お金は取引所（Hyperliquid）のあなたの口座にあり、この画面は預かりません。ウォレットの秘密鍵と注文用の鍵は、あなたが管理します。端末の紛失・盗難・ウイルスなどで鍵が漏れて生じた損失について、運営者は責任を負いません。": "Your funds are in your account on the exchange (Hyperliquid); this screen never holds them. You manage your wallet's private key and the order key yourself. The operator is not responsible for losses caused by a key leaking through a lost or stolen device, malware, and the like.",
+  "3. 手数料": "3. Fees",
+  "Hyperliquid の取引手数料：取引所が決めます。約定のたびにかかります。": "Hyperliquid trading fee: set by the exchange and charged on every fill.",
+  "アプリの手数料は、最初にウォレットの署名で承認します。承認は、いつでも取り消せます。": "You approve the app fee once with a wallet signature. You can revoke the approval at any time.",
+  "ネットワークの利用料や、入出金のときの費用は、別にかかることがあります。": "Network fees and deposit or withdrawal costs may apply separately.",
+  "4. サービスについて": "4. About the service",
+  "この画面は、現状のまま、保証なしで提供します。バグ・表示の遅れや誤り・取引所の障害・通信の途切れなどで、注文が出ない、遅れる、意図と違う結果になることがあります。法令で認められる範囲で、これらによる損害について運営者は責任を負いません。": "This screen is provided as is, without warranty. Bugs, delayed or wrong displays, exchange outages, or lost connections can cause orders not to go through, to be late, or to give unintended results. To the extent permitted by law, the operator is not liable for resulting losses.",
+  "5. 使える人と地域": "5. Who and where",
+  "お住まいの国・地域の法令で、この画面や暗号資産のデリバティブ取引が禁止・制限されている場合は、使えません。取引所が利用を制限している地域の方や、制裁の対象になっている方も使えません。税金の申告は、自分で行ってください。": "You may not use this screen if the law where you live prohibits or restricts it or crypto derivatives trading. It is also off limits to people in regions the exchange restricts and to anyone subject to sanctions. You are responsible for your own tax filing.",
+  "6. 個人情報と保存するもの": "6. Personal data and what is stored",
+  "この画面には、利用者の情報を集めるサーバーはありません。設定、暗証番号をかけた鍵、同意した記録は、この端末の中にだけ保存されます。画面は、取引所の API、為替レートの API、フォントの配信元などに接続します。WalletConnect を使うときは、その接続先にも接続します。": "This screen has no server that collects user data. Settings, the PIN-locked key, and your consent record are stored only on this device. The screen connects to the exchange API, exchange-rate APIs, font hosts, and similar services. When you use WalletConnect, it also connects to its servers.",
+  "7. 規約の変更": "7. Changes to these terms",
+  "この規約は変更することがあります。変更したときは、もう一度同意をお願いします。": "These terms may change. If they do, you will be asked to agree again.",
+  "運営者：{0}": "Operator: {0}",
+  "連絡先：{0}": "Contact: {0}",
+  "アプリの手数料 {0}": "the app fee of {0}",
+  "アプリの手数料（いまはなし）": "the app fee (none at the moment)",
+  "取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。": "I understand that trading carries large risks, including losing all my money, and that I do it at my own risk.",
+  "上の手数料（取引所の手数料と、{0}）を確認し、同意します。": "I have read the fees above (the exchange fee and {0}) and agree to them.",
+  "利用規約を読み、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "I have read the terms and confirmed that using this screen is not prohibited or restricted by the laws where I live.",
+  "同意して続ける": "Agree and continue",
+  "同意ずみ：{0}": "Agreed on: {0}",
+  "使う前に、次の内容を確認してください。同意しないと、ウォレットの接続や本番の注文はできません（画面を見るだけなら、同意なしで使えます）。": "Please read the following before you use this. Without agreeing, you cannot connect a wallet or place live orders (just viewing the screen works without agreeing).",
+  "利用規約・リスク・手数料": "Terms, risks & fees",
   "はじめに（画面の見方）": "Getting started (reading the screen)",
   "この画面は、取引所 Hyperliquid に、あなたのウォレットからつないで取引するための画面です。お金は取引所のあなたの口座にあり、この画面は預かりません。": "This screen lets you connect your own wallet to the Hyperliquid exchange and trade. Your funds stay in your account on the exchange; this screen never holds them.",
   "最初は「練習モード」です。ボタンを押しても注文の中身を確認する画面が出るだけで、取引所には何も送られません。本番にする方法は「注文用の鍵」の項目を見てください。": "You start in \"Practice mode\". Pressing a button only shows a screen to check the order; nothing is sent to the exchange. See \"Order key\" below to switch to live trading.",
@@ -2757,8 +2828,13 @@ const chart = (() => {
     const IN = indAny() ? IND.calc(a) : null;
     const plotW = W - PADR, avail = H - PADB - TOP, subs = [S.ind.rsi && 'rsi', S.ind.macd && 'macd'].filter(Boolean), ns = subs.length;
     const CH = 22, nc = subs.filter(k => S.indMin[k]).length, ne = ns - nc, availE = avail - nc * (CH + 6);   // たたんだ枠は細い帯（CH）だけ
-    const priceH = availE * (ne === 0 ? 0.8 : ne === 1 ? 0.62 : 0.5), volTop = TOP + priceH + 6, volH = ne ? availE * 0.1 : H - PADB - volTop - nc * (CH + 6);
-    const subTop0 = volTop + volH + 6, subH = ne ? (H - PADB - subTop0 - nc * CH - 6 * (ns - 1)) / ne : 0;
+    let priceH = availE * (ne === 0 ? 0.8 : ne === 1 ? 0.62 : 0.5), volTop = TOP + priceH + 6, volH = ne ? availE * 0.1 : H - PADB - volTop - nc * (CH + 6);
+    let subTop0 = volTop + volH + 6, subH = ne ? (H - PADB - subTop0 - nc * CH - 6 * (ns - 1)) / ne : 0;
+    if (ne && subH < 46){   // チャートが低くて別枠がつぶれるときは、別枠の高さを先に確保して、ローソク足の欄を縮める
+      volH = 24; subH = 46; priceH = avail - nc * CH - 6 * (ns - 1) - ne * subH - 12 - volH;
+      if (priceH < 90){ priceH = 90; subH = Math.max(28, (avail - nc * CH - 6 * (ns - 1) - 12 - volH - priceH) / ne); }
+      volTop = TOP + priceH + 6; subTop0 = volTop + volH + 6;
+    }
     const last = n - 1 - off, x = i => plotW - (last - i + 0.5) * bw;
     const i0 = Math.max(0, Math.ceil(last - plotW / bw)), i1 = Math.min(n - 1, Math.floor(last));
     let lo = Infinity, hi = -Infinity, vmax = 0;
@@ -3404,6 +3480,7 @@ $('mOk').onclick = async () => {
   const t = $('mTitle').textContent, run = modalRun; modalRun = null;
   if (!S.live){ closeModal(); log(_('{0} 練習: {1}（送っていません）', new Date().toLocaleTimeString(LOCALE()), t)); return; }
   if (!run){ closeModal(); toast(_('この操作は本番の送信につながっていません。何も送っていません。'), 6000); return; }
+  if (needConsent()){ closeModal(); openTerms(); return; }
   if (!LIVE.ready()){ closeModal(); toast(_('鍵が閉じているので送れません。暗証番号を入れてください。'), 6000); openLiveSetup(); return; }
   if (Date.now() - modalAt > 60000){ preview(_('{0}：送りませんでした', t), [[_('理由'), _('確認画面を開いてから1分以上たったので、値段が変わっているかもしれません。もう一度やり直してください。')]], '', {info:true}); return; }
   let steps; try { steps = run(); } catch (e){ preview(_('{0}：送りませんでした', t), [[_('理由'), esc(e.message)]], '', {info:true}); return; }
@@ -3605,6 +3682,8 @@ const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で
 //   fee は「1/10 bp」単位：10 = 0.01%、30 = 0.03%、100 = 0.1%（取引所が許す上限。現物は1%まで）
 //   required が true のあいだは、手数料を承認していない人の「新規の注文」は出せません。
 //   決済・取り消し・倍率変更は、承認がなくてもいつでもできます（ポジションから出られなくならないように）。
+// 利用規約の版。中身を変えたら数字を上げると、全員にもう一度同意してもらいます。operator / contact を入れると、規約に出ます
+const TERMS = {v:1, operator:'', contact:''};
 const BUILDER = {addr:'', fee:25, required:true};   // fee は 0.01% の10分の1の単位（25 = 0.025%）。addr が空のあいだは手数料なし
 // WalletConnect（QR で携帯のウォレットとつなぐ）。Reown のプロジェクト ID（公開されても問題ない識別子）。空にすると、ウォレットの選択画面に出なくなります
 const WC = {projectId:'e4abdb60f0f9bea9c07d9195c3094691', url:'https://esm.sh/@walletconnect/ethereum-provider@2'};
@@ -3808,6 +3887,7 @@ const LIVE = (() => {
     return {ok:true, name:hit.name, until:hit.validUntil};
   }
   async function send(action){
+    if (needConsent()) throw new Error(_('先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。'));
     if (!key) throw new Error(_('鍵が閉じています'));
     let nonce = Date.now(); if (nonce <= lastNonce) nonce = lastNonce + 1; lastNonce = nonce;
     const signature = HLSign.signAction(action, nonce, key);
@@ -3860,6 +3940,7 @@ function renderMode(){
   $('mWarn').textContent = on ? _('本番です。下のボタンを押すと、この内容で実際に取引所へ送ります。') : _('練習モードなので、この注文は送られません。本番にするには、上の「練習モード」ボタンから設定します。');
 }
 function openLiveSetup(){
+  if (needConsent()){ openTerms(openLiveSetup); return; }
   const sv = LIVE.saved(), rdy = LIVE.ready();
   let h = '<div class="lv">';
   if (!sv) h += `<p>${_('ウォレットをつなぐと、この端末の中で<b>注文用の鍵を自動で作り</b>、ウォレットの署名で口座に登録します。鍵を貼り付ける必要はありません。ウォレットの秘密鍵は使わず、送るのは署名だけです。')}</p>
@@ -4149,7 +4230,7 @@ async function pickWallet(id, fresh){
   try { const a = await WALLET.use(w, fresh); setUser(a); toast(_('ウォレットをつなぎました（{0}）', shortAddr(a)), 4000); }
   catch (e){ toast(esc(e.message || String(e)), 7000); }
 }
-const connectWallet = () => openWalletPicker(false);
+const connectWallet = () => gate(() => openWalletPicker(false));
 function openWalletMenu(){
   const nm = WALLET.name();
   const h = `<div class="wm"><p class="note">${_('つないでいる口座のアドレス')}</p><div class="addr" id="wmAddr">${esc(S.user)}</div>${nm ? `<p class="note">${_('つないでいるウォレット：{0}', esc(nm))}</p>` : ''}
@@ -4222,6 +4303,39 @@ function relocalize(){
   $('drawBtn').textContent = drawBtnText();
   renderAcct(); renderAll(); MC.refreshCoins(); renderMarketViews(); renderFav(); renderDemoBar(); renderWallet(); if (S.page === 'help') GUIDE.render();
 }
+
+// ===== 利用規約・リスク・手数料（同意するまで、ウォレットの接続と本番の注文はできない）=====
+const consent = () => store.get('terms', null);
+const needConsent = () => { const c = consent(); return !(c && c.v === TERMS.v); };
+function termsBody(){
+  const fee = BUILD.on() ? _('アプリの手数料：{0}（約定額に対する割合。この画面の運営者が受け取ります）。', BUILD.rate(BUILDER.fee) + '%') : _('アプリの手数料：いまはかかりません。');
+  return `<h4>${_('1. リスクについて')}</h4><p>${_('この画面は投資の助言ではありません。利益は保証されません。暗号資産の価格は大きく動き、レバレッジをかけると、口座に入れたお金をすべて失うことがあります。取引は、自分の判断と責任で行ってください。')}</p>
+    <h4>${_('2. お金と鍵の管理')}</h4><p>${_('お金は取引所（Hyperliquid）のあなたの口座にあり、この画面は預かりません。ウォレットの秘密鍵と注文用の鍵は、あなたが管理します。端末の紛失・盗難・ウイルスなどで鍵が漏れて生じた損失について、運営者は責任を負いません。')}</p>
+    <h4>${_('3. 手数料')}</h4><ul><li>${_('Hyperliquid の取引手数料：取引所が決めます。約定のたびにかかります。')}</li><li>${fee}</li><li>${_('アプリの手数料は、最初にウォレットの署名で承認します。承認は、いつでも取り消せます。')}</li><li>${_('ネットワークの利用料や、入出金のときの費用は、別にかかることがあります。')}</li></ul>
+    <h4>${_('4. サービスについて')}</h4><p>${_('この画面は、現状のまま、保証なしで提供します。バグ・表示の遅れや誤り・取引所の障害・通信の途切れなどで、注文が出ない、遅れる、意図と違う結果になることがあります。法令で認められる範囲で、これらによる損害について運営者は責任を負いません。')}</p>
+    <h4>${_('5. 使える人と地域')}</h4><p>${_('お住まいの国・地域の法令で、この画面や暗号資産のデリバティブ取引が禁止・制限されている場合は、使えません。取引所が利用を制限している地域の方や、制裁の対象になっている方も使えません。税金の申告は、自分で行ってください。')}</p>
+    <h4>${_('6. 個人情報と保存するもの')}</h4><p>${_('この画面には、利用者の情報を集めるサーバーはありません。設定、暗証番号をかけた鍵、同意した記録は、この端末の中にだけ保存されます。画面は、取引所の API、為替レートの API、フォントの配信元などに接続します。WalletConnect を使うときは、その接続先にも接続します。')}</p>
+    <h4>${_('7. 規約の変更')}</h4><p>${_('この規約は変更することがあります。変更したときは、もう一度同意をお願いします。')}</p>
+    ${TERMS.operator ? `<p>${_('運営者：{0}', esc(TERMS.operator))}</p>` : ''}${TERMS.contact ? `<p>${_('連絡先：{0}', esc(TERMS.contact))}</p>` : ''}`;
+}
+// 同意の画面。next があれば、同意したあとに続けて実行する。同意ずみのときは、読むだけ（next なし）
+function openTerms(next){
+  const c = consent(), done = c && c.v === TERMS.v;
+  const feeTxt = BUILD.on() ? _('アプリの手数料 {0}', BUILD.rate(BUILDER.fee) + '%') : _('アプリの手数料（いまはなし）');
+  const checks = done ? '' : `<label class="tchk"><input type="checkbox" class="tc"><span>${_('取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。')}</span></label>
+    <label class="tchk"><input type="checkbox" class="tc"><span>${_('上の手数料（取引所の手数料と、{0}）を確認し、同意します。', feeTxt)}</span></label>
+    <label class="tchk"><input type="checkbox" class="tc"><span>${_('利用規約を読み、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。')}</span></label>
+    <button type="button" class="tgo" id="tGo" disabled>${_('同意して続ける')}</button>`;
+  const head = done ? `<p class="note">${_('同意ずみ：{0}', new Date(c.t).toLocaleString(LOCALE()))}</p>` : `<p class="note">${_('使う前に、次の内容を確認してください。同意しないと、ウォレットの接続や本番の注文はできません（画面を見るだけなら、同意なしで使えます）。')}</p>`;
+  preview(_('利用規約・リスク・手数料'), [], `${head}<div class="terms">${termsBody()}</div>${checks}`, {info:true});
+  if (done) return;
+  const boxes = [...document.querySelectorAll('#mExtra .tc')];
+  boxes.forEach(b => b.onchange = () => { $('tGo').disabled = !boxes.every(x => x.checked); });
+  $('tGo').onclick = () => { store.set('terms', {v:TERMS.v, t:Date.now(), lang:LANG}); closeModal(); if (next) next(); };
+}
+// 同意ずみならそのまま、まだなら同意の画面を出して、同意したあとに続ける
+const gate = fn => needConsent() ? openTerms(fn) : fn();
+$('termsLink').onclick = () => openTerms();
 
 // ===== 使い方ガイド（画面の見方・ウォレット・鍵・注文・チャート）=====
 const GUIDE = (() => {
