@@ -107,7 +107,8 @@ body.fsOn{overflow:hidden}
 #chartBox.fs #hint{display:none}
 @media (pointer:coarse){ #hint{display:none} }
 #chart{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
-#legend{position:absolute;left:10px;top:6px;font:12px var(--mono);pointer-events:none;color:var(--dim)}
+#legend{position:absolute;left:10px;top:6px;font:12px var(--mono);pointer-events:none;color:var(--dim);white-space:nowrap}
+@media (max-width:720px){ #legend{font-size:10.5px} }
 #hint{position:absolute;left:10px;bottom:28px;font-size:11px;color:var(--dim);pointer-events:none;opacity:.8}
 #menu{position:absolute;z-index:5;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px;display:flex;flex-direction:column;min-width:200px;box-shadow:0 8px 24px #0008}
 #menu .mh{font:12px var(--mono);color:var(--dim);padding:5px 10px 3px}
@@ -161,7 +162,7 @@ input[type=range]{padding:0;border:none;background:none;accent-color:var(--accen
 #submit{border:none;border-radius:8px;padding:13px 6px;font-weight:700;font-size:15px;width:100%}
 #submit.L{background:var(--up);color:#04140d} #submit.S{background:var(--down);color:#1a0508}
 #submit small{display:block;font-weight:400;font-size:11px;opacity:.85}
-.qk{flex:1;border:none;border-radius:8px;padding:11px 4px;font-weight:700;font-size:16px}
+.qk{flex:1 1 0;min-width:0;border:none;border-radius:8px;padding:11px 4px;font-weight:700;font-size:16px}
 .qk.L{background:var(--up);color:#04140d} .qk.S{background:var(--down);color:#1a0508}
 .qk small{display:block;font-weight:400;font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
@@ -738,20 +739,20 @@ function pnlAt(pos, p){ return (p - +pos.entryPx) * +pos.szi; }
 function chartLines(){
   const k = curKey(), L = [], pos = isPerp() ? posOf(k) : null;
   if (pos){
-    L.push({id:'entry', p:+pos.entryPx, col:'--info', txt:'建値 ' + (+pos.szi > 0 ? 'ロング' : 'ショート'), dash:[6,4]});
-    if (pos.liquidationPx) L.push({id:'liq', p:+pos.liquidationPx, col:'--liq', txt:'清算', dash:[2,3]});
+    L.push({id:'entry', p:+pos.entryPx, col:'--info', txt:'建値', dash:[6,4]});
+    if (pos.liquidationPx) L.push({id:'liq', p:+pos.liquidationPx, col:'--liq', txt:'RL', dash:[2,3]});
   }
   for (const o of S.orders.filter(o => o.coin === k)){
     const kind = orderKind(o), p = o.isTrigger ? +o.triggerPx : +o.limitPx;
     const col = kind === 'tp' ? '--up' : kind === 'sl' ? '--down' : '--dim';
-    L.push({id:'o' + o.oid, p, col, dash:[5,3], drag:true, txt:(o.side === 'B' ? '買い' : '売り') + KIND_JA[kind], pnl: pos && (kind === 'tp' || kind === 'sl') ? x => pnlAt(pos, x) : null,
+    L.push({id:'o' + o.oid, p, col, dash:[5,3], drag:true, txt:({tp:'TP', sl:'SL'})[kind] || (o.side === 'B' ? '買' : '売') + KIND_JA[kind], pnl: pos && (kind === 'tp' || kind === 'sl') ? x => pnlAt(pos, x) : null,
       drop: np => modifyPreview(o, kind, p, np)});
   }
-  for (const al of (S.alerts[k] || [])) L.push({id:'al' + al.p, p: al.p, col:'--accent', dash:[2,4], txt:'🔔 お知らせ'});
-  if (S.otype !== 'market'){ const p = parseFloat($('px').value); if (p > 0) L.push({id:'npx', p, col:'--fg', dash:[4,4], drag:true, txt:'新規 ' + (S.otype === 'stop' ? '逆指値' : '指値'), drop: np => { $('px').value = roundPx(k, np); schedule(); }}); }
+  for (const al of (S.alerts[k] || [])) L.push({id:'al' + al.p, p: al.p, col:'--accent', dash:[2,4], txt:'🔔'});
+  if (S.otype !== 'market'){ const p = parseFloat($('px').value); if (p > 0) L.push({id:'npx', p, col:'--fg', dash:[4,4], drag:true, txt:'新' + (S.otype === 'stop' ? '逆指値' : '指値'), drop: np => { $('px').value = roundPx(k, np); schedule(); }}); }
   if (isPerp() && $('tpslOn').checked){
     const e = entryPx(), sz = orderCalc().sz * S.side;
-    for (const [id, col, t] of [['tp','--up','新規 利確'], ['sl','--down','新規 損切り']]){
+    for (const [id, col, t] of [['tp','--up','新TP'], ['sl','--down','新SL']]){
       const p = parseFloat($(id).value); if (p > 0) L.push({id:'n' + id, p, col, dash:[4,4], drag:true, txt:t, pnl: x => (x - e) * sz, drop: np => { $(id).value = roundPx(k, np); schedule(); }});
     }
   }
@@ -763,7 +764,7 @@ const chart = (() => {
   const cv = $('chart'), ctx = cv.getContext('2d');
   let bw = 8, off = -4, W = 0, H = 0, kz = 1, hover = null, act = null, vman = null, geo = null, drawn = [];
   const ptrs = new Map(); let pinch = null, lpTimer = null;
-  let PADR = 60; const PADB = 22, TOP = 26;
+  let PADR = 60, TOP = 26; const PADB = 22;
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   function resize(){
     // 文字の大きさ（拡大）に合わせて、チャートも同じ倍率で描く
@@ -782,11 +783,13 @@ const chart = (() => {
   function draw(){
     if (!W) return;
     const C = {bg:css('--bg'), line:css('--line'), dim:css('--dim'), fg:css('--fg'), up:css('--up'), down:css('--down'), panel:css('--panel2')};
-    const MONO = '11px ' + css('--mono'), SANS = '11px ' + css('--sans');
+    const MONO = '11px ' + css('--mono'), SANS = '11px ' + css('--sans'), TAG = '600 10px ' + css('--sans');
+    const pill = (x0, y0, w, h) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x0, y0, w, h, h / 2); else ctx.rect(x0, y0, w, h); };
     ctx.clearRect(0,0,W,H); ctx.fillStyle = C.bg; ctx.fillRect(0,0,W,H);
     const a = S.candles, key = curKey(), n = a.length; drawn = [];
     if (!n){ geo = null; ctx.fillStyle = C.dim; ctx.font = '13px sans-serif'; ctx.fillText('チャートを読み込んでいます…', 16, 46); $('legend').textContent = ''; return; }
     ctx.font = MONO; { const lp0 = a[n-1].c; PADR = Math.ceil(Math.max(ctx.measureText(fpx(key, lp0 * 1.5)).width, ctx.measureText(fpx(key, lp0 * 0.5)).width)) + 12; }
+    TOP = S.ma ? 46 : 26;   // 左上の値段と移動平均の文字の下から描く（線の札が重ならないように）
     const plotW = W - PADR, priceH = (H - PADB - TOP) * 0.8, volTop = TOP + priceH + 6, volH = H - PADB - volTop;
     const last = n - 1 - off, x = i => plotW - (last - i + 0.5) * bw;
     const i0 = Math.max(0, Math.ceil(last - plotW / bw)), i1 = Math.min(n - 1, Math.floor(last));
@@ -857,7 +860,7 @@ const chart = (() => {
     for (const L of chartLines()){
       const dragging = act && act.type === 'line' && act.L.id === L.id;
       const p = dragging ? act.np : L.p; if (!isFinite(p)) continue;
-      let t = L.txt; if (L.pnl) t += '  ' + moneyS(L.pnl(p));
+      let t = L.txt; if (L.pnl && dragging) t += ' ' + moneyS(L.pnl(p));   // 金額は動かしている間だけ出す
       tags.push({p, col: css(L.col), text: t, dash: L.dash, bold: dragging, L});
     }
     const lastK = a[n-1], lp = priceOf(key) ?? lastK.c;
@@ -869,7 +872,7 @@ const chart = (() => {
       if (T.L && T.L.drag && !T.out) drawn.push({y: T.y, L: T.L});
     }
     // 札の高さを決める（上から順に、前の札と18px以上あける。下にはみ出たら下から詰め直す）
-    const ord = [...tags].sort((a, b) => a.y - b.y), GAP = 19, yMin = TOP + 9, yMax = TOP + priceH - 9;
+    const ord = [...tags].sort((a, b) => a.y - b.y), GAP = 17, yMin = TOP + 9, yMax = TOP + priceH - 9;
     let prev = -1e9; for (const T of ord){ T.ly = Math.max(T.y, prev + GAP, yMin); prev = T.ly; }
     let nxt = 1e9; for (let i = ord.length - 1; i >= 0; i--){ const T = ord[i]; T.ly = Math.min(T.ly, nxt - GAP, yMax); nxt = T.ly; }
     // 目盛りの数字（札と重なるものは出さない）
@@ -878,11 +881,17 @@ const chart = (() => {
     for (const T of ord){
       if (T.L && T.L.drag && !T.out && Math.abs(T.ly - T.y) > 6) drawn.push({y: T.ly, L: T.L});   // ずらした札をつかんでも動かせる
       if (Math.abs(T.ly - T.y) > 1 && !T.out){ ctx.strokeStyle = T.col; ctx.beginPath(); ctx.moveTo(plotW - 4, T.y); ctx.lineTo(plotW, T.ly); ctx.stroke(); }
-      ctx.fillStyle = T.col; ctx.fillRect(plotW, T.ly - 9, PADR, 18); ctx.fillStyle = C.bg; ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.fillText(fpx(key, T.p), plotW + 6, T.ly);
-      if (T.text){
-        const t = (T.out === 'up' ? '↑ ' : T.out === 'dn' ? '↓ ' : '') + T.text;
-        ctx.font = SANS; const tw = ctx.measureText(t).width;
-        ctx.globalAlpha = .9; ctx.fillStyle = T.col; ctx.fillRect(4, T.ly - 9, tw + 10, 18); ctx.globalAlpha = 1; ctx.fillStyle = C.bg; ctx.fillText(t, 9, T.ly);   // 名札は左端に（右側の最新の足を隠さない）
+      // 右の値段：文字の幅だけの丸い札。いまの値段は塗りつぶし、ほかの線は枠だけ
+      { ctx.font = TAG; ctx.textBaseline = 'middle'; const pt = fpx(key, T.p), w = ctx.measureText(pt).width + 10;
+        pill(plotW + 2, T.ly - 8, w, 16);
+        if (T.now){ ctx.fillStyle = T.col; ctx.fill(); ctx.fillStyle = C.bg; }
+        else { ctx.fillStyle = C.bg; ctx.fill(); ctx.strokeStyle = T.col; ctx.lineWidth = T.bold ? 2 : 1.2; ctx.stroke(); ctx.lineWidth = 1; ctx.fillStyle = T.col; }
+        ctx.fillText(pt, plotW + 7, T.ly + .5); }
+      if (T.text){   // 名札は左端に小さく（右側の最新の足を隠さない）
+        const t = (T.out === 'up' ? '↑' : T.out === 'dn' ? '↓' : '') + T.text;
+        ctx.font = TAG; const tw = ctx.measureText(t).width;
+        pill(4, T.ly - 8, tw + 10, 16); ctx.fillStyle = T.col; ctx.globalAlpha = T.bold ? 1 : .85; ctx.fill(); ctx.globalAlpha = 1;
+        ctx.fillStyle = C.bg; ctx.fillText(t, 9, T.ly + .5);
       }
     }
     // 十字線
