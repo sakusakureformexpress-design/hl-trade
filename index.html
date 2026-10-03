@@ -81,6 +81,8 @@ body.fsOn{overflow:hidden}
 #toasts{position:fixed;top:10px;left:8px;right:8px;margin:0 auto;max-width:520px;z-index:10;display:flex;flex-direction:column;gap:6px;pointer-events:none}
 .toast{background:var(--panel2);border:1px solid var(--accent);border-radius:10px;padding:10px 14px;font-size:15px;box-shadow:0 8px 24px #0009;transition:opacity .5s}
 .toast.out{opacity:0}
+#prefs{display:contents}
+#prefsBtn{display:none}
 #fsBtn.on{color:#1b1404;background:var(--accent);border-color:var(--accent)}
 .zoom button,.ivs button{white-space:nowrap}
 #chartBox.fs #hint{display:none}
@@ -140,6 +142,10 @@ input[type=range]{padding:0;border:none;background:none;accent-color:var(--accen
 #submit{border:none;border-radius:8px;padding:13px 6px;font-weight:700;font-size:15px;width:100%}
 #submit.L{background:var(--up);color:#04140d} #submit.S{background:var(--down);color:#1a0508}
 #submit small{display:block;font-weight:400;font-size:11px;opacity:.85}
+.qk{flex:1;border:none;border-radius:8px;padding:11px 4px;font-weight:700;font-size:16px}
+.qk.L{background:var(--up);color:#04140d} .qk.S{background:var(--down);color:#1a0508}
+.qk small{display:block;font-weight:400;font-size:11px;opacity:.85}
+
 .note{font-size:11px;color:var(--dim);margin:0}
 #log{font-size:11px;font-family:var(--mono);color:var(--dim);display:flex;flex-direction:column;gap:2px;max-height:110px;overflow-y:auto}
 /* いま持っているポジションのカード */
@@ -216,6 +222,13 @@ td.ja{font-family:var(--sans)}
   .ivs button{flex:0 0 auto}
   #chartBox{height:58vh;min-height:340px;flex:0 0 auto}
   #chartWrap{margin:6px 18px 8px 6px}
+  #prefsBtn{display:inline-block}
+  #prefs{display:none;width:100%;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between;padding:8px 0 4px;border-top:1px dashed var(--line)}
+  #prefs.open{display:flex}
+  /* スマホ：下にロングとショートを並べる */
+  #submit{display:none}
+  #quick{display:flex!important;gap:8px}
+  #aTabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none} #aTabs button{flex:0 0 auto;white-space:nowrap}
   .zoom{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;flex:1 1 100%;min-width:0} .zoom button{flex:0 0 auto}
   #bookBox{display:none}
   #bottom{flex:0 0 auto}
@@ -236,6 +249,8 @@ td.ja{font-family:var(--sans)}
     <div class="kpi"><small>口座残高</small><b id="kEq">—</b></div>
     <div class="kpi"><small>含み損益</small><b id="kPnl">—</b></div>
     <div class="kpi"><small>使える余力</small><b id="kAv">—</b></div>
+    <button class="gear" id="prefsBtn" title="円・ドル、文字の大きさ、約定の音">⚙ 設定</button>
+    <div id="prefs">
     <div class="kpi" style="align-items:center;gap:2px">
       <div class="ccy" id="ccy"><button data-v="USD">$ ドル</button><button data-v="JPY">¥ 円</button></div>
       <button class="fx" id="fxBtn" title="押すと為替レートを自分で入れられます">1ドル = —円</button>
@@ -243,6 +258,7 @@ td.ja{font-family:var(--sans)}
     <div class="kpi" style="align-items:center;gap:2px"><small>文字の大きさ</small><div class="ccy" id="zoomSel"><button data-z="1">小</button><button data-z="1.2">中</button><button data-z="1.4">大</button><button data-z="1.6">特大</button></div></div>
     <div class="kpi" style="align-items:center;gap:2px"><small>約定の音</small><div class="ccy" id="sndSel"><button data-s="1">鳴らす</button><button data-s="0">消す</button></div></div>
     <button class="gear" id="gear" title="口座アドレスを変える">口座</button>
+    </div>
   </div>
 </header>
 <div id="acctBar" hidden><span class="dim">口座アドレス（公開情報。秘密鍵ではありません）</span><input id="addr" spellcheck="false" placeholder="0x…"></div>
@@ -299,6 +315,7 @@ td.ja{font-family:var(--sans)}
       <label class="f" id="pxField" hidden><span id="pxLbl">指値の価格（ドル）</span>
         <div class="row"><input id="px" class="num" inputmode="decimal"><button class="unit" id="pxMid" type="button">いまの値段</button></div>
       </label>
+      <label class="toggle" id="aloWrap" hidden><input type="checkbox" id="alo"> メイカー専用（手数料が安い。すぐ約定してしまう値段なら取り消し）</label>
       <div class="f">
         <span id="szLbl">注文額</span>
         <div class="row"><input id="sz" class="num" inputmode="decimal" value="100"><button class="unit" id="unit" type="button">USD</button></div>
@@ -320,7 +337,7 @@ td.ja{font-family:var(--sans)}
         </div>
       </div>
       <div class="calc" id="calc"></div>
-      <div id="submitWrap"><button id="submit" class="L">ロング</button></div>
+      <div id="submitWrap"><button id="submit" class="L">ロング</button><div id="quick" style="display:none"><button id="qL" class="qk L"></button><button id="qS" class="qk S"></button></div></div>
       <p class="note">見本モード：ボタンを押すと、送るはずの注文の中身を表示するだけです。チャートの線も、離すと確認が出て元の位置に戻ります。</p>
       <div id="log"></div>
     </div>
@@ -433,7 +450,7 @@ function connect(){
   ws.onerror = () => ws.close();
   ws.onmessage = ev => {
     let m; try { m = JSON.parse(ev.data); } catch { return; }
-    if (m.channel === 'allMids'){ const d = m.data.mids; for (const k in M) if (d[k] != null) S.mids[k] = +d[k]; schedule(); }
+    if (m.channel === 'allMids'){ const d = m.data.mids; for (const k in M) if (d[k] != null) S.mids[k] = +d[k]; checkAlerts(); schedule(); }
     else if (m.channel === 'candle') onCandle(m.data);
     else if (m.channel === 'l2Book'){ if (m.data.coin === curKey()){ S.book = m.data; schedule(); } }
     else if (m.channel === 'userFills') onFills(m.data);
@@ -474,8 +491,9 @@ function onFills(d){
     const msg = `約定　${label(k) || k}　${what}　${f.sz} @ ${M[k] ? fmtPx(k, +f.px) : f.px}` + (pnl ? `　<span class="${cls(pnl)}">${moneyS(pnl)}</span>` : '');
     toast(msg); log(msg.replace(/<[^>]+>/g, ''));
   }
-  loadAcct(); H.at = 0; if (HIST_TABS.includes(S.aTab)) loadHist();
+  loadAcct(); loadMyFills(); H.at = 0; if (HIST_TABS.includes(S.aTab)) loadHist();
 }
+$('prefsBtn').onclick = () => $('prefs').classList.toggle('open');
 $('sndSel').onclick = e => {
   const b = e.target.closest('button'); if (!b) return;
   S.sound = b.dataset.s === '1'; store.set('sound', S.sound);
@@ -483,6 +501,49 @@ $('sndSel').onclick = e => {
   if (S.sound) setTimeout(() => chime(false), 50);
 };
 [...$('sndSel').children].forEach(x => x.classList.toggle('sel', (x.dataset.s === '1') === S.sound));
+
+// ===== 値段のお知らせ（チャートを長押しして「ここに来たら音で知らせる」）=====
+S.alerts = store.get('alerts', {});
+function addAlert(k, p){
+  const mark = priceOf(k); if (!(mark > 0)) return;
+  (S.alerts[k] = S.alerts[k] || []).push({p, dir: p >= mark ? 1 : -1});
+  store.set('alerts', S.alerts); log(`🔔 ${label(k)} が $${fmtPx(k, p)} に来たら知らせます`); chart.draw();
+}
+function checkAlerts(){
+  let hit = false;
+  for (const k in S.alerts){
+    const m = S.mids[k]; if (!(m > 0)) continue;
+    const left = [];
+    for (const al of S.alerts[k]){
+      if ((m - al.p) * al.dir >= 0){ hit = true; toast(`🔔 ${label(k)} が $${fmtPx(k, al.p)} に${al.dir > 0 ? '上がって' : '下がって'}きました（いま $${fmtPx(k, m)}）`); log(`🔔 ${label(k)} $${fmtPx(k, al.p)} に到達`); }
+      else left.push(al);
+    }
+    if (left.length !== S.alerts[k].length){ if (left.length) S.alerts[k] = left; else delete S.alerts[k]; store.set('alerts', S.alerts); }
+  }
+  if (hit){ chimeAlert(); chart.draw(); }
+}
+function chimeAlert(){
+  if (!S.sound || !actx) return;
+  const t0 = actx.currentTime;
+  [1319, 1319, 1760].forEach((f, i) => {
+    const o = actx.createOscillator(), g = actx.createGain(), t = t0 + i * 0.16;
+    o.type = 'triangle'; o.frequency.value = f;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
+    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.36);
+  });
+}
+// ===== チャートに出す自分の約定（いま見ている銘柄・チャートの期間だけ）=====
+S.myFills = [];
+let myFillReq = 0;
+async function loadMyFills(){
+  const req = ++myFillReq, k = curKey();
+  if (!/^0x[0-9a-fA-F]{40}$/.test(S.user) || !S.candles.length){ S.myFills = []; return; }
+  try {
+    const d = await info({type:'userFillsByTime', user:S.user, startTime:S.candles[0].t, aggregateByTime:true});
+    if (req !== myFillReq) return;
+    S.myFills = (d || []).filter(f => f.coin === k); chart.draw();
+  } catch {}
+}
 
 // ===== 画面の更新をまとめて行う =====
 let dirty = false;
@@ -559,7 +620,7 @@ async function loadCandles(){
     const d = await info({type:'candleSnapshot', req:{coin:k, interval:iv, startTime:start, endTime:end}});
     if (req !== candleReq) return;
     S.candles = d.map(c => ({t:c.t, o:+c.o, h:+c.h, l:+c.l, c:+c.c, v:+c.v}));
-    chart.draw();
+    S.myFills = []; chart.draw(); loadMyFills();
   } catch (e){ log('チャートを取れませんでした: ' + e.message); }
 }
 function onCandle(c){
@@ -595,6 +656,7 @@ function chartLines(){
     L.push({id:'o' + o.oid, p, col, dash:[5,3], drag:true, txt:(o.side === 'B' ? '買い' : '売り') + KIND_JA[kind], pnl: pos && (kind === 'tp' || kind === 'sl') ? x => pnlAt(pos, x) : null,
       drop: np => modifyPreview(o, kind, p, np)});
   }
+  for (const al of (S.alerts[k] || [])) L.push({id:'al' + al.p, p: al.p, col:'--accent', dash:[2,4], txt:'🔔 お知らせ'});
   if (S.otype !== 'market'){ const p = parseFloat($('px').value); if (p > 0) L.push({id:'npx', p, col:'--fg', dash:[4,4], drag:true, txt:'新規 ' + (S.otype === 'stop' ? '逆指値' : '指値'), drop: np => { $('px').value = roundPx(k, np); schedule(); }}); }
   if (isPerp() && $('tpslOn').checked){
     const e = entryPx(), sz = orderCalc().sz * S.side;
@@ -664,6 +726,25 @@ const chart = (() => {
       ctx.globalAlpha = .35; const vh = vmax ? k.v / vmax * volH : 0; ctx.fillRect(xx - bodyW/2, volTop + volH - vh, bodyW, vh); ctx.globalAlpha = 1;
       ctx.beginPath(); ctx.moveTo(xx + .5, y(k.h)); ctx.lineTo(xx + .5, y(k.l)); ctx.stroke();
       const yo = y(k.o), yc = y(k.c); ctx.fillRect(xx - Math.floor(bodyW/2), Math.min(yo, yc), bodyW, Math.max(1, Math.abs(yc - yo)));
+    }
+    // 自分の売買の印：足ごと・向きごとにまとめて、買いは下から▲、売りは上から▼
+    if (S.myFills.length){
+      const ms = IV_MS[S.iv], grp = new Map();
+      for (const f of S.myFills){
+        let lo2 = 0, hi2 = n - 1; if (f.time < a[0].t || f.time >= a[n-1].t + ms) continue;
+        while (lo2 < hi2){ const mid = (lo2 + hi2 + 1) >> 1; if (a[mid].t <= f.time) lo2 = mid; else hi2 = mid - 1; }
+        if (lo2 < i0 - 1 || lo2 > i1 + 1) continue;
+        const gk = lo2 + f.side, g = grp.get(gk) || {i: lo2, side: f.side, v: 0, sz: 0}; g.v += +f.px * +f.sz; g.sz += +f.sz; grp.set(gk, g);
+      }
+      const r = Math.max(4, Math.min(7, bw * 0.6));
+      for (const g of grp.values()){
+        const xx = x(g.i), yy = y(g.v / g.sz), buy = g.side === 'B';
+        ctx.fillStyle = buy ? C.up : C.down; ctx.strokeStyle = C.bg; ctx.lineWidth = 1.5; ctx.beginPath();
+        if (buy){ ctx.moveTo(xx, yy + 2); ctx.lineTo(xx - r, yy + 2 + r * 1.6); ctx.lineTo(xx + r, yy + 2 + r * 1.6); }
+        else { ctx.moveTo(xx, yy - 2); ctx.lineTo(xx - r, yy - 2 - r * 1.6); ctx.lineTo(xx + r, yy - 2 - r * 1.6); }
+        ctx.closePath(); ctx.stroke(); ctx.fill();
+      }
+      ctx.lineWidth = 1;
     }
     if (S.ma){
       ctx.lineWidth = 1.6; ctx.lineJoin = 'round';
@@ -804,6 +885,8 @@ function openMenu(pt){
   const buy = isPerp() ? 'ロング' : '買う', sell = isPerp() ? 'ショート' : '売る';
   if (above){ items.push([`ここで${sell}（指値）`, () => fillTicket(-1, 'limit', p)]); if (isPerp()) items.push([`ここを超えたら${buy}（逆指値）`, () => fillTicket(1, 'stop', p)]); }
   else { items.push([`ここで${buy}（指値）`, () => fillTicket(1, 'limit', p)]); if (isPerp()) items.push([`ここを割ったら${sell}（逆指値）`, () => fillTicket(-1, 'stop', p)]); }
+  items.push([`ここに来たら音で知らせる 🔔`, () => addAlert(k, p)]);
+  if ((S.alerts[k] || []).length) items.push([`この銘柄の 🔔 お知らせを全部消す（${S.alerts[k].length}件）`, () => { delete S.alerts[k]; store.set('alerts', S.alerts); schedule(); chart.draw(); }]);
   if (pos){
     const long = +pos.szi > 0, isTp = long ? above : !above;
     items.push([`${isTp ? '利確' : '損切り'}をここにする（${moneyS(pnlAt(pos, p))}）`, () => tpslPreview(k, isTp ? 'tp' : 'sl', p)]);
@@ -847,7 +930,7 @@ function buildOType(){
 }
 function setOType(v){
   S.otype = v; [...$('oType').children].forEach(b => b.classList.toggle('sel', b.dataset.v === v));
-  $('pxField').hidden = v === 'market';
+  $('pxField').hidden = v === 'market'; $('aloWrap').hidden = v !== 'limit';
   $('pxLbl').textContent = v === 'stop' ? '発動する値段（ドル）この値段に届いたら成行で入ります' : '指値の価格（ドル）';
   if (v !== 'market' && !$('px').value) $('px').value = roundPx(curKey(), priceOf(curKey())) || '';
   schedule();
@@ -855,10 +938,18 @@ function setOType(v){
 $('oType').onclick = e => { const b = e.target.closest('button'); if (b) setOType(b.dataset.v); };
 $('pxMid').onclick = () => { $('px').value = roundPx(curKey(), priceOf(curKey())); schedule(); };
 $('unit').onclick = () => {
-  const k = orderCalc(); S.unit = S.unit === 'usd' ? 'coin' : 'usd';
-  $('sz').value = S.unit === 'usd' ? (Math.round(k.ntl * 100) / 100 || '') : (k.sz || '');
+  // USD → 枚数 → 損失額（先物だけ）→ USD の順に切り替え
+  const k = orderCalc(), next = S.unit === 'usd' ? 'coin' : S.unit === 'coin' && isPerp() ? 'risk' : 'usd';
+  S.unit = next;
+  if (next === 'usd') $('sz').value = Math.round(k.ntl * 100) / 100 || '';
+  else if (next === 'coin') $('sz').value = k.sz || '';
+  else {
+    $('sz').value = store.get('riskUsd', 20);
+    if (!$('tpslOn').checked){ $('tpslOn').checked = true; $('tpslOn').onchange(); }
+  }
   schedule();
 };
+$('sz').addEventListener('change', () => { const v = parseFloat($('sz').value); if (S.unit === 'risk' && v > 0) store.set('riskUsd', v); });
 function curLev(){ const max = cur()?.maxLev || 20; return Math.min(S.lev[curKey()] || Math.min(5, max), max); }
 function syncLev(){
   if (!isPerp()) return;
@@ -923,6 +1014,7 @@ function avail(){
   return S.side > 0 ? free : free * (priceOf(curKey()) || 0);
 }
 const setPct = pc => {
+  if (S.unit === 'risk') S.unit = 'usd';   // 割合で決めるときは金額に戻す
   const av = avail(); if (av == null){ log('口座を読めていないので、割合からの計算はできません'); return; }
   const lev = isPerp() ? curLev() : 1, usd = av * lev * pc / 100 * 0.98, px = entryPx();
   $('sz').value = S.unit === 'usd' ? Math.floor(usd * 100) / 100 : roundSz(curKey(), usd / px);
@@ -937,7 +1029,8 @@ function entryPx(){ const k = curKey(); return S.otype === 'market' ? priceOf(k)
 function orderCalc(){
   const k = curKey(), m = cur() || {}, lev = isPerp() ? curLev() : 1, mm = 1 / (2 * (m.maxLev || 20));
   const px = entryPx(), v = parseFloat($('sz').value);
-  const sz = px > 0 && v > 0 ? roundSz(k, S.unit === 'usd' ? v / px : v) : 0;
+  const slv = parseFloat($('sl').value), riskOk = isPerp() && $('tpslOn').checked && slv > 0 && (slv - px) * S.side < 0;
+  const sz = px > 0 && v > 0 ? roundSz(k, S.unit === 'usd' ? v / px : S.unit === 'risk' ? (riskOk ? v / Math.abs(px - slv) : 0) : v) : 0;
   const ntl = sz * px, fees = FEE[isPerp() ? 'perp' : 'spot'], fee = ntl * (S.otype === 'limit' ? fees.maker : fees.taker);
   const liq = isPerp() ? px - S.side * px * (1/lev - mm) / (1 - mm * S.side) : NaN;
   return {k, lev, px, sz, ntl, margin: ntl / lev, fee, liq};
@@ -955,8 +1048,9 @@ function tpslCheck(){
 function renderTicket(){
   const k = curKey(); if (!cur()) return;
   const L = $('side').children; L[0].className = S.side > 0 ? 'selL' : ''; L[1].className = S.side < 0 ? 'selS' : '';
-  $('unit').textContent = S.unit === 'usd' ? 'USD' : label(k);
-  $('szLbl').textContent = S.unit === 'usd' ? (isPerp() ? '注文額（USD・レバレッジ込みの建玉の大きさ）' : '注文額（USDC）') : `数量（${label(k)}）右のボタンで USD に切り替え`;
+  if (S.unit === 'risk' && !isPerp()) S.unit = 'usd';
+  $('unit').textContent = S.unit === 'usd' ? 'USD' : S.unit === 'risk' ? '損失額' : label(k);
+  $('szLbl').textContent = S.unit === 'risk' ? '損切りに当たったときに負ける額（USD・手数料は別）。下の損切りの値段から枚数を自動で出します' : S.unit === 'usd' ? (isPerp() ? '注文額（USD・レバレッジ込みの建玉の大きさ）' : '注文額（USDC）') : `数量（${label(k)}）右のボタンで USD に切り替え`;
   const c = orderCalc(), av = avail(), t = tpslCheck();
   const need = isPerp() ? c.margin : c.ntl, short = av != null && c.sz > 0 && need > av;
   const rows = [['数量', c.sz ? `${c.sz} ${label(k)}` : '—'], [isPerp() ? '建玉の大きさ' : '金額', money(c.ntl)]];
@@ -966,21 +1060,32 @@ function renderTicket(){
   const typeJa = {market:'成行', limit:'指値', stop:'逆指値'}[S.otype];
   const sideJa = isPerp() ? (S.side > 0 ? 'ロング' : 'ショート') : (S.side > 0 ? '買う' : '売る');
   $('submit').className = S.side > 0 ? 'L' : 'S';
+  { const typeS = typeJa + (S.otype !== 'market' ? ' $' + fmtPx(k, c.px) : '') + (isPerp() ? ` ・ ${c.lev}倍` : '');
+    const amt = c.sz ? `${c.sz} ${label(k)} ・ ` : '';
+    $('qL').innerHTML = `${isPerp() ? 'ロング' : '買う'}<small>${amt}${typeS}</small>`;
+    $('qS').innerHTML = `${isPerp() ? 'ショート' : '売る'}<small>${amt}${typeS}</small>`; }
   $('submit').innerHTML = `${sideJa}　${c.sz || ''} ${label(k)}<small>${typeJa}${S.otype !== 'market' ? ' $' + fmtPx(k, c.px) : ''}${isPerp() ? ` ・ ${c.lev}倍 ${S.margin === 'cross' ? 'クロス' : '分離'}` : ''}${t.tp || t.sl ? ' ・ 利確/損切り付き' : ''}</small>`;
   renderPosCard();
 }
+// スマホの下のボタン：押した向きで注文の確認を出す（利確・損切りの向きも合わせて確かめる）
+$('qL').onclick = () => { S.side = 1; renderTicket(); $('submit').click(); };
+$('qS').onclick = () => { S.side = -1; renderTicket(); $('submit').click(); };
 $('submit').onclick = () => {
   const k = curKey(), c = orderCalc(), t = tpslCheck();
   if (!c.sz){ log('数量がゼロです。注文額か価格を確かめてください'); return; }
   if (!t.ok){ log('利確・損切りの値段が向きと合っていません'); return; }
   const sideJa = isPerp() ? (S.side > 0 ? 'ロング（買い）' : 'ショート（売り）') : (S.side > 0 ? '買う' : '売る');
-  const rows = [['種類', {market:'成行（すぐ約定）', limit:'指値（その値段で待つ）', stop:'逆指値（届いたら成行）'}[S.otype]],
+  const alo = S.otype === 'limit' && $('alo').checked;
+  let aloBad = null;
+  if (alo && S.book){ const bb = +S.book.levels[0][0]?.px, ba = +S.book.levels[1][0]?.px, lp = roundPx(k, c.px);
+    if ((S.side > 0 && ba && lp >= ba) || (S.side < 0 && bb && lp <= bb)) aloBad = `この値段だと板にすぐぶつかって約定してしまうので、メイカー専用では取り消されます。${S.side > 0 ? '買いは $' + fmtPx(k, ba) + ' より下' : '売りは $' + fmtPx(k, bb) + ' より上'}にしてください。`; }
+  const rows = [['種類', alo ? '指値・メイカー専用（板で待つ。手数料が安い）' : {market:'成行（すぐ約定）', limit:'指値（その値段で待つ）', stop:'逆指値（届いたら成行）'}[S.otype]],
     ['価格', S.otype === 'market' ? `いまの値段 $${fmtPx(k, c.px)} 付近` : '$' + fmtPx(k, roundPx(k, c.px))],
     ['数量', `${c.sz} ${label(k)}`], ['金額', money(c.ntl)]];
   if (isPerp()) rows.push(['レバレッジ', `${c.lev}倍（${S.margin === 'cross' ? 'クロス' : '分離'}）`], ['必要な証拠金', money(c.margin)], ['清算価格の目安', '$' + fmtPx(k, c.liq)]);
   if (t.tp) rows.push(['利確', '$' + fmtPx(k, t.tp)]); if (t.sl) rows.push(['損切り', '$' + fmtPx(k, t.sl)]);
   rows.push(['手数料の目安', money(c.fee, 3)]);
-  confirmChange(`${label(k)} を${sideJa}`, rows, null, '注文する');
+  confirmChange(`${label(k)} を${sideJa}`, rows, aloBad, '注文する');
 };
 
 // ===== いま選んでいる銘柄のポジション（注文パネルの一番上）=====
@@ -993,7 +1098,7 @@ function renderPosCard(){
   el.innerHTML = `<div class="t"><b class="${s>0?'up':'down'}">${label(k)} ${s>0?'ロング':'ショート'} ${Math.abs(s)}</b><span class="pnl ${cls(u)}">${moneyS(u)}</span></div>
     <div class="s"><span>建値 $${fmtPx(k,+p.entryPx)}</span><span>${p.leverage.value}倍 ${p.leverage.type==='cross'?'クロス':'分離'}</span><span>清算 ${p.liquidationPx?'$'+fmtPx(k,+p.liquidationPx):'—'}</span>
     <span class="up">利確 ${tps.tp?'$'+fmtPx(k,+tps.tp.triggerPx):'なし'}</span><span class="down">損切り ${tps.sl?'$'+fmtPx(k,+tps.sl.triggerPx):'なし'}</span></div>
-    <div class="acts3"><button class="x" data-act="close" data-c="${k}">全部決済</button><button data-act="size" data-c="${k}">増やす/減らす</button><button data-act="flip" data-c="${k}">ドテン</button><button data-act="tpsl" data-c="${k}">利確損切</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${k}">証拠金</button>` : ''}</div>`;
+    <div class="acts3"><button class="x" data-act="close" data-c="${k}">全部決済</button><button data-act="size" data-c="${k}">増減</button><button data-act="be" data-c="${k}">建値へ</button><button data-act="flip" data-c="${k}">ドテン</button><button data-act="tpsl" data-c="${k}">利確損切</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${k}">証拠金</button>` : ''}</div>`;
 }
 $('posCard').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) posAction(b.dataset.act, b.dataset.c); });
 
@@ -1153,6 +1258,7 @@ function posAction(act, k){
   if (act === 'tpsl') tpslEditor(k);
   if (act === 'size') sizeEditor(k);
   if (act === 'margin') marginEditor(k);
+  if (act === 'be') tpslPreview(k, 'sl', roundPx(k, +p.entryPx));   // 損切りを建値に（同値撤退）
 }
 function log(t){ const d = document.createElement('div'); d.textContent = t; $('log').prepend(d); }
 
