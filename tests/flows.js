@@ -36,7 +36,13 @@ async function run(lang){
   ok((await verdicts()).every(Boolean) && (await verdicts()).length >= 1, '倍率確認の署名が標準の部品でも正しいと確かめられた', JSON.stringify(st.log.map(x => x.verdict)));
 
   // --- 手数料が未承認のとき：新規は止まり、決済は通る ---
-  await page.click('#mClose'); await page.fill('#sz', '200'); await page.dispatchEvent('#sz', 'input');
+  // 言語を切り替えても、開いた鍵と本番モードは保たれる
+  const other = lang === 'en' ? 'ko' : 'en';
+  await page.evaluate(() => closeModal());
+  await page.click(`#langSel button[data-l=${other}]`); await page.waitForTimeout(500);
+  ok(await page.evaluate(() => LIVE.ready() && S.live), '言語を切り替えても、開いた鍵と本番モードが保たれる');
+  await page.click(`#langSel button[data-l=${lang}]`); await page.waitForTimeout(500);
+  await page.evaluate(() => closeModal()); await page.fill('#sz', '200'); await page.dispatchEvent('#sz', 'input');
   await page.click('#submit'); let r = await confirmAndRun(page);
   const nBefore = (await state()).log.length;
   ok(/(approval|승인)/i.test(r.result) || /承認/.test(r.result), '未承認だと新しい注文は止まる', r.result);

@@ -155,7 +155,8 @@ body.fsOn{overflow:hidden}
 #chart{position:absolute;inset:0;width:100%;height:100%;touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none}
 #legend{position:absolute;left:10px;top:6px;font:12px var(--mono);pointer-events:none;color:var(--dim);white-space:nowrap}
 @media (max-width:720px){ #legend{font-size:10.5px} }
-#hint{position:absolute;left:10px;bottom:28px;font-size:11px;color:var(--dim);pointer-events:none;opacity:.8}
+#hint{position:absolute;left:10px;bottom:28px;font-size:11px;color:var(--dim);pointer-events:none;opacity:.8;animation:hintFade 1.2s 12s forwards}
+@keyframes hintFade{to{opacity:0}}
 #menu{position:absolute;z-index:5;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px;display:flex;flex-direction:column;min-width:200px;box-shadow:0 8px 24px #0008}
 #menu .mh{font:12px var(--mono);color:var(--dim);padding:5px 10px 3px}
 #menu button{background:none;border:none;text-align:left;padding:8px 10px;border-radius:5px;font-size:13px}
@@ -235,6 +236,10 @@ th{position:sticky;top:0;background:var(--bg);color:var(--dim);font-weight:400;t
 td{padding:6px 10px;text-align:right;border-bottom:1px solid #1a212b;font-family:var(--mono)}
 th:first-child,td:first-child{text-align:left}
 td.coin{font-family:var(--sans);font-weight:700;cursor:pointer;text-decoration:underline dotted var(--dim)}
+/* ポジション・待ち注文の表は、横に長くても操作ボタンの列を右に固定して、いつも押せるようにする */
+#aTbl[data-t=pos] td:last-child,#aTbl[data-t=ord] td:last-child{position:sticky;right:0;background:var(--bg);box-shadow:-10px 0 8px -8px #000c;z-index:1}
+#aTbl[data-t=pos] th:last-child,#aTbl[data-t=ord] th:last-child{right:0;z-index:2}
+#calc span:nth-child(even){white-space:nowrap}
 td button{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:3px 9px;font:12px var(--sans);margin-left:4px}
 td button:hover{border-color:var(--accent)}
 td .lk{background:none;border:none;padding:0;margin:0;font:12px var(--mono);text-decoration:underline dotted}
@@ -599,7 +604,7 @@ ko: {
   "建玉の大きさ": "포지션 크기",
   "金額": "금액",
   "必要な証拠金": "필요 증거금",
-  "清算価格の目安（クロスは口座全体で変わる）": "청산가 (교차는 계좌 전체에 따라 변동)",
+  "清算価格の目安（クロスは口座全体で変わる）": "청산가 (교차는 계좌에 따라 변동)",
   "清算価格の目安": "청산가 (예상)",
   "手数料の目安": "수수료 (예상)",
   "使える余力": "사용 가능",
@@ -1141,7 +1146,7 @@ en: {
   "建玉の大きさ": "Position size",
   "金額": "Amount",
   "必要な証拠金": "Margin required",
-  "清算価格の目安（クロスは口座全体で変わる）": "Est. liquidation price (cross varies with the whole account)",
+  "清算価格の目安（クロスは口座全体で変わる）": "Est. liquidation price (cross: varies with account)",
   "清算価格の目安": "Est. liquidation price",
   "手数料の目安": "Est. fee",
   "使える余力": "Available",
@@ -3412,6 +3417,7 @@ function renderKpis(){
   $('kAv').textContent = money(perpAvail(k, pz ? Math.sign(+pz.szi) : 1));
 }
 function renderAcct(){
+  $('aTbl').dataset.t = S.aTab;
   [...$('aTabs').children].forEach(b => b.classList.toggle('sel', b.dataset.v === S.aTab));
   $('period').hidden = !HIST_TABS.includes(S.aTab);
   if (HIST_TABS.includes(S.aTab)){ renderHist(); return; }

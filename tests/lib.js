@@ -53,6 +53,6 @@ async function open(browser, o = {}){
   await page.waitForTimeout(600);
   return { ctx, page, errors };
 }
-const norm = t => t.replace(/[0-9][0-9,.]*/g, '#').replace(/\s+/g, ' ').trim();
+const norm = t => t.replace(/[+\-−]?[0-9][0-9,.]*/g, '#').replace(/\s+/g, ' ').trim();
 const KANA_KANJI = /[぀-ヿ㐀-鿿ｦ-ﾟ]/;
 module.exports = { launch, open, verify, WALLET, norm, KANA_KANJI, HTML, DEMO_AGENT };
