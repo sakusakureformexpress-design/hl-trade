@@ -40,25 +40,39 @@ const verify = body => ['approveBuilderFee', 'approveAgent'].includes(body.actio
 async function launch(){ return chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] }); }
 // 1 ページ開く。lang・画面の大きさ・追加の localStorage・手数料の設定を指定できる
 async function open(browser, o = {}){
-  const { lang = 'ja', w = 1440, h = 900, ls = {}, fee = null, hash = '', noSeed = false, reject = false, noWallet = false } = o;
+  const { lang = 'ja', w = 1440, h = 900, ls = {}, fee = null, hash = '', noSeed = false, reject = false, noWallet = false, multi = false, wc = false } = o;
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, hasTouch: w < 800, isMobile: w < 800 });
   const page = await ctx.newPage();
   const errors = []; page.on('pageerror', e => errors.push('pageerror: ' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|ERR_FAILED|net::/.test(m.text())) errors.push('console.error: ' + m.text()); });
   await page.exposeFunction('__verifySig', verify);
   await page.exposeFunction('__signTyped', async json => { TYPED_LOG.push(json); const t = JSON.parse(json); const { EIP712Domain, ...types } = t.types; return WALLET.signTypedData(t.domain, types, t.message); });
-  await page.addInitScript(({ ls, wallet, noSeed, reject, noWallet }) => {
+  await page.addInitScript(({ ls, wallet, noSeed, reject, noWallet, multi, wc }) => {
     for (const [k, v] of Object.entries(ls)) localStorage.setItem('hlts.' + k, JSON.stringify(v));
     if (noSeed) window.__HL_NO_SEED_KEY = true;
+    if (noWallet) window.__HL_NO_WALLET = true;
     if (!noWallet) window.ethereum = { request: async ({ method, params }) => {
       if (method === 'eth_requestAccounts' || method === 'eth_accounts') return [wallet.toLowerCase()];
       if (method === 'wallet_switchEthereumChain' || method === 'wallet_requestPermissions') return null;
       if (method === 'eth_signTypedData_v4'){ if (reject){ const e = new Error('User rejected the request.'); e.code = 4001; throw e; } return window.__signTyped(params[1]); }
       throw new Error('unsupported ' + method);
     }, on(){} };
-  }, { ls: { addr: WALLET.address, ...ls }, wallet: WALLET.address, noSeed, reject, noWallet });
+    // 複数のウォレット（EIP-6963）と WalletConnect の見本。どれが使われたかを window.__used に残す
+    window.__used = [];
+    const mk = (name, rdns, addr) => ({ info: { uuid: 'u-' + rdns, name, rdns, icon: 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 8 8"><rect width="8" height="8"/></svg>') },
+      provider: { on() {}, removeListener() {}, request: async ({ method }) => { window.__used.push(name + ':' + method); if (method === 'eth_requestAccounts' || method === 'eth_accounts') return [addr]; if (method === 'wallet_requestPermissions') return null; throw new Error('unsupported ' + method); } } });
+    if (multi){
+      const ws = [mk('Alpha Wallet', 'a.alpha', wallet.toLowerCase()), mk('Beta Wallet', 'b.beta', '0x70997970c51812dc3a010c7d01b50e0d17dc79c8')];
+      const fire = () => ws.forEach(d => dispatchEvent(new CustomEvent('eip6963:announceProvider', { detail: Object.freeze(d) })));
+      addEventListener('eip6963:requestProvider', fire); fire();
+    }
+    if (wc){
+      window.__HL_WC_MOD = { EthereumProvider: { init: async opts => { window.__wcOpts = opts; const p = { session: null, accounts: [], on() {}, removeListener() {}, request: async () => { throw new Error('x'); },
+        async connect() { window.__used.push('WC:connect'); p.session = {}; p.accounts = ['0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc']; }, async disconnect() { window.__used.push('WC:disconnect'); p.session = null; p.accounts = []; } }; return p; } } };
+    }
+  }, { ls: { addr: WALLET.address, ...ls }, wallet: WALLET.address, noSeed, reject, noWallet, multi, wc });
   await page.route('**/*', r => { const u = r.request().url(); if (u.startsWith('file://')) return r.continue(); return r.abort(); });
   let file = HTML;
-  if (fee){ const s = fs.readFileSync(HTML, 'utf8').replace("const BUILDER = {addr:'', fee:0, required:true};", `const BUILDER = {addr:'${fee.addr}', fee:${fee.fee}, required:${fee.required !== false}};`); file = HTML.replace(/index\.html$/, '.test-fee.html'); fs.writeFileSync(file, s); }
+  if (fee || wc){ let s = fs.readFileSync(HTML, 'utf8'); if (fee) s = s.replace("const BUILDER = {addr:'', fee:0, required:true};", `const BUILDER = {addr:'${fee.addr}', fee:${fee.fee}, required:${fee.required !== false}};`); if (wc) s = s.replace("const WC = {projectId:'',", "const WC = {projectId:'test-project',"); file = HTML.replace(/index\.html$/, '.test-fee.html'); fs.writeFileSync(file, s); }
   await page.goto('file://' + file + '?demo&lang=' + lang + hash);
   await page.waitForFunction(() => window.__HL_MOCK && document.querySelectorAll('#coins button').length > 0 && document.querySelector('#cMark') && document.querySelector('#cMark').textContent.length > 1, null, { timeout: 15000 });
   await page.waitForTimeout(600);

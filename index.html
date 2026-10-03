@@ -105,6 +105,12 @@ body.fsOn{overflow:hidden}
 .wm .btns{display:flex;gap:8px;flex-wrap:wrap}
 .wm .btns button{border:none;border-radius:6px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--line);color:var(--fg)}
 .wm .btns button.pri{background:var(--accent);color:#1b1404}
+.wp{display:flex;flex-direction:column;gap:10px}
+.wl{display:flex;flex-direction:column;gap:8px}
+.wi{display:grid;grid-template-columns:36px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--fg)}
+.wi img,.wi .wic{grid-row:1/3;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--bg)}
+.wi .wn{font-weight:700;font-size:15px}.wi small{color:var(--dim);font-size:11px}
+.wi:hover{border-color:var(--accent)}
 /* 言語の切り替え・銘柄の検索・お気に入り・デモの帯 */
 #langSel button{padding:4px 9px;font-size:12px}
 .star{background:none;border:none;color:var(--dim);font-size:18px;line-height:1;padding:0 2px}
@@ -782,7 +788,10 @@ ko: {
   "{0} を{1}から{2}へ（ドテン）": "{0} 포지션 전환: {1} → {2}",
   "結果": "결과",
   "ドテンする": "반대로 전환하기",
+  "ブラウザのウォレット": "브라우저 지갑",
+  "先に右上の「ウォレット接続」で、ウォレットを選んでください。": "먼저 오른쪽 위의 \"지갑 연결\"에서 지갑을 선택해 주세요.",
   "ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。": "지갑을 찾을 수 없습니다. PC의 MetaMask 등이나 지갑 앱 안의 브라우저로 열어 주세요.",
+  "WalletConnect を読み込めませんでした。ネットワークを確認してください。": "WalletConnect를 불러오지 못했습니다. 네트워크를 확인해 주세요.",
   "ウォレットの接続が取り消されました。": "지갑 연결이 취소되었습니다.",
   "ウォレットのアカウントが取れませんでした。": "지갑 계정을 가져오지 못했습니다.",
   "ウォレットの署名が取り消されました。": "지갑 서명이 취소되었습니다.",
@@ -969,8 +978,13 @@ ko: {
   "手数料": "수수료",
   "取引所から取れた範囲（{0} 以降）の集計です。「アプリの手数料」は Phantom など、注文を通したアプリが上乗せする手数料です。": "거래소에서 가져올 수 있는 범위({0} 이후)의 집계입니다. '앱 수수료'는 Phantom 등 주문을 중개한 앱이 추가로 붙이는 수수료입니다.",
   "ウォレット接続": "지갑 연결",
+  "QR・スマホのウォレット": "QR · 모바일 지갑",
+  "このブラウザにあります": "이 브라우저에 있음",
+  "ウォレットを選ぶ": "지갑 선택",
+  "つなぐウォレットを選んでください。": "연결할 지갑을 선택해 주세요.",
   "ウォレットをつなぎました（{0}）": "지갑을 연결했습니다 ({0})",
   "つないでいる口座のアドレス": "연결된 계좌 주소",
+  "つないでいるウォレット：{0}": "연결된 지갑: {0}",
   "アドレスをコピー": "주소 복사",
   "ウォレットを切り替える": "지갑 전환",
   "本番の注文の設定を開く": "실전 주문 설정 열기",
@@ -1346,7 +1360,10 @@ en: {
   "{0} を{1}から{2}へ（ドテン）": "Flip {0}: {1} → {2}",
   "結果": "Result",
   "ドテンする": "Flip position",
+  "ブラウザのウォレット": "Browser wallet",
+  "先に右上の「ウォレット接続」で、ウォレットを選んでください。": "First choose a wallet with \"Connect wallet\" at the top right.",
   "ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。": "No wallet found. Open this page on a desktop with MetaMask (or similar), or in a wallet app's built-in browser.",
+  "WalletConnect を読み込めませんでした。ネットワークを確認してください。": "Couldn't load WalletConnect. Check your network.",
   "ウォレットの接続が取り消されました。": "The wallet connection was canceled.",
   "ウォレットのアカウントが取れませんでした。": "Couldn't get an account from the wallet.",
   "ウォレットの署名が取り消されました。": "The wallet signature was canceled.",
@@ -1533,8 +1550,13 @@ en: {
   "手数料": "Fees",
   "取引所から取れた範囲（{0} 以降）の集計です。「アプリの手数料」は Phantom など、注文を通したアプリが上乗せする手数料です。": "Totals for the range available from the exchange (since {0}). \"App fee\" is the fee added by the app that routed the order, such as Phantom.",
   "ウォレット接続": "Connect wallet",
+  "QR・スマホのウォレット": "QR code · mobile wallets",
+  "このブラウザにあります": "Installed in this browser",
+  "ウォレットを選ぶ": "Choose a wallet",
+  "つなぐウォレットを選んでください。": "Choose the wallet to connect.",
   "ウォレットをつなぎました（{0}）": "Wallet connected ({0})",
   "つないでいる口座のアドレス": "Connected account address",
+  "つないでいるウォレット：{0}": "Connected wallet: {0}",
   "アドレスをコピー": "Copy address",
   "ウォレットを切り替える": "Switch wallet",
   "本番の注文の設定を開く": "Open live trading setup",
@@ -3237,19 +3259,92 @@ const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で
 //   required が true のあいだは、手数料を承認していない人の「新規の注文」は出せません。
 //   決済・取り消し・倍率変更は、承認がなくてもいつでもできます（ポジションから出られなくならないように）。
 const BUILDER = {addr:'', fee:0, required:true};
+// WalletConnect（QR で携帯のウォレットとつなぐ）。プロジェクト ID を入れると、ウォレットの選択画面に出ます（空なら出ません）
+const WC = {projectId:'', url:'https://esm.sh/@walletconnect/ethereum-provider@2'};
 // ===== ウォレット（MetaMask など）につなぐ部品。鍵は預からず、署名だけをもらう =====
 const WALLET = (() => {
-  const provider = () => { const e = window.ethereum; if (!e) return null; return Array.isArray(e.providers) && e.providers.length ? (e.providers.find(p => p.isMetaMask) || e.providers[0]) : e; };
+  // ブラウザに入っているウォレットは、EIP-6963（ウォレットが自分から名前とアイコンを知らせる決まり）で見つける
+  const found = new Map();
+  const legacy = () => { const e = window.ethereum; if (!e) return null; return Array.isArray(e.providers) && e.providers.length ? (e.providers.find(p => p.isMetaMask) || e.providers[0]) : e; };
+  const ask = () => { try { dispatchEvent(new Event('eip6963:requestProvider')); } catch {} };
+  addEventListener('eip6963:announceProvider', e => {
+    const d = e.detail, i = d && d.info; if (!i || !d.provider || typeof i.uuid !== 'string') return;
+    found.set(i.uuid, {id:String(i.rdns || i.uuid), name:String(i.name || 'Wallet').slice(0, 40), icon:/^data:image\/(png|svg\+xml|webp|jpeg|gif)[;,]/.test(i.icon || '') ? i.icon : '', provider:d.provider});
+  });
+  ask();
+  const wcOn = () => !!WC.projectId;
+  const list = () => {
+    const a = [...found.values()];
+    if (!a.length){ const p = legacy(); if (p) a.push({id:'injected', name:_('ブラウザのウォレット'), icon:'', provider:p}); }
+    if (wcOn()) a.push({id:'walletconnect', name:'WalletConnect', icon:'', wc:true});
+    return a;
+  };
   const rejected = e => !!e && (e.code === 4001 || e.code === 'ACTION_REJECTED' || /reject|denied|declined|cancel/i.test(String(e.message || '')));
-  async function connect(){
-    const eth = provider(); if (!eth) throw new Error(_('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。'));
-    let accts; try { accts = await eth.request({method:'eth_requestAccounts'}); } catch (e){ throw new Error(rejected(e) ? _('ウォレットの接続が取り消されました。') : (e.message || String(e))); }
+  let cur = null, unbind = null, wcp = null;
+  const provider = () => cur ? cur.provider : null;
+  const noWallet = () => new Error(wcOn() ? _('先に右上の「ウォレット接続」で、ウォレットを選んでください。') : _('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。'));
+  // いまのウォレット。まだ選んでいなくて、ブラウザのウォレットが1つだけなら、それを使う
+  async function ensure(){
+    if (cur) return cur;
+    const l = list().filter(x => !x.wc);
+    if (l.length === 1) return l[0];
+    throw l.length ? new Error(_('先に右上の「ウォレット接続」で、ウォレットを選んでください。')) : noWallet();
+  }
+  function bind(entry){
+    if (unbind) unbind(); unbind = null;
+    const p = entry.provider; if (!p || !p.on) return;
+    const acc = a => { if (cur === entry && store.get('wallet', '')) setUser((a && a[0]) || ''); };
+    const off = () => { if (cur === entry){ cur = null; store.set('wallet', ''); setUser(''); } };
+    p.on('accountsChanged', acc); if (entry.wc) p.on('disconnect', off);
+    unbind = () => { const rm = p.removeListener || p.off; if (!rm) return; try { rm.call(p, 'accountsChanged', acc); if (entry.wc) rm.call(p, 'disconnect', off); } catch {} };
+  }
+  async function loadWC(){
+    if (wcp) return wcp;
+    let mod; try { mod = window.__HL_WC_MOD || await import(WC.url); } catch { throw new Error(_('WalletConnect を読み込めませんでした。ネットワークを確認してください。')); }
+    const EP = mod.EthereumProvider || (mod.default && mod.default.EthereumProvider) || mod.default;
+    wcp = await EP.init({projectId:WC.projectId, chains:[42161], showQrModal:true, metadata:{name:'HL Trade', description:'Hyperliquid trading screen', url:location.origin, icons:[]}});
+    return wcp;
+  }
+  // 選んだウォレットにつなぐ（fresh = 別のアカウントを選び直す）。口座のアドレスを返す
+  async function use(entry, fresh){
+    let accts;
+    try {
+      if (entry.wc){
+        const p = await loadWC(); entry = Object.assign({}, entry, {provider:p});
+        if (fresh && p.session) await p.disconnect().catch(() => {});
+        if (!p.session) await p.connect();
+        accts = p.accounts;
+      } else {
+        const p = entry.provider;
+        if (fresh){ try { await p.request({method:'wallet_requestPermissions', params:[{eth_accounts:{}}]}); } catch (e){ if (rejected(e)) throw e; } }
+        accts = await p.request({method:'eth_requestAccounts'});
+      }
+    } catch (e){ throw new Error(rejected(e) ? _('ウォレットの接続が取り消されました。') : (e.message || String(e))); }
     if (!accts || !/^0x[0-9a-fA-F]{40}$/.test(accts[0] || '')) throw new Error(_('ウォレットのアカウントが取れませんでした。'));
+    cur = entry; bind(entry); store.set('wallet', entry.id);
     return accts[0];
+  }
+  const connect = async () => use(await ensure());
+  // 開いたときに、前につないだウォレットへ自動でつなぎ直す（確認の画面は出ない）
+  async function restore(){
+    let id = store.get('wallet', ''); if (!id) return null;
+    ask(); await new Promise(r => setTimeout(r, 300));
+    let e = list().find(x => x.id === id) || (id === true ? list().find(x => !x.wc) : null); if (!e) return null;
+    let accts;
+    try {
+      if (e.wc){ const p = await loadWC(); if (!p.session) return null; e = Object.assign({}, e, {provider:p}); accts = p.accounts; }
+      else accts = await e.provider.request({method:'eth_accounts'});
+    } catch { return null; }
+    if (!accts || !accts[0]) return null;
+    cur = e; bind(e); return accts[0];
+  }
+  async function drop(){
+    const e = cur; cur = null; if (unbind) unbind(); unbind = null; store.set('wallet', '');
+    if (e && e.wc && e.provider) { try { await e.provider.disconnect(); } catch {} }
   }
   // 取引所の「ユーザー署名」の形（Arbitrum One の鎖を指定。取引所は署名に入れた鎖の番号で確かめる）
   async function sign(account, primaryType, fields, message){
-    const eth = provider();
+    const eth = (await ensure()).provider;
     try { await eth.request({method:'wallet_switchEthereumChain', params:[{chainId:'0xa4b1'}]}); } catch {}
     const typed = {domain:{name:'HyperliquidSignTransaction', version:'1', chainId:42161, verifyingContract:'0x0000000000000000000000000000000000000000'},
       types:{EIP712Domain:[{name:'name', type:'string'}, {name:'version', type:'string'}, {name:'chainId', type:'uint256'}, {name:'verifyingContract', type:'address'}], ['HyperliquidTransaction:' + primaryType]:fields},
@@ -3269,7 +3364,7 @@ const WALLET = (() => {
     a = a.toLowerCase().replace(/^0x/, ''); const h = HLSign.hex(HLSign.keccak256(HLSign.utf8(a)));
     return '0x' + [...a].map((c, i) => parseInt(h[i], 16) >= 8 ? c.toUpperCase() : c).join('');
   }
-  return {provider, connect, sign, post, checksum};
+  return {provider, list, ask, use, connect, restore, drop, sign, post, checksum, rejected, name: () => cur ? cur.name : ''};
 })();
 const BUILD = (() => {
   const ADDR = /^0x[0-9a-fA-F]{40}$/;
@@ -3287,7 +3382,6 @@ const BUILD = (() => {
   const needsApproval = action => on() && BUILDER.required && !ok && action.type === 'order' && action.orders.some(o => !o.r);
   // ウォレット（MetaMask など）の署名で、手数料の上限を承認する。f = 0 なら取り消し。鍵や秘密は一切扱わない
   async function approve(f){
-    if (!WALLET.provider()) throw new Error(_('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。'));
     const acct = await WALLET.connect();
     if (!/^0x[0-9a-fA-F]{40}$/.test(S.user)) setUser(acct);
     else if (acct.toLowerCase() !== S.user.toLowerCase()) throw new Error(_('つないだウォレットが、設定した口座のアドレスと違います。'));
@@ -3426,7 +3520,7 @@ function openLiveSetup(){
     <label class="f">${_('暗証番号（数字6〜12桁。この端末で鍵を開けるときに使います）')}<input id="lvPin" type="password" inputmode="numeric" autocomplete="new-password"></label>
     <label class="f">${_('暗証番号をもう一度')}<input id="lvPin2" type="password" inputmode="numeric" autocomplete="new-password"></label>
     <div class="btns"><button class="pri" id="wlGo">${_('ウォレットをつないで鍵を作る')}</button></div>
-    ${WALLET.provider() ? '' : `<p class="note bad">${_('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。')}</p>`}
+    ${WALLET.list().length ? '' : `<p class="note bad">${_('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。')}</p>`}
     <details><summary style="cursor:pointer;color:var(--dim)">${_('すでに作った鍵を使う')}</summary><div style="display:flex;flex-direction:column;gap:10px;margin-top:10px">
     <p>${_('注文用の鍵（API の秘密鍵）を入れてください。<b>この端末の中にだけ</b>、暗証番号をかけて保存します。取引所にもほかのどこにも鍵は送りません（送るのは署名だけです）。')}</p>
     <p class="note">${_('この鍵は注文だけができる種類で、お金の引き出しや送金はできません。PC とスマホでは、それぞれ入れる必要があります。')}</p>
@@ -3689,32 +3783,40 @@ function renderWallet(){
   const b = $('walletBtn'), on = hasUser();
   b.classList.toggle('on', on); b.textContent = on ? '● ' + shortAddr(S.user) : _('ウォレット接続'); b.title = on ? S.user : '';
 }
-async function connectWallet(){
-  try { const a = await WALLET.connect(); store.set('wallet', true); setUser(a); toast(_('ウォレットをつなぎました（{0}）', shortAddr(a)), 4000); return a; }
+// ウォレットを選ぶ画面（入っているウォレットの一覧＋QR でつなぐ WalletConnect）
+function openWalletPicker(fresh){
+  WALLET.ask();
+  const draw = () => {
+    const l = WALLET.list();
+    const rows = l.map(w => `<button class="wi" type="button" data-id="${esc(w.id)}">${w.icon ? `<img src="${esc(w.icon)}" alt="" width="32" height="32">` : `<span class="wic">${w.wc ? '▦' : '👛'}</span>`}<span class="wn">${esc(w.name)}</span><small>${w.wc ? _('QR・スマホのウォレット') : _('このブラウザにあります')}</small></button>`).join('');
+    preview(_('ウォレットを選ぶ'), [], `<div class="wp"><p class="note">${_('つなぐウォレットを選んでください。')}</p><div class="wl" id="wpList">${rows}</div>${l.length ? '' : `<p class="note bad">${_('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。')}</p>`}</div>`, {info:true});
+    document.querySelectorAll('#wpList .wi').forEach(btn => btn.onclick = () => pickWallet(btn.dataset.id, fresh));
+    return l.length;
+  };
+  const n = draw();
+  setTimeout(() => { if ($('wpList') && WALLET.list().length !== n) draw(); }, 250);   // あとから名乗り出たウォレットも載せる
+}
+async function pickWallet(id, fresh){
+  const w = WALLET.list().find(x => x.id === id); if (!w) return;
+  closeModal();
+  try { const a = await WALLET.use(w, fresh); setUser(a); toast(_('ウォレットをつなぎました（{0}）', shortAddr(a)), 4000); }
   catch (e){ toast(esc(e.message || String(e)), 7000); }
 }
+const connectWallet = () => openWalletPicker(false);
 function openWalletMenu(){
-  const h = `<div class="wm"><p class="note">${_('つないでいる口座のアドレス')}</p><div class="addr" id="wmAddr">${esc(S.user)}</div>
+  const nm = WALLET.name();
+  const h = `<div class="wm"><p class="note">${_('つないでいる口座のアドレス')}</p><div class="addr" id="wmAddr">${esc(S.user)}</div>${nm ? `<p class="note">${_('つないでいるウォレット：{0}', esc(nm))}</p>` : ''}
     <div class="btns"><button id="wmCopy" type="button">${_('アドレスをコピー')}</button><button id="wmSwitch" type="button">${_('ウォレットを切り替える')}</button></div>
     <div class="btns"><button class="pri" id="wmLive" type="button">${_('本番の注文の設定を開く')}</button><button id="wmManual" type="button">${_('アドレスを手で入れる')}</button><button id="wmOff" type="button">${_('接続を外す')}</button></div></div>`;
   preview(_('ウォレット'), [], h, {info:true});
   $('wmCopy').onclick = async () => { try { await navigator.clipboard.writeText(S.user); $('wmCopy').textContent = _('コピーしました'); } catch { const r = document.createRange(); r.selectNodeContents($('wmAddr')); const sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); } };
-  $('wmSwitch').onclick = async () => {
-    const eth = WALLET.provider(); closeModal();
-    try { if (eth) await eth.request({method:'wallet_requestPermissions', params:[{eth_accounts:{}}]}); } catch (e){ if (WALLET.rejected(e)) return; }
-    await connectWallet();
-  };
+  $('wmSwitch').onclick = () => openWalletPicker(true);
   $('wmLive').onclick = () => { closeModal(); openLiveSetup(); };
   $('wmManual').onclick = () => { closeModal(); $('acctBar').hidden = false; $('addr').focus(); };
-  $('wmOff').onclick = () => { closeModal(); store.set('wallet', false); setUser(''); toast(_('接続を外しました'), 3000); };
+  $('wmOff').onclick = async () => { closeModal(); await WALLET.drop(); setUser(''); toast(_('接続を外しました'), 3000); };
 }
 $('walletBtn').onclick = () => { if (hasUser()) openWalletMenu(); else connectWallet(); };
-// 前につないだウォレットは、開いたときに自動でつなぎ直す（確認の画面は出ない）。ウォレット側でアカウントを変えたら、画面も合わせる
-(async () => {
-  const eth = WALLET.provider(); if (!eth || !store.get('wallet', false)) return;
-  try { const a = await eth.request({method:'eth_accounts'}); if (a && a[0] && a[0].toLowerCase() !== S.user.toLowerCase()) setUser(a[0]); } catch {}
-  if (eth.on) eth.on('accountsChanged', a => { if (store.get('wallet', false)) setUser((a && a[0]) || ''); });
-})();
+(async () => { const a = await WALLET.restore(); if (a && a.toLowerCase() !== S.user.toLowerCase()) setUser(a); })();
 $('addr').onchange = e => setUser(e.target.value);
 
 // ===== 銘柄情報（取引所にある先物・現物のぜんぶ。最大レバレッジ・資金調達率・前日の値段・出来高）=====

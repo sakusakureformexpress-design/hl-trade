@@ -284,12 +284,28 @@
     }
   } catch {}
   // 画面から使う「ウォレット」の代わり（手数料の承認の署名を試せるように。本物の署名ではない）
-  if (!window.ethereum) window.ethereum = {request: async ({method}) => {
+  const __own = !window.ethereum && !window.__HL_NO_WALLET;
+  const demoReq = {request: async ({method}) => {
     if (method === 'eth_requestAccounts' || method === 'eth_accounts') { let u = USER; try { u = JSON.parse(localStorage.getItem('hlts.addr')) || USER; } catch {} return [u]; }
     if (method === 'wallet_switchEthereumChain' || method === 'wallet_requestPermissions') return null;
     if (method === 'eth_signTypedData_v4') return '0x' + 'ab'.repeat(32) + 'cd'.repeat(32) + '1b';
     throw new Error('unsupported in demo: ' + method);
-  }, on() {}};
+  }, on() {}, removeListener() {}};
+  if (__own){
+    window.ethereum = demoReq;
+    // 画面の「ウォレットを選ぶ」の見本：入っているウォレットが名乗り出る（EIP-6963）
+    const ic = c => 'data:image/svg+xml;base64,' + btoa('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><rect width="32" height="32" rx="7" fill="' + c + '"/><circle cx="16" cy="16" r="7" fill="#fff" opacity=".85"/></svg>');
+    const ws = [['demo-metamask', 'MetaMask（デモ）', 'io.metamask', '#f6851b'], ['demo-rabby', 'Rabby（デモ）', 'io.rabby', '#7084ff']];
+    const fire = () => ws.forEach(([uuid, name, rdns, c]) => dispatchEvent(new CustomEvent('eip6963:announceProvider', {detail: Object.freeze({info: {uuid, name, rdns, icon: ic(c)}, provider: demoReq})})));
+    addEventListener('eip6963:requestProvider', fire); fire();
+  }
+  // WalletConnect の代わり（QR は出さず、少し待ってつながる）
+  if (!window.__HL_WC_MOD) window.__HL_WC_MOD = {EthereumProvider: {init: async () => {
+    const p = {session: null, accounts: [], on() {}, removeListener() {}, request: demoReq.request,
+      async connect() { await new Promise(r => setTimeout(r, 700)); p.session = {}; p.accounts = await demoReq.request({method: 'eth_accounts'}); },
+      async disconnect() { p.session = null; p.accounts = []; }};
+    return p;
+  }}};
   seedAccount();
   window.__HL_MOCK = {USER, AGENT_KEY, AGENT_ADDR, DEMO_PIN, state: S, setPx: (c, mult) => { bump[c] = mult; }, tick: tickOrders, mark, perps, spots, tokens, info, place, exchange, candles, book};
 })();

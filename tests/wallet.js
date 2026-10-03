@@ -66,7 +66,9 @@ async function run(lang, w = 1440, h = 900){
     ok(await page.isVisible('#walletBtn'), '右上のボタンが見える');
     const box = await page.evaluate(() => { const r = $('walletBtn').getBoundingClientRect(); return [r.left, r.right, innerWidth]; });
     ok(box[0] >= 0 && box[1] <= box[2], 'ボタンが画面からはみ出さない', box.join(','));
-    await page.click('#walletBtn'); await page.waitForTimeout(500);
+    await page.click('#walletBtn'); await page.waitForSelector('#wpList .wi');
+    ok((await page.locator('#wpList .wi').count()) === 1, '入っているウォレットが一覧に出る（1つ）');
+    await page.click('#wpList .wi'); await page.waitForTimeout(500);
     const short = L.WALLET.address.slice(0, 6).toLowerCase();
     ok((await page.textContent('#walletBtn')).toLowerCase().includes(short), '押すと短いアドレスの表示に変わる', await page.textContent('#walletBtn'));
     ok((await page.evaluate(() => S.user)).toLowerCase() === L.WALLET.address.toLowerCase(), '口座アドレスが入る');
@@ -76,6 +78,34 @@ async function run(lang, w = 1440, h = 900){
     await page.click('#wmOff'); await page.waitForTimeout(400);
     ok((await page.evaluate(() => S.user)) === '', '接続を外すと口座が空になる');
     ok(!(await page.evaluate(() => $('walletBtn').classList.contains('on'))), '表示が「接続」に戻る');
+    ok(errors.length === 0, 'JSエラーなし', errors.join(' | ')); await ctx.close(); }
+  // --- E) ウォレットの一覧（EIP-6963）と WalletConnect ---
+  { const { page, errors, ctx } = await L.open(b, { lang, w, h, ls: { addr: '' }, noSeed: true, noWallet: true, multi: true, wc: true });
+    await page.click('#walletBtn'); await page.waitForSelector('#wpList .wi');
+    const names = await page.$$eval('#wpList .wi .wn', a => a.map(x => x.textContent));
+    ok(names.join('|') === 'Alpha Wallet|Beta Wallet|WalletConnect', 'ウォレット2つと WalletConnect が並ぶ', names.join('|'));
+    ok((await page.locator('#wpList .wi img').count()) === 2, 'ウォレットのアイコンが出る');
+    const err = await page.evaluate(() => WALLET.connect().then(() => '', e => e.message));
+    ok(err.length > 0 && !(await page.evaluate(() => S.user)), 'どれか選ぶ前は、勝手に1つを使わない', err);
+    await page.click('#wpList .wi:nth-child(2)'); await page.waitForTimeout(500);
+    const BETA = '0x70997970c51812dc3a010c7d01b50e0d17dc79c8';
+    ok((await page.evaluate(() => S.user)).toLowerCase() === BETA, '選んだほう（Beta）の口座になる');
+    ok((await page.evaluate(() => __used)).every(x => !x.startsWith('Alpha')), '選ばなかったウォレットには触れない');
+    await page.reload(); await page.waitForFunction(() => window.__HL_MOCK && document.querySelector('#cMark') && document.querySelector('#cMark').textContent.length > 1, null, { timeout: 15000 }); await page.waitForTimeout(900);
+    ok((await page.evaluate(() => S.user)).toLowerCase() === BETA, '開き直しても、同じウォレットに自動でつながる');
+    await page.click('#walletBtn'); await page.waitForSelector('#wmSwitch');
+    ok((await page.textContent('#wmAddr')).toLowerCase() === BETA && /Beta Wallet/.test(await page.textContent('.wm')), 'メニューに口座とウォレット名が出る');
+    await page.click('#wmSwitch'); await page.waitForSelector('#wpList .wi'); await page.click('#wpList .wi:nth-child(3)'); await page.waitForTimeout(600);
+    ok((await page.evaluate(() => S.user)).toLowerCase() === '0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc', 'WalletConnect で別の口座につながる');
+    ok(await page.evaluate(() => window.__wcOpts.projectId === 'test-project' && window.__wcOpts.chains[0] === 42161), 'WalletConnect にプロジェクト ID と Arbitrum を渡す');
+    await page.click('#walletBtn'); await page.waitForSelector('#wmOff'); await page.click('#wmOff'); await page.waitForTimeout(400);
+    ok((await page.evaluate(() => S.user)) === '' && (await page.evaluate(() => __used)).includes('WC:disconnect'), '接続を外すと WalletConnect も切れる');
+    ok((await page.evaluate(() => localStorage.getItem('hlts.wallet'))) === '""', '外したあとは自動でつながない');
+    ok(errors.length === 0, 'JSエラーなし', errors.join(' | ')); await ctx.close(); }
+  // --- F) WalletConnect を設定していないときは、出さない ---
+  { const { page, errors, ctx } = await L.open(b, { lang, w, h, ls: { addr: '' }, noSeed: true });
+    await page.click('#walletBtn'); await page.waitForSelector('#wpList .wi');
+    ok(!(await page.$$eval('#wpList .wn', a => a.map(x => x.textContent))).includes('WalletConnect'), 'プロジェクト ID が空なら WalletConnect は出ない');
     ok(errors.length === 0, 'JSエラーなし', errors.join(' | ')); await ctx.close(); }
   await b.close();
 }
