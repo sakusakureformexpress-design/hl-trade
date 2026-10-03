@@ -83,6 +83,25 @@ body.fsOn{overflow:hidden}
 .toast.out{opacity:0}
 #prefs{display:contents}
 #prefsBtn{display:none}
+/* 重要な発表の予定（流れる帯） */
+#newsBar{display:flex;align-items:center;gap:10px;padding:7px 12px;border-bottom:1px solid var(--line);background:var(--panel);font-size:14px;cursor:pointer;overflow:hidden;white-space:nowrap}
+#newsBar[hidden]{display:none}
+#newsBar b{flex:0 0 auto;font-weight:700}
+#newsBar.warn b{color:var(--accent)}
+#newsBar.hot{background:#5a1620;border-color:var(--down)} #newsBar.hot b{color:#fff}
+#newsBar.hot b{animation:nbBlink 1.2s steps(2) infinite}
+@keyframes nbBlink{50%{opacity:.45}}
+.nbRest{flex:1;overflow:hidden;color:var(--dim);min-width:0}
+.nbRest span{display:inline-block;padding-left:0}
+.nbRest.scroll span{padding-left:100%;animation:nbScroll var(--nbDur,30s) linear infinite}
+@keyframes nbScroll{to{transform:translateX(-100%)}}
+.evList{display:flex;flex-direction:column;gap:2px;font-size:14px}
+.evList h4{margin:10px 0 4px;font-size:13px;color:var(--dim)}
+.evList div{display:grid;grid-template-columns:62px 1fr;gap:8px;padding:5px 0;border-bottom:1px solid var(--line)}
+.evList .tm{font-family:var(--mono);color:var(--dim)}
+.evList .i3{color:var(--fg);font-weight:700}
+.evList .past{opacity:.45}
+.toast.big{border-color:var(--down);background:#3b1118;font-size:17px;font-weight:700}
 #fsBtn.on{color:#1b1404;background:var(--accent);border-color:var(--accent)}
 .zoom button,.ivs button{white-space:nowrap}
 #chartBox.fs #hint{display:none}
@@ -263,6 +282,7 @@ td.ja{font-family:var(--sans)}
     </div>
   </div>
 </header>
+<div id="newsBar" hidden title="押すと、これからの予定を一覧で見られます"><b id="nbNext"></b><div class="nbRest"><span id="nbRest"></span></div></div>
 <div id="acctBar" hidden><span class="dim">口座アドレス（公開情報。秘密鍵ではありません）</span><input id="addr" spellcheck="false" placeholder="0x…"></div>
 
 <div id="strip">
@@ -358,7 +378,7 @@ td.ja{font-family:var(--sans)}
   <h2 id="mTitle"></h2>
   <div id="mExtra"></div>
   <div class="calc" id="mBody"></div>
-  <div class="warn">見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。</div>
+  <div class="warn" id="mWarn">見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。</div>
   <div class="acts"><button id="mClose">閉じる</button><button id="mOk" class="pri" hidden>変更する</button></div>
 </div></div>
 
@@ -481,9 +501,10 @@ function chime(close){
     o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.62);
   });
 }
-function toast(html){
-  const d = document.createElement('div'); d.className = 'toast'; d.innerHTML = html; $('toasts').prepend(d);
-  setTimeout(() => d.classList.add('out'), 5000); setTimeout(() => d.remove(), 5600);
+function toast(html, ms = 5000, extra = ''){
+  const d = document.createElement('div'); d.className = 'toast ' + extra; d.innerHTML = html; $('toasts').prepend(d);
+  if (extra) d.style.pointerEvents = 'auto', d.onclick = () => d.remove();
+  setTimeout(() => d.classList.add('out'), ms); setTimeout(() => d.remove(), ms + 600);
 }
 function onFills(d){
   if (!d || d.isSnapshot || d.user?.toLowerCase() !== S.user.toLowerCase() || !d.fills?.length) return;
@@ -548,6 +569,72 @@ async function loadMyFills(){
     S.myFills = (d || []).filter(f => f.coin === k); chart.draw();
   } catch {}
 }
+
+// ===== 重要な発表の予定（米国の指標・金利・日銀・暗号資産の大きな予定）=====
+// 予定表は公開ページ側に置いてある：events.json（手で入れた重要な予定）と calendar.json（毎日自動で取る今週の指標）
+const EV_BASE = 'https://sakusakureformexpress-design.github.io/hl-trade/';
+S.events = [];
+async function loadEvents(){
+  const get = async n => { try { const r = await fetch(EV_BASE + n + '?v=' + Math.floor(Date.now() / 600000)); return r.ok ? ((await r.json()).events || []) : []; } catch { return []; } };
+  const [man, auto] = await Promise.all([get('events.json'), get('calendar.json')]);
+  const all = man.slice();
+  for (const e of auto){ const t = Date.parse(e.t); if (!man.some(x => !x.allDay && Math.abs(Date.parse(x.t) - t) <= 30 * 60e3)) all.push(e); }   // 同じ時刻の手入力があれば自動の方は出さない
+  S.events = all.map(e => ({...e, ms: Date.parse(e.t)})).filter(e => isFinite(e.ms)).sort((a, b) => a.ms - b.ms);
+  renderNews();
+}
+const p2 = n => String(n).padStart(2, '0');
+function evWhen(e, withDay = true){
+  const d = new Date(e.ms), now = new Date(), day = new Date(d.getFullYear(), d.getMonth(), d.getDate()), today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const dd = Math.round((day - today) / 864e5), dl = dd === 0 ? '今日' : dd === 1 ? '明日' : `${d.getMonth()+1}/${d.getDate()}`;
+  return (withDay ? dl + (e.allDay ? '' : ' ') : '') + (e.allDay ? '（終日）' : `${p2(d.getHours())}:${p2(d.getMinutes())}`);
+}
+function evLeft(e){
+  const m = Math.round((e.ms - Date.now()) / 60e3);
+  if (e.allDay) return '';
+  if (m <= 0) return m > -30 ? '発表直後・値動きに注意' : '';
+  if (m < 60) return `あと${m}分`;
+  if (m < 48 * 60) return `あと${Math.floor(m / 60)}時間${m % 60 ? (m % 60) + '分' : ''}`;
+  return '';
+}
+const evLive = e => e.allDay ? e.ms + 864e5 > Date.now() : e.ms > Date.now() - 30 * 60e3;
+let nbRestTxt = '';
+function renderNews(){
+  const now = Date.now(), up = S.events.filter(e => evLive(e) && e.ms < now + 7 * 864e5);
+  $('newsBar').hidden = !up.length; if (!up.length) return;
+  const nx = up.find(e => !e.allDay) || up[0], left = evLeft(nx), min = (nx.ms - now) / 60e3;
+  const lv = !nx.allDay && min <= 60 && min > -30 ? 'hot' : !nx.allDay && min <= 24 * 60 ? 'warn' : '';
+  $('newsBar').className = lv;
+  $('nbNext').textContent = `⚠ ${evWhen(nx)} ${nx.title}${left ? '（' + left + '）' : ''}${lv === 'hot' ? ' 価格が大きく動く可能性があります' : ''}`;
+  const rest = up.filter(e => e !== nx).map(e => `${evWhen(e)} ${e.title}`).join('　｜　');
+  if (rest !== nbRestTxt){
+    nbRestTxt = rest; $('nbRest').textContent = rest;
+    const box = $('nbRest').parentElement; box.classList.remove('scroll');
+    requestAnimationFrame(() => { if ($('nbRest').scrollWidth > box.clientWidth){ box.style.setProperty('--nbDur', Math.max(15, rest.length * 0.35) + 's'); box.classList.add('scroll'); } });
+  }
+  // 1時間前と15分前に知らせる（同じ予定で何度も鳴らさない）
+  const warned = store.get('evWarned', {});
+  for (const e of up){
+    if (e.allDay) continue;
+    const m = (e.ms - now) / 60e3, k = e.t + e.title;
+    if (m > 0 && m <= 15 && !(warned[k] >= 15)){ warned[k] = 15; toast(`⚠ あと${Math.ceil(m)}分で ${e.title}<br>価格が大きく動く可能性があります`, 20000, 'big'); chimeAlert(); }
+    else if (m > 15 && m <= 60 && !warned[k]){ warned[k] = 60; toast(`⚠ ${evWhen(e)} ${e.title}（あと${Math.round(m)}分）`, 8000); }
+  }
+  for (const k in warned) if (!S.events.some(e => e.t + e.title === k && evLive(e))) delete warned[k];
+  store.set('evWarned', warned);
+}
+$('newsBar').onclick = () => {
+  const now = Date.now(), list = S.events.filter(e => (e.allDay ? e.ms + 864e5 : e.ms + 30 * 60e3) > now - 864e5).slice(0, 40);
+  let html = '<div class="evList">', lastDay = '';
+  for (const e of list){
+    const d = new Date(e.ms), day = `${d.getMonth()+1}月${d.getDate()}日（${'日月火水木金土'[d.getDay()]}）`;
+    if (day !== lastDay){ html += `<h4>${day}</h4>`; lastDay = day; }
+    html += `<div class="${evLive(e) ? '' : 'past'}"><span class="tm">${e.allDay ? '終日' : evWhen(e, false)}</span><span class="i${e.imp || 2}">${e.title}${e.forecast ? `<br><small class="dim">予想 ${e.forecast}・前回 ${e.previous}</small>` : ''}</span></div>`;
+  }
+  html += '</div><p class="note">時刻は日本時間。米国の指標・金利、日銀、暗号資産に関わる大きな予定です。今週の指標は自動で更新し、先の大きな予定は手で入れています。発表の前後は価格が大きく動きやすいので、損切りの置き方に気をつけてください。</p>';
+  preview('これからの重要な予定', [], html, {info:true}); $('modal').querySelector('.box').scrollTop = 0;
+};
+setInterval(renderNews, 30000);
+setInterval(loadEvents, 3 * 3600e3);
 
 // ===== 画面の更新をまとめて行う =====
 let dirty = false;
@@ -1135,7 +1222,7 @@ $('mOk').onclick = () => { const t = $('mTitle').textContent; closeModal(); log(
 function preview(title, rows, extraHtml, opts){
   $('mOk').hidden = !(opts && opts.ok); if (opts && opts.ok) $('mOk').textContent = opts.ok;
   $('mClose').textContent = opts && opts.ok ? 'やめる' : '閉じる';
-  $('mTitle').textContent = title; $('mExtra').innerHTML = extraHtml || '';
+  $('mTitle').textContent = title; $('mExtra').innerHTML = extraHtml || ''; $('mWarn').hidden = !!(opts && opts.info);
   $('mBody').innerHTML = rows.map(([a,b]) => `<span>${a}</span><span>${b}</span>`).join('');
   $('mBody').hidden = !rows.length;
   $('modal').hidden = false; $('mClose').focus();
@@ -1468,7 +1555,7 @@ document.addEventListener('keydown', e => {
 // ===== 起動 =====
 (async () => {
   applyZoom(store.get('zoom', matchMedia('(max-width:720px)').matches ? 1.2 : 1));   // スマホは最初から大きめ
-  renderCcy(); connect(); subscribe({type:'allMids'}); watchFills(); loadFx();
+  renderCcy(); connect(); subscribe({type:'allMids'}); watchFills(); loadFx(); loadEvents();
   if (!S.user) $('acctBar').hidden = false;
   try { await loadMeta(); } catch (e){ log('銘柄情報を取れませんでした: ' + e.message); }
   buildCoins(); buildOType(); setOType('market'); selectCoin(curKey()); loadAcct();
