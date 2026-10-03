@@ -102,6 +102,31 @@ body.fsOn{overflow:hidden}
 .evList .i3{color:var(--fg);font-weight:700}
 .evList .past{opacity:.45}
 .toast.big{border-color:var(--down);background:#3b1118;font-size:17px;font-weight:700}
+/* 上のタブ（メニュー） */
+#pages{display:flex;gap:4px;padding:6px 10px 0;border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none}
+#pages button{flex:0 0 auto;background:none;border:none;border-bottom:3px solid transparent;padding:8px 12px;font-size:14px;color:var(--dim);white-space:nowrap}
+#pages button.sel{color:var(--fg);border-bottom-color:var(--accent);font-weight:700}
+.view{flex:1;min-height:0;overflow:auto}
+.view[hidden]{display:none}
+.vHead{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;font-size:13px}
+.vHead b{font-size:16px}
+/* 4画面チャート */
+#mcGrid{display:grid;grid-template-columns:repeat(var(--mcCols,2),minmax(0,1fr));gap:8px;padding:0 10px 12px}
+.mp{border:1px solid var(--line);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;height:calc((100vh - 230px) / 2);min-height:240px;background:var(--bg)}
+.mpH{display:flex;align-items:center;gap:6px;padding:5px 8px;border-bottom:1px solid var(--line);font-size:13px;flex-wrap:wrap}
+.mpH select{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:6px;padding:3px 4px;font-size:13px}
+.mpH .px{margin-left:auto;font-family:var(--mono)}
+.mpH .go{background:none;border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--dim);font-size:12px}
+.mp canvas{flex:1;width:100%;min-height:0;touch-action:pan-y;display:block}
+/* 相場一覧 */
+#lsBody{padding:0 10px 20px}
+#lsBody h3{font-size:14px;margin:14px 4px 6px;color:var(--dim)}
+.lsT{width:100%;border-collapse:collapse;font-size:14px}
+.lsT th{font-weight:400;color:var(--dim);font-size:12px;text-align:right;padding:4px 6px}
+.lsT th:first-child,.lsT td:first-child{text-align:left}
+.lsT td{padding:9px 6px;border-top:1px solid var(--line);text-align:right;font-family:var(--mono);white-space:nowrap}
+.lsT tr.go{cursor:pointer} .lsT tr.go:hover{background:var(--panel)}
+.lsT td:first-child{font-family:var(--sans);font-weight:700}
 #fsBtn.on{color:#1b1404;background:var(--accent);border-color:var(--accent)}
 .zoom button,.ivs button{white-space:nowrap}
 #chartBox.fs #hint{display:none}
@@ -242,6 +267,14 @@ td.ja{font-family:var(--sans)}
   .ivs button{flex:0 0 auto}
   #chartBox{height:58vh;min-height:340px;flex:0 0 auto}
   #chartWrap{margin:6px 18px 8px 6px}
+  .view{overflow:visible}
+  .mp{height:auto} .mp canvas{flex:0 0 auto;height:var(--mpH,240px)}
+  .lsT .hideS{display:none}
+  .mpH{gap:4px;padding:4px 5px}
+  .mpH select{font-size:12px;padding:2px 2px}
+  .mpH .px{font-size:12px}
+  #mcGrid[style*="--mcCols: 2"] .mpH .go{display:none}
+  .vHead{gap:6px 10px} .vHead .dim{width:100%;order:3}
   #prefsBtn{display:inline-block}
   #prefs{display:none;width:100%;flex-wrap:wrap;gap:10px 16px;align-items:flex-end;justify-content:space-between;padding:8px 0 4px;border-top:1px dashed var(--line)}
   #prefs.open{display:flex}
@@ -286,6 +319,7 @@ td.ja{font-family:var(--sans)}
 <div id="newsBar" hidden title="押すと、これからの予定を一覧で見られます"><b id="nbNext"></b><div class="nbRest"><span id="nbRest"></span></div></div>
 <div id="acctBar" hidden><span class="dim">口座アドレス（公開情報。秘密鍵ではありません）</span><input id="addr" spellcheck="false" placeholder="0x…"></div>
 
+<nav id="pages"><button data-p="trade">📈 トレード</button><button data-p="multi">▦ 4画面チャート</button><button data-p="list">📊 相場一覧</button><button data-p="cal">📅 予定</button></nav>
 <div id="strip">
   <div class="mkt" id="mkt"><button data-v="perp">先物（レバレッジ）</button><button data-v="spot">現物</button></div>
   <nav id="coins" aria-label="銘柄"></nav>
@@ -374,6 +408,26 @@ td.ja{font-family:var(--sans)}
     <div class="tbl" id="aTbl"></div>
   </section>
 </main>
+
+<!-- 4画面チャート -->
+<div id="vMulti" class="view" hidden>
+  <div class="vHead"><b>4画面チャート</b>
+    <span class="dim">銘柄と足は各チャートの上で変えられます</span>
+    <div class="seg" id="mcCols" style="margin-left:auto"><button data-c="1">1列</button><button data-c="2">2列</button></div>
+    <button class="gear" id="mcSync" title="4つとも同じ銘柄にする">全部同じ銘柄に</button>
+  </div>
+  <div id="mcGrid"></div>
+</div>
+<!-- 相場一覧 -->
+<div id="vList" class="view" hidden>
+  <div class="vHead"><b>相場一覧</b><span class="dim" id="lsUpd"></span></div>
+  <div id="lsBody"></div>
+</div>
+<!-- 予定 -->
+<div id="vCal" class="view" hidden>
+  <div class="vHead"><b>これからの重要な予定</b><span class="dim">時刻は日本時間</span></div>
+  <div id="calBody" style="padding:0 14px 20px;max-width:720px"></div>
+</div>
 
 <div id="modal" hidden><div class="box">
   <h2 id="mTitle"></h2>
@@ -623,7 +677,7 @@ function renderNews(){
   for (const k in warned) if (!S.events.some(e => e.t + e.title === k && evLive(e))) delete warned[k];
   store.set('evWarned', warned);
 }
-$('newsBar').onclick = () => {
+function evListHtml(){
   const now = Date.now(), list = S.events.filter(e => (e.allDay ? e.ms + 864e5 : e.ms + 30 * 60e3) > now - 864e5).slice(0, 40);
   let html = '<div class="evList">', lastDay = '';
   for (const e of list){
@@ -632,10 +686,182 @@ $('newsBar').onclick = () => {
     html += `<div class="${evLive(e) ? '' : 'past'}"><span class="tm">${e.allDay ? '終日' : evWhen(e, false)}</span><span class="i${e.imp || 2}">${e.title}${e.forecast ? `<br><small class="dim">予想 ${e.forecast}・前回 ${e.previous}</small>` : ''}</span></div>`;
   }
   html += '</div><p class="note">時刻は日本時間。米国の指標・金利、日銀、暗号資産に関わる大きな予定です。今週の指標は自動で更新し、先の大きな予定は手で入れています。発表の前後は価格が大きく動きやすいので、損切りの置き方に気をつけてください。</p>';
-  preview('これからの重要な予定', [], html, {info:true}); $('modal').querySelector('.box').scrollTop = 0;
-};
+  return html;
+}
+$('newsBar').onclick = () => setPage('cal');
 setInterval(renderNews, 30000);
 setInterval(loadEvents, 3 * 3600e3);
+
+// ===== ページ（タブ）の切り替え =====
+S.page = store.get('page', 'trade');
+function setPage(pg){
+  S.page = pg; store.set('page', pg);
+  [...$('pages').children].forEach(b => b.classList.toggle('sel', b.dataset.p === pg));
+  const trade = pg === 'trade';
+  $('strip').hidden = !trade; document.querySelector('main').hidden = !trade;
+  $('vMulti').hidden = pg !== 'multi'; $('vList').hidden = pg !== 'list'; $('vCal').hidden = pg !== 'cal';
+  if (pg === 'multi') MC.show(); else MC.hide();
+  if (pg === 'list') renderList();
+  if (pg === 'cal') $('calBody').innerHTML = evListHtml();
+  if (trade) setTimeout(() => chart.resize(), 30);
+}
+$('pages').onclick = e => { const b = e.target.closest('button'); if (b) setPage(b.dataset.p); };
+
+// ===== 4画面チャート：銘柄と足を選べる小さいチャートを4つ並べる =====
+// 同じ購読（銘柄と足）をほかで使っていたら外さない
+const subUsed = sub => { const k = JSON.stringify(sub); return (candleSub && JSON.stringify(candleSub) === k) || MC.uses(k); };
+const MC = (() => {
+  const DEF = [{c:'XRP', iv:'5m'}, {c:'XRP', iv:'1h'}, {c:'XRP', iv:'4h'}, {c:'XRP', iv:'1d'}];
+  let cfg = store.get('multi', null);
+  if (!cfg || !Array.isArray(cfg.p) || cfg.p.length !== 4) cfg = {cols: 2, p: DEF};
+  const P = [];   // 各チャートの状態
+  let on = false;
+  const save = () => store.set('multi', cfg);
+  function build(){
+    $('mcGrid').style.setProperty('--mcCols', cfg.cols);
+    [...$('mcCols').children].forEach(b => b.classList.toggle('sel', +b.dataset.c === cfg.cols));
+    $('mcGrid').style.setProperty('--mpH', cfg.cols === 1 ? '46vh' : '34vh');
+    const coins = PERPS.filter(k => M[k]);
+    $('mcGrid').innerHTML = cfg.p.map((q, i) => `<div class="mp" data-i="${i}"><div class="mpH">
+      <select class="sc">${coins.map(k => `<option value="${k}" ${k === q.c ? 'selected' : ''}>${k}</option>`).join('')}</select>
+      <select class="si">${IVS.map(([k, l]) => `<option value="${k}" ${k === q.iv ? 'selected' : ''}>${l}</option>`).join('')}</select>
+      <span class="px" data-px></span><button class="go" title="この銘柄と足でトレード画面を開く">開く</button></div><canvas></canvas></div>`).join('');
+    P.length = 0;
+    [...$('mcGrid').children].forEach((el, i) => {
+      const st = {i, el, cv: el.querySelector('canvas'), a: [], off: 0, bw: 6, sub: null, req: 0};
+      P.push(st);
+      el.querySelector('.sc').onchange = e => { cfg.p[i].c = e.target.value; save(); load(st); };
+      el.querySelector('.si').onchange = e => { cfg.p[i].iv = e.target.value; save(); load(st); };
+      el.querySelector('.go').onclick = () => { const q = cfg.p[i]; S.mkt = 'perp'; store.set('mkt', 'perp'); S.iv = q.iv; store.set('iv', S.iv); markIv(); setPage('trade'); selectCoin(q.c); };
+      bindPan(st);
+      new ResizeObserver(() => draw(st)).observe(st.cv);
+    });
+  }
+  async function load(st){
+    const q = cfg.p[st.i], req = ++st.req;
+    if (st.sub){ const old = st.sub; st.sub = null; if (!subUsed(old)) unsubscribe(old); }
+    st.a = []; st.off = 0; draw(st);
+    st.sub = {type:'candle', coin:q.c, interval:q.iv}; subscribe(st.sub);
+    try {
+      const end = Date.now(), d = await info({type:'candleSnapshot', req:{coin:q.c, interval:q.iv, startTime:end - IV_MS[q.iv] * 400, endTime:end}});
+      if (req !== st.req) return;
+      st.a = d.map(c => ({t:c.t, o:+c.o, h:+c.h, l:+c.l, c:+c.c, v:+c.v})); draw(st);
+    } catch {}
+  }
+  function bindPan(st){
+    const ptr = new Map(); let pan = null, pin = null;
+    const pos = e => { const r = st.cv.getBoundingClientRect(), kz = r.width / (st.cv.clientWidth || 1); return {x: (e.clientX - r.left) / kz, y: (e.clientY - r.top) / kz}; };
+    st.cv.addEventListener('pointerdown', e => { st.cv.setPointerCapture(e.pointerId); ptr.set(e.pointerId, pos(e));
+      if (ptr.size === 2){ const [a, b] = [...ptr.values()]; pin = {d: Math.abs(a.x - b.x) || 1, bw: st.bw}; pan = null; } else pan = {x: pos(e).x, off: st.off}; });
+    st.cv.addEventListener('pointermove', e => { if (!ptr.has(e.pointerId)) return; ptr.set(e.pointerId, pos(e));
+      if (pin && ptr.size === 2){ const [a, b] = [...ptr.values()]; st.bw = Math.min(30, Math.max(2, pin.bw * Math.abs(a.x - b.x) / pin.d)); draw(st); return; }
+      if (pan){ st.off = Math.max(0, Math.min(st.a.length - 10, pan.off + (pos(e).x - pan.x) / st.bw)); draw(st); } });
+    const up = e => { ptr.delete(e.pointerId); if (ptr.size < 2) pin = null; if (!ptr.size) pan = null; };
+    st.cv.addEventListener('pointerup', up); st.cv.addEventListener('pointercancel', up);
+    st.cv.addEventListener('wheel', e => { e.preventDefault(); st.bw = Math.min(30, Math.max(2, st.bw * (e.deltaY < 0 ? 1.15 : 1/1.15))); draw(st); }, {passive:false});
+    st.cv.addEventListener('dblclick', () => { st.off = 0; draw(st); });
+  }
+  function draw(st){
+    const cv = st.cv, r = cv.getBoundingClientRect(), W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return;
+    const kz = r.width / W, dpr = window.devicePixelRatio || 1;
+    if (cv.width !== Math.round(r.width * dpr) || cv.height !== Math.round(r.height * dpr)){ cv.width = Math.round(r.width * dpr); cv.height = Math.round(r.height * dpr); }
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr * kz, 0, 0, dpr * kz, 0, 0);
+    const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+    const C = {bg:css('--bg'), line:css('--line'), dim:css('--dim'), up:css('--up'), down:css('--down')};
+    ctx.fillStyle = C.bg; ctx.fillRect(0, 0, W, H);
+    const q = cfg.p[st.i], k = q.c, a = st.a, n = a.length;
+    const pxEl = st.el.querySelector('[data-px]');
+    if (!n){ ctx.fillStyle = C.dim; ctx.font = '12px sans-serif'; ctx.fillText('読み込み中…', 10, 22); pxEl.textContent = ''; return; }
+    const lastK = a[n - 1], ch = lastK.c / (a[Math.max(0, n - 2)].c || lastK.c) - 1;
+    pxEl.innerHTML = `${fpx(k, lastK.c)} <span class="${cls(lastK.c - lastK.o)}">${fmtPct(lastK.c / lastK.o - 1)}</span>`;
+    const TAG = '600 10px ' + css('--sans'); ctx.font = TAG;
+    const PADR = Math.ceil(ctx.measureText(fpx(k, lastK.c * 1.3)).width) + 14, TOPm = S.ma ? 18 : 6, PADB = 16;
+    const plotW = W - PADR, priceH = (H - PADB - TOPm) * 0.84, volTop = TOPm + priceH + 4, volH = H - PADB - volTop;
+    const bw = st.bw, last = n - 1 - st.off, x = i => plotW - (last - i + 0.5) * bw;
+    const i0 = Math.max(0, Math.ceil(last - plotW / bw)), i1 = Math.min(n - 1, Math.floor(last));
+    let lo = Infinity, hi = -Infinity, vmax = 0;
+    for (let i = i0; i <= i1; i++){ lo = Math.min(lo, a[i].l); hi = Math.max(hi, a[i].h); vmax = Math.max(vmax, a[i].v); }
+    const pad = (hi - lo) * 0.08 || hi * 0.001; lo -= pad; hi += pad;
+    const y = p => TOPm + (hi - p) / (hi - lo) * priceH;
+    // 目盛り（4本くらい）
+    const U = S.ccy === 'JPY' && S.fx ? S.fx : 1, raw = (hi - lo) * U / 4, p10 = 10 ** Math.floor(Math.log10(raw)), f = raw / p10, step = (f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10) * p10 / U;
+    ctx.strokeStyle = C.line; ctx.fillStyle = C.dim; ctx.textBaseline = 'middle'; ctx.lineWidth = 1;
+    const lyNow = Math.max(TOPm + 7, Math.min(TOPm + priceH - 7, Math.round(y(lastK.c)) + .5));
+    for (let j = Math.ceil(lo / step - 1e-9), p = j * step; p <= hi; p = ++j * step){ const yy = Math.round(y(p)) + .5; ctx.beginPath(); ctx.moveTo(0, yy); ctx.lineTo(plotW, yy); ctx.stroke(); if (yy > TOPm + 6 && yy < TOPm + priceH - 6 && Math.abs(yy - lyNow) > 14) ctx.fillText(fpx(k, p), plotW + 6, yy); }
+    // 時刻（左右に2つだけ）
+    ctx.textBaseline = 'alphabetic';
+    const tl = t => { const d = new Date(t), p2 = v => String(v).padStart(2, '0'); return ['1d','1w','1M'].includes(q.iv) ? `${d.getMonth()+1}/${d.getDate()}` : `${d.getMonth()+1}/${d.getDate()} ${p2(d.getHours())}:${p2(d.getMinutes())}`; };
+    const tL = tl(a[i0].t), tr = tl(a[i1].t), wL = ctx.measureText(tL).width, wR = ctx.measureText(tr).width;
+    if (wL + wR + 16 < plotW) ctx.fillText(tL, 4, H - 3); ctx.fillText(tr, plotW - wR - 4, H - 3);
+    // ローソク足
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, plotW, H); ctx.clip();
+    const bodyW = Math.max(1, Math.floor(bw * 0.7));
+    for (let i = i0; i <= i1; i++){
+      const c = a[i], col = c.c >= c.o ? C.up : C.down, xx = Math.round(x(i));
+      ctx.fillStyle = col; ctx.strokeStyle = col;
+      ctx.globalAlpha = .3; const vh = vmax ? c.v / vmax * volH : 0; ctx.fillRect(xx - bodyW/2, volTop + volH - vh, bodyW, vh); ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.moveTo(xx + .5, y(c.h)); ctx.lineTo(xx + .5, y(c.l)); ctx.stroke();
+      const yo = y(c.o), yc = y(c.c); ctx.fillRect(xx - Math.floor(bodyW/2), Math.min(yo, yc), bodyW, Math.max(1, Math.abs(yc - yo)));
+    }
+    if (S.ma){
+      ctx.lineWidth = 1.4;
+      for (const m of MAS){ ctx.strokeStyle = m.col; ctx.beginPath(); let st2 = false;
+        for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++){ const v = maAt(a, i, m.n); if (v == null) continue; st2 ? ctx.lineTo(x(i), y(v)) : ctx.moveTo(x(i), y(v)); st2 = true; }
+        ctx.stroke(); }
+      ctx.lineWidth = 1;
+    }
+    ctx.restore();
+    if (S.ma){ ctx.font = '10px ' + css('--mono'); let lx = 6; ctx.textBaseline = 'middle';
+      for (const m of MAS){ const v = maAt(a, n - 1, m.n), t = `MA${m.n}`; ctx.fillStyle = m.col; ctx.fillText(t, lx, 9); lx += ctx.measureText(t).width + 8; } }
+    // ポジションの線（建値・SL・TP・RL）といまの値段
+    const L = [], pos = posOf(k);
+    if (pos){ L.push([+pos.entryPx, css('--info'), '建値']); if (pos.liquidationPx) L.push([+pos.liquidationPx, css('--liq'), 'RL']);
+      const t = tpslOf(k); if (t.sl) L.push([+t.sl.triggerPx, C.down, 'SL']); if (t.tp) L.push([+t.tp.triggerPx, C.up, 'TP']); }
+    ctx.font = TAG; ctx.textBaseline = 'middle';
+    const pill = (x0, y0, w, h) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x0, y0, w, h, h / 2); else ctx.rect(x0, y0, w, h); };
+    const vis = L.filter(([p]) => p >= lo && p <= hi).map(([p, col, name]) => ({yy: Math.round(y(p)) + .5, col, name})).sort((a, b) => a.yy - b.yy);
+    let prevY = -1e9; for (const t of vis){ t.ly = Math.max(t.yy, prevY + 15); prevY = t.ly; }
+    for (const t of vis){
+      ctx.strokeStyle = t.col; ctx.setLineDash([5, 3]); ctx.beginPath(); ctx.moveTo(0, t.yy); ctx.lineTo(plotW, t.yy); ctx.stroke(); ctx.setLineDash([]);
+      const w = ctx.measureText(t.name).width + 10; pill(3, t.ly - 7, w, 14); ctx.fillStyle = t.col; ctx.globalAlpha = .85; ctx.fill(); ctx.globalAlpha = 1; ctx.fillStyle = C.bg; ctx.fillText(t.name, 8, t.ly + .5);
+    }
+    const lp = lastK.c, ly = lyNow, lc = lastK.c >= lastK.o ? C.up : C.down;
+    ctx.strokeStyle = lc; ctx.setLineDash([1, 2]); ctx.beginPath(); ctx.moveTo(0, ly); ctx.lineTo(plotW, ly); ctx.stroke(); ctx.setLineDash([]);
+    const pt = fpx(k, lp), pw = ctx.measureText(pt).width + 10; pill(plotW + 2, ly - 8, pw, 16); ctx.fillStyle = lc; ctx.fill(); ctx.fillStyle = C.bg; ctx.fillText(pt, plotW + 7, ly + .5);
+  }
+  return {
+    show(){ if (!P.length || $('mcGrid').children.length !== 4) build(); on = true; P.forEach(load); },
+    hide(){ if (!on) return; on = false; for (const st of P){ if (st.sub){ const o = st.sub; st.sub = null; if (!subUsed(o)) unsubscribe(o); } } },
+    uses: k => P.some(st => st.sub && JSON.stringify(st.sub) === k),
+    onCandle(c){ if (!on) return; for (const st of P){ const q = cfg.p[st.i]; if (q.c !== c.s || q.iv !== c.i) continue;
+      const bar = {t:c.t, o:+c.o, h:+c.h, l:+c.l, c:+c.c, v:+c.v}, a = st.a, l = a[a.length - 1];
+      if (l && l.t === bar.t) a[a.length - 1] = bar; else if (!l || bar.t > l.t) a.push(bar); draw(st); } },
+    redraw(){ if (on) P.forEach(draw); },
+    setCols(c){ cfg.cols = c; save(); build(); P.forEach(load); },
+    syncCoin(k){ cfg.p.forEach(q => q.c = k); save(); build(); P.forEach(load); },
+  };
+})();
+$('mcCols').onclick = e => { const b = e.target.closest('button'); if (b) MC.setCols(+b.dataset.c); };
+$('mcSync').onclick = () => MC.syncCoin(S.mkt === 'perp' ? curKey() : 'XRP');
+
+// ===== 相場一覧：いつもの銘柄と、よく動いている銘柄 =====
+async function renderList(){
+  let all = [];
+  try { const [pm, pc] = await info({type:'metaAndAssetCtxs'}); all = pm.universe.map((u, i) => ({k:u.name, ...pc[i], delisted:u.isDelisted})); } catch {}
+  if (S.page !== 'list') return;
+  const row = x => { const px = +x.markPx, ch = px / +x.prevDayPx - 1, vol = +x.dayNtlVlm, oi = +x.openInterest * px, fr = +x.funding * 100, mine = PERPS.includes(x.k);
+    return `<tr class="${mine ? 'go' : ''}" data-k="${mine ? x.k : ''}"><td>${x.k}</td><td>${fmtPxC(x.k, px)}</td><td class="${cls(ch)}">${fmtPct(ch)}</td><td class="hideS">${money(vol / 1e6, 0)}M</td><td class="hideS">${money(oi / 1e6, 0)}M</td><td class="${cls(fr)} hideS">${fr.toFixed(4)}%</td></tr>`; };
+  const head = '<tr><th>銘柄</th><th>値段</th><th>24時間</th><th class="hideS">出来高</th><th class="hideS">建玉</th><th class="hideS">資金調達率/時</th></tr>';
+  const mine = PERPS.map(k => all.find(x => x.k === k)).filter(Boolean);
+  const liquid = all.filter(x => !x.delisted && +x.dayNtlVlm >= 50e6 && +x.prevDayPx > 0).map(x => ({...x, ch: +x.markPx / +x.prevDayPx - 1}));
+  const upL = [...liquid].sort((a, b) => b.ch - a.ch).slice(0, 8), dnL = [...liquid].sort((a, b) => a.ch - b.ch).slice(0, 8);
+  $('lsBody').innerHTML = `<h3>いつもの10銘柄（押すとトレード画面へ）</h3><table class="lsT">${head}${mine.map(row).join('')}</table>
+    <h3>よく上がっている銘柄（出来高が1日5,000万ドル以上のものだけ）</h3><table class="lsT">${head}${upL.map(row).join('')}</table>
+    <h3>よく下がっている銘柄（同じ）</h3><table class="lsT">${head}${dnL.map(row).join('')}</table>`;
+  $('lsUpd').textContent = new Date().toLocaleTimeString() + ' 時点';
+}
+$('lsBody').onclick = e => { const r = e.target.closest('tr[data-k]'); if (!r || !r.dataset.k) return; S.mkt = 'perp'; store.set('mkt', 'perp'); setPage('trade'); selectCoin(r.dataset.k); };
+setInterval(() => { if (S.page === 'list') renderList(); }, 15000);
 
 // ===== 画面の更新をまとめて行う =====
 let dirty = false;
@@ -653,7 +879,7 @@ $('zoomSel').onclick = e => { const b = e.target.closest('button'); if (b) apply
 
 // ===== 円とドル =====
 function renderCcy(){ [...$('ccy').children].forEach(b => b.classList.toggle('sel', b.dataset.v === S.ccy)); $('fxBtn').textContent = S.fx ? `1ドル = ${S.fx.toFixed(2)}円${S.fxSrc === 'manual' ? '（手入力）' : ''}` : '為替レート未取得'; }
-$('ccy').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.v === 'JPY' && !S.fx){ askFx(); if (!S.fx) return; } S.ccy = b.dataset.v; store.set('ccy', S.ccy); renderCcy(); renderAcct(); schedule(); chart.draw(); };
+$('ccy').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.v === 'JPY' && !S.fx){ askFx(); if (!S.fx) return; } S.ccy = b.dataset.v; store.set('ccy', S.ccy); renderCcy(); renderAcct(); schedule(); chart.draw(); MC.redraw(); };
 function askFx(){ const v = parseFloat(prompt('1ドルは何円ですか？（例 148.5）空のまま OK で自動取得に戻します', S.fx || ''));
   if (v > 50 && v < 500){ S.fx = v; S.fxSrc = 'manual'; } else { S.fxSrc = ''; loadFx(); }
   store.set('fx', S.fx); store.set('fxSrc', S.fxSrc); renderCcy(); renderAcct(); schedule(); }
@@ -705,7 +931,7 @@ function selectCoin(k){
 }
 async function loadCandles(){
   const req = ++candleReq, k = curKey(), iv = S.iv, ms = IV_MS[iv];
-  if (candleSub) unsubscribe(candleSub); candleSub = {type:'candle', coin:k, interval:iv}; subscribe(candleSub);
+  if (candleSub){ const old = candleSub; candleSub = null; if (!subUsed(old)) unsubscribe(old); } candleSub = {type:'candle', coin:k, interval:iv}; subscribe(candleSub);
   S.candles = []; chart.reset(); chart.draw();
   const end = Date.now(), start = end - ms * 500;
   try {
@@ -716,6 +942,7 @@ async function loadCandles(){
   } catch (e){ log('チャートを取れませんでした: ' + e.message); }
 }
 function onCandle(c){
+  MC.onCandle(c);
   if (c.s !== curKey() || c.i !== S.iv) return;
   const bar = {t:c.t, o:+c.o, h:+c.h, l:+c.l, c:+c.c, v:+c.v}, a = S.candles, last = a[a.length-1];
   if (last && last.t === bar.t) a[a.length-1] = bar; else if (!last || bar.t > last.t) a.push(bar);
@@ -1567,7 +1794,7 @@ document.addEventListener('keydown', e => {
   renderCcy(); connect(); subscribe({type:'allMids'}); watchFills(); loadFx(); loadEvents();
   if (!S.user) $('acctBar').hidden = false;
   try { await loadMeta(); } catch (e){ log('銘柄情報を取れませんでした: ' + e.message); }
-  buildCoins(); buildOType(); setOType('market'); selectCoin(curKey()); loadAcct();
+  buildCoins(); buildOType(); setOType('market'); selectCoin(curKey()); loadAcct(); setPage(S.page);
   setInterval(loadAcct, 3000);
   setInterval(() => loadMeta().then(schedule).catch(() => {}), 30000);
   setInterval(loadFx, 3600e3);
