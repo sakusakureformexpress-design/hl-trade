@@ -930,6 +930,9 @@ const setPct = pc => {
 };
 $('pct').onclick = e => { const b = e.target.closest('button'); if (b) setPct(+b.dataset.p); };
 $('szPct').oninput = e => setPct(+e.target.value);
+// 注文額（USD）は最後に入れた金額を覚えておき、次に開いたときもその金額から始める
+$('sz').value = store.get('szUsd', 100);
+$('sz').addEventListener('change', () => { const v = parseFloat($('sz').value); if (S.unit === 'usd' && v > 0) store.set('szUsd', v); });
 function entryPx(){ const k = curKey(); return S.otype === 'market' ? priceOf(k) : parseFloat($('px').value); }
 function orderCalc(){
   const k = curKey(), m = cur() || {}, lev = isPerp() ? curLev() : 1, mm = 1 / (2 * (m.maxLev || 20));
