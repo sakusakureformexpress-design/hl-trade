@@ -659,7 +659,8 @@ let nbRestTxt = '';
 function renderNews(){
   const now = Date.now(), up = S.events.filter(e => evLive(e) && e.ms < now + 14 * 864e5);
   $('newsBar').hidden = !up.length; if (!up.length) return;
-  const nx = up.find(e => !e.allDay) || up[0], left = evLeft(nx), min = (nx.ms - now) / 60e3;
+  const nx = up[0],   // 日付の近い順にいちばん先の予定
+     left = evLeft(nx), min = (nx.ms - now) / 60e3;
   const lv = !nx.allDay && min <= 60 && min > -30 ? 'hot' : !nx.allDay && min <= 24 * 60 ? 'warn' : '';
   $('newsBar').className = lv;
   $('nbNext').textContent = `⚠ ${evWhen(nx)} ${nx.title}${left ? '（' + left + '）' : ''}${lv === 'hot' ? ' 価格が大きく動く可能性があります' : ''}`;
