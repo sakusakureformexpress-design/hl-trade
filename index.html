@@ -938,6 +938,8 @@ ko: {
   "銘柄ごと": "종목별",
   "手数料": "수수료",
   "取引所から取れた範囲（{0} 以降）の集計です。「アプリの手数料」は Phantom など、注文を通したアプリが上乗せする手数料です。": "거래소에서 가져올 수 있는 범위({0} 이후)의 집계입니다. '앱 수수료'는 Phantom 등 주문을 중개한 앱이 추가로 붙이는 수수료입니다.",
+  "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "데모 표시: 가상의 데이터입니다. 거래소에 연결되어 있지 않습니다 (주문도 실제로 나가지 않습니다).",
+  "デモの暗証番号は {0} です。": "데모용 PIN은 {0}입니다.",
   "銘柄情報を取れませんでした: ": "종목 정보를 가져오지 못했습니다: ",
   "HL トレード画面": "HL 트레이딩",
   "口座残高": "계좌 잔고",
@@ -953,7 +955,6 @@ ko: {
   "消す": "끔",
   "試す": "테스트",
   "口座": "계좌",
-  "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "데모 표시: 가상의 데이터입니다. 거래소에 연결되어 있지 않습니다 (주문도 실제로 나가지 않습니다).",
   "口座アドレス（公開情報。秘密鍵ではありません）": "계좌 주소 (공개 정보. 비밀키가 아닙니다)",
   "📈 トレード": "📈 트레이드",
   "▦ 4画面チャート": "▦ 4분할 차트",
@@ -1479,6 +1480,8 @@ en: {
   "銘柄ごと": "By market",
   "手数料": "Fees",
   "取引所から取れた範囲（{0} 以降）の集計です。「アプリの手数料」は Phantom など、注文を通したアプリが上乗せする手数料です。": "Totals for the range available from the exchange (since {0}). \"App fee\" is the fee added by the app that routed the order, such as Phantom.",
+  "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "Demo: this is simulated data. It is not connected to the exchange (no real orders are sent).",
+  "デモの暗証番号は {0} です。": "The demo PIN is {0}.",
   "銘柄情報を取れませんでした: ": "Couldn't load market info: ",
   "HL トレード画面": "HL Trading",
   "口座残高": "Account value",
@@ -1494,7 +1497,6 @@ en: {
   "消す": "Off",
   "試す": "Test",
   "口座": "Account",
-  "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "Demo: this is simulated data. It is not connected to the exchange (no real orders are sent).",
   "口座アドレス（公開情報。秘密鍵ではありません）": "Account address (public info — not a private key)",
   "📈 トレード": "📈 Trade",
   "▦ 4画面チャート": "▦ 4-chart view",
@@ -3598,6 +3600,11 @@ document.addEventListener('keydown', e => {
   const n = '1234567890'.indexOf(e.key), b = $('coins').children[n]; if (n >= 0 && b) selectCoin(b.dataset.c);
 });
 
+// デモ表示の帯（模擬取引所につないでいるときだけ。鍵を開く暗証番号も出す）
+function renderDemoBar(){
+  const b = $('demoBar'); b.hidden = !window.__HL_DEMO; if (!window.__HL_DEMO) return;
+  b.textContent = '' + _('デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。') + ' ' + _('デモの暗証番号は {0} です。', window.__HL_MOCK.DEMO_PIN);
+}
 // ===== 言語の切り替え =====
 function renderLangSel(){ $('langSel').innerHTML = Object.entries(LANGS).map(([k, n]) => `<button data-l="${k}" class="${k === LANG ? 'sel' : ''}">${n}</button>`).join(''); }
 $('langSel').onclick = e => { const b = e.target.closest('button'); if (b) setLang(b.dataset.l); };
@@ -3613,12 +3620,12 @@ function relocalize(){
   $('fsBtn').textContent = $('chartBox').classList.contains('fs') ? _('戻る') : _('全画面');
   $('bigBtn').textContent = document.querySelector('main').classList.contains('big') ? _('元に戻す') : _('広げる');
   $('drawBtn').textContent = drawBtnText();
-  renderAcct(); renderAll(); MC.refreshCoins(); renderMarketViews(); renderFav();
+  renderAcct(); renderAll(); MC.refreshCoins(); renderMarketViews(); renderFav(); renderDemoBar();
 }
 
 // ===== 起動 =====
 (async () => {
-  collectStatic(document.documentElement); applyStatic(); $('demoBar').hidden = !window.__HL_DEMO;
+  collectStatic(document.documentElement); applyStatic(); renderDemoBar();
   applyZoom(store.get('zoom', matchMedia('(max-width:720px)').matches ? 1.2 : 1));   // スマホは最初から大きめ
   loadFxState(); renderLangSel(); renderCcy(); connect(); subscribe({type:'allMids'}); watchFills(); loadFx();
   try { await loadMeta(); } catch (e){ log(_('銘柄情報を取れませんでした: ') + e.message); }

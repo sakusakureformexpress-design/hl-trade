@@ -1,0 +1,7 @@
+{
+  "name": "hl-trade-tests",
+  "private": true,
+  "description": "hl-trade の画面と署名の検証",
+  "scripts": { "test": "./run-all.sh" },
+  "dependencies": { "@msgpack/msgpack": "^3.0.0", "ethers": "^6.13.0", "playwright": "^1.56.0" }
+}

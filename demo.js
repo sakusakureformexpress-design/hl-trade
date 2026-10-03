@@ -282,6 +282,13 @@
       window.__HL_DEMO_READY = seedKey().then(v => { localStorage.setItem('hlts.agentKey', JSON.stringify(v)); });
     }
   } catch {}
+  // 画面から使う「ウォレット」の代わり（手数料の承認の署名を試せるように。本物の署名ではない）
+  if (!window.ethereum) window.ethereum = {request: async ({method}) => {
+    if (method === 'eth_requestAccounts') { let u = USER; try { u = JSON.parse(localStorage.getItem('hlts.addr')) || USER; } catch {} return [u]; }
+    if (method === 'wallet_switchEthereumChain') return null;
+    if (method === 'eth_signTypedData_v4') return '0x' + 'ab'.repeat(32) + 'cd'.repeat(32) + '1b';
+    throw new Error('unsupported in demo: ' + method);
+  }};
   seedAccount();
   window.__HL_MOCK = {USER, AGENT_KEY, AGENT_ADDR, DEMO_PIN, state: S, setPx: (c, mult) => { bump[c] = mult; }, tick: tickOrders, mark, perps, spots, tokens, info, place, exchange, candles, book};
 })();
