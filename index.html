@@ -1825,11 +1825,13 @@ function marginEditor(k, mode){
   const pos = posOf(k); if (!pos) return;
   const s = +pos.szi, abs = Math.abs(s), side = Math.sign(s), mUsed = +pos.marginUsed, liq = +pos.liquidationPx, lev = +pos.leverage.value || 1;
   const l = 1 / (2 * (M[k]?.maxLev || 20)), ntl = abs * priceOf(k);
-  const maxRemove = Math.max(0, mUsed - ntl / lev);   // 設定したレバレッジの証拠金より下には減らせない（目安）
+  // ハイパーリキッドの決まり：減らしたあとも「倍率どおりの証拠金」と「建玉の10%」の大きい方を残す必要がある
+  const keepMin = Math.max(ntl / lev, ntl * 0.1), maxRemove = Math.max(0, Math.floor((mUsed - keepMin) * 100) / 100);
   const av = perpAvail() ?? 0;
   mode = mode || 'add';
   const box = `<div class="seg" id="gMode"><button type="button" data-m="add" class="${mode==='add'?'sel':''}">足す（清算を遠ざける）</button><button type="button" data-m="remove" class="${mode==='remove'?'sel':''}">減らして資金に戻す</button></div>
     <p class="note" style="margin-top:8px">いまの証拠金 ${money(mUsed)} ・ ${mode === 'add' ? `足せる上限 ${money(av)}（使える余力）` : `減らせる上限の目安 ${money(maxRemove)}`}</p>
+    ${mode === 'remove' && maxRemove <= 0 ? `<p class="bad" style="margin-top:6px;font-size:15px">いまは減らせません。ハイパーリキッドでは、証拠金を建玉の金額の10%（${money(ntl * 0.1)}）以上残す決まりがあります。いまの証拠金は ${money(mUsed)} です。お金を戻したいときは、ポジションを一部決済してください。</p>` : ''}
     <label class="f" style="margin-top:6px">金額（USDC）<input id="gAmt" class="num" inputmode="decimal"></label>
     <div class="chips" id="gChips" style="margin-top:6px"><button type="button" data-p="25">25%</button><button type="button" data-p="50">50%</button><button type="button" data-p="100">上限まで</button></div>
     <div class="calc" id="gCalc" style="margin-top:10px"></div>
