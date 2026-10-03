@@ -144,7 +144,7 @@ input[type=range]{padding:0;border:none;background:none;accent-color:var(--accen
 #submit small{display:block;font-weight:400;font-size:11px;opacity:.85}
 .qk{flex:1;border:none;border-radius:8px;padding:11px 4px;font-weight:700;font-size:16px}
 .qk.L{background:var(--up);color:#04140d} .qk.S{background:var(--down);color:#1a0508}
-.qk small{display:block;font-weight:400;font-size:11px;opacity:.85}
+.qk small{display:block;font-weight:400;font-size:11px;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 
 .note{font-size:11px;color:var(--dim);margin:0}
 #log{font-size:11px;font-family:var(--mono);color:var(--dim);display:flex;flex-direction:column;gap:2px;max-height:110px;overflow-y:auto}
@@ -234,7 +234,9 @@ td.ja{font-family:var(--sans)}
   #bottom{flex:0 0 auto}
   #bottom .tbl{max-height:320px}
   .kpis{margin-left:0;width:100%;justify-content:space-between}
-  #ticket{padding-bottom:calc(76px + env(safe-area-inset-bottom,0px));overflow:visible}
+  #ticket{overflow:visible}
+  /* 下に固定したロング／ショートのボタンの分だけ、ページの一番下に余白を空ける（ポジションの欄が隠れないように） */
+  body{padding-bottom:calc(var(--qh, 96px) + 12px)}
   #submitWrap{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--bg);border-top:1px solid var(--line);padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px))}
   #hint{display:none}
 }
@@ -1060,7 +1062,7 @@ function renderTicket(){
   const typeJa = {market:'成行', limit:'指値', stop:'逆指値'}[S.otype];
   const sideJa = isPerp() ? (S.side > 0 ? 'ロング' : 'ショート') : (S.side > 0 ? '買う' : '売る');
   $('submit').className = S.side > 0 ? 'L' : 'S';
-  { const typeS = typeJa + (S.otype !== 'market' ? ' $' + fmtPx(k, c.px) : '') + (isPerp() ? ` ・ ${c.lev}倍` : '');
+  { const typeS = (S.otype !== 'market' ? typeJa + ' $' + fmtPx(k, c.px) + ' ・ ' : '') + (isPerp() ? `${c.lev}倍` : typeJa);
     const amt = c.sz ? `${c.sz} ${label(k)} ・ ` : '';
     $('qL').innerHTML = `${isPerp() ? 'ロング' : '買う'}<small>${amt}${typeS}</small>`;
     $('qS').innerHTML = `${isPerp() ? 'ショート' : '売る'}<small>${amt}${typeS}</small>`; }
@@ -1068,6 +1070,7 @@ function renderTicket(){
   renderPosCard();
 }
 // スマホの下のボタン：押した向きで注文の確認を出す（利確・損切りの向きも合わせて確かめる）
+new ResizeObserver(() => document.body.style.setProperty('--qh', $('submitWrap').offsetHeight + 'px')).observe($('submitWrap'));
 $('qL').onclick = () => { S.side = 1; renderTicket(); $('submit').click(); };
 $('qS').onclick = () => { S.side = -1; renderTicket(); $('submit').click(); };
 $('submit').onclick = () => {
