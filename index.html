@@ -267,6 +267,9 @@ td.ja{font-family:var(--sans)}
   .ivs button{flex:0 0 auto}
   #chartBox{height:58vh;min-height:340px;flex:0 0 auto}
   #chartWrap{margin:6px 18px 8px 6px}
+  /* スマホ：予定の帯は2段。上に一番近い予定、下にその後の予定が流れる */
+  #newsBar{flex-direction:column;align-items:stretch;gap:3px}
+  #newsBar b{white-space:normal}
   .view{overflow:visible}
   .mp{height:auto} .mp canvas{flex:0 0 auto;height:var(--mpH,240px)}
   .lsT .hideS{display:none}
