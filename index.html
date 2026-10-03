@@ -657,7 +657,7 @@ function evLeft(e){
 const evLive = e => e.allDay ? e.ms + 864e5 > Date.now() : e.ms > Date.now() - 30 * 60e3;
 let nbRestTxt = '';
 function renderNews(){
-  const now = Date.now(), up = S.events.filter(e => evLive(e) && e.ms < now + 7 * 864e5);
+  const now = Date.now(), up = S.events.filter(e => evLive(e) && e.ms < now + 14 * 864e5);
   $('newsBar').hidden = !up.length; if (!up.length) return;
   const nx = up.find(e => !e.allDay) || up[0], left = evLeft(nx), min = (nx.ms - now) / 60e3;
   const lv = !nx.allDay && min <= 60 && min > -30 ? 'hot' : !nx.allDay && min <= 24 * 60 ? 'warn' : '';
@@ -667,7 +667,7 @@ function renderNews(){
   if (rest !== nbRestTxt){
     nbRestTxt = rest; $('nbRest').textContent = rest;
     const box = $('nbRest').parentElement; box.classList.remove('scroll');
-    requestAnimationFrame(() => { if ($('nbRest').scrollWidth > box.clientWidth){ box.style.setProperty('--nbDur', Math.max(15, rest.length * 0.35) + 's'); box.classList.add('scroll'); } });
+    if (rest) requestAnimationFrame(() => { box.style.setProperty('--nbDur', Math.max(12, rest.length * 0.3) + 's'); box.classList.add('scroll'); });
   }
   // 1時間前と15分前に知らせる（同じ予定で何度も鳴らさない）
   const warned = store.get('evWarned', {});
