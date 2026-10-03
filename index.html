@@ -325,7 +325,7 @@ td.ja{font-family:var(--sans)}
       <button class="fx" id="fxBtn" title="押すと為替レートを自分で入れられます">1ドル = —円</button>
     </div>
     <div class="kpi" style="align-items:center;gap:2px"><small>文字の大きさ</small><div class="ccy" id="zoomSel"><button data-z="1">小</button><button data-z="1.2">中</button><button data-z="1.4">大</button><button data-z="1.6">特大</button></div></div>
-    <div class="kpi" style="align-items:center;gap:2px"><small>約定の音</small><div class="ccy" id="sndSel"><button data-s="1">鳴らす</button><button data-s="0">消す</button></div></div>
+    <div class="kpi" style="align-items:center;gap:2px"><small>約定の音</small><div class="ccy" id="sndSel"><button data-s="1">鳴らす</button><button data-s="0">消す</button><button id="sndTest" title="押すとティローンが鳴ります">試す</button></div></div>
     <button class="gear" id="gear" title="口座アドレスを変える">口座</button>
     </div>
   </div>
@@ -702,25 +702,61 @@ function reloadAfterReconnect(){
 }
 
 // ===== 約定したら音とお知らせ（この画面でも Phantom でも、同じ口座の約定なら鳴る） =====
-let fillSub = null, actx = null;
+let fillSub = null;
 S.sound = store.get('sound', true);
 function watchFills(){
   if (fillSub) unsubscribe(fillSub); fillSub = null;
   if (/^0x[0-9a-fA-F]{40}$/.test(S.user)){ fillSub = {type:'userFills', user:S.user}; subscribe(fillSub); }
 }
 // 音は、画面を一度さわったあとでないと鳴らせない（ブラウザの決まり）ので、最初のタッチで準備する
-addEventListener('pointerdown', () => { try { actx = actx || new (window.AudioContext || window.webkitAudioContext)(); if (actx.state === 'suspended') actx.resume(); } catch {} }, {capture:true});
-function chime(close){
-  if (!S.sound || !actx) return;
-  // 「ティロン」：新しく建てたときは上がる音、決済のときは下がる音
-  const notes = close ? [1568, 1175] : [1175, 1568], t0 = actx.currentTime;
-  notes.forEach((f, i) => {
-    const o = actx.createOscillator(), g = actx.createGain(), t = t0 + i * 0.13;
-    o.type = 'sine'; o.frequency.value = f;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.35, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.6);
-    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.62);
-  });
-}
+// ===== 音 =====
+// スマホ（とくに iPhone）でも鳴るように、音を先に WAV で作っておき <audio> で鳴らす。
+// 最初に画面をさわったとき、無音で一度鳴らして「鳴らしてよい」状態にしておく。
+const SND = (() => {
+  const RATE = 22050;
+  function wav(notes, len){
+    const n = Math.floor(RATE * len), pcm = new Float32Array(n);
+    for (const [at, f, dur, vol, wave] of notes){
+      const s0 = Math.floor(at * RATE), sn = Math.min(n - s0, Math.floor(dur * RATE));
+      for (let i = 0; i < sn; i++){
+        const t = i / RATE, ph = 2 * Math.PI * f * t, env = Math.min(1, t / 0.008) * Math.exp(-t * 5 / dur);
+        const v = wave === 'tri' ? (2 / Math.PI) * Math.asin(Math.sin(ph)) : Math.sin(ph) + 0.25 * Math.sin(2 * ph);
+        pcm[s0 + i] += v * env * vol;
+      }
+    }
+    const buf = new ArrayBuffer(44 + n * 2), dv = new DataView(buf), w = (o, t) => [...t].forEach((c, i) => dv.setUint8(o + i, c.charCodeAt(0)));
+    w(0, 'RIFF'); dv.setUint32(4, 36 + n * 2, true); w(8, 'WAVEfmt '); dv.setUint32(16, 16, true); dv.setUint16(20, 1, true); dv.setUint16(22, 1, true);
+    dv.setUint32(24, RATE, true); dv.setUint32(28, RATE * 2, true); dv.setUint16(32, 2, true); dv.setUint16(34, 16, true); w(36, 'data'); dv.setUint32(40, n * 2, true);
+    for (let i = 0; i < n; i++) dv.setInt16(44 + i * 2, Math.max(-1, Math.min(1, pcm[i])) * 32767, true);
+    return URL.createObjectURL(new Blob([buf], {type:'audio/wav'}));
+  }
+  const defs = {
+    ok:    [[[0, 1319, 0.25, 0.45], [0.12, 1976, 1.1, 0.45]], 1.3],          // ティローン：注文・変更が通った
+    open:  [[[0, 1175, 0.5, 0.45], [0.13, 1568, 0.6, 0.45]], 0.8],           // 約定（建てた）：上がる音
+    close: [[[0, 1568, 0.5, 0.45], [0.13, 1175, 0.6, 0.45]], 0.8],           // 約定（決済）：下がる音
+    alert: [[[0, 1319, 0.35, 0.4, 'tri'], [0.16, 1319, 0.35, 0.4, 'tri'], [0.32, 1760, 0.5, 0.4, 'tri']], 0.9],
+    err:   [[[0, 392, 0.3, 0.5, 'tri'], [0.2, 294, 0.5, 0.5, 'tri']], 0.8],  // うまくいかなかった：低い音
+  };
+  const el = {};
+  for (const k in defs){ const a = new Audio(wav(...defs[k])); a.preload = 'auto'; el[k] = a; }
+  let unlocked = false;
+  function unlock(){
+    if (unlocked) return; unlocked = true;
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch {}   // iPhone のマナーモードでも鳴るように
+    for (const a of Object.values(el)){
+      a.muted = true; const p = a.play();
+      if (p) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; unlocked = false; }); else a.muted = false;
+    }
+  }
+  addEventListener('pointerdown', unlock, {capture:true}); addEventListener('keydown', unlock, {capture:true});
+  function play(k){
+    if (!S.sound) return; const a = el[k]; if (!a) return;
+    try { a.pause(); a.currentTime = 0; a.muted = false; const p = a.play(); if (p) p.catch(() => {}); } catch {}
+  }
+  return {play};
+})();
+function chime(close){ SND.play(close ? 'close' : 'open'); }
+function chimeAlert(){ SND.play('alert'); }
 function toast(html, ms = 5000, extra = ''){
   const d = document.createElement('div'); d.className = 'toast ' + extra; d.innerHTML = html; $('toasts').prepend(d);
   if (extra) d.style.pointerEvents = 'auto', d.onclick = () => d.remove();
@@ -740,12 +776,13 @@ function onFills(d){
 }
 $('prefsBtn').onclick = () => $('prefs').classList.toggle('open');
 $('sndSel').onclick = e => {
-  const b = e.target.closest('button'); if (!b) return;
+  const b = e.target.closest('button'); if (!b || !b.dataset.s) return;
   S.sound = b.dataset.s === '1'; store.set('sound', S.sound);
   [...$('sndSel').children].forEach(x => x.classList.toggle('sel', x === b));
-  if (S.sound) setTimeout(() => chime(false), 50);
+  if (S.sound) setTimeout(() => SND.play('ok'), 50);
 };
 [...$('sndSel').children].forEach(x => x.classList.toggle('sel', (x.dataset.s === '1') === S.sound));
+$('sndTest').onclick = e => { e.stopPropagation(); if (!S.sound) return toast('「約定の音」が「消す」になっています'); SND.play('ok'); };
 
 // ===== 値段のお知らせ（チャートを長押しして「ここに来たら音で知らせる」）=====
 S.alerts = store.get('alerts', {});
@@ -766,16 +803,6 @@ function checkAlerts(){
     if (left.length !== S.alerts[k].length){ if (left.length) S.alerts[k] = left; else delete S.alerts[k]; store.set('alerts', S.alerts); }
   }
   if (hit){ chimeAlert(); chart.draw(); }
-}
-function chimeAlert(){
-  if (!S.sound || !actx) return;
-  const t0 = actx.currentTime;
-  [1319, 1319, 1760].forEach((f, i) => {
-    const o = actx.createOscillator(), g = actx.createGain(), t = t0 + i * 0.16;
-    o.type = 'triangle'; o.frequency.value = f;
-    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(0.3, t + 0.01); g.gain.exponentialRampToValueAtTime(0.001, t + 0.35);
-    o.connect(g).connect(actx.destination); o.start(t); o.stop(t + 0.36);
-  });
 }
 // ===== チャートに出す自分の約定（いま見ている銘柄・チャートの期間だけ）=====
 S.myFills = [];
@@ -1689,7 +1716,7 @@ $('mOk').onclick = async () => {
   let steps; try { steps = run(); } catch (e){ preview(t + '：送りませんでした', [['理由', esc(e.message)]], '', {info:true}); return; }
   $('mOk').disabled = $('mClose').disabled = true; $('mOk').textContent = '送っています…';
   const r = await LIVE.runSteps(steps);
-  $('mOk').disabled = $('mClose').disabled = false;
+  $('mOk').disabled = $('mClose').disabled = false; SND.play(r.ok ? 'ok' : 'err');
   preview(`${t}：${r.ok ? '完了' : 'うまくいきませんでした'}`, r.rows, r.ok ? '' : '<div class="danger">途中で止めました。ポジションと注文の欄で、いまの状態を確かめてください。</div>', {info:true});
   log(`${new Date().toLocaleTimeString()} 本番: ${t} → ${r.ok ? '完了' : '失敗'}`);
   loadAcct(); setTimeout(loadAcct, 1500); setTimeout(loadAcct, 5000);
