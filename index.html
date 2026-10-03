@@ -106,6 +106,9 @@ body.fsOn{overflow:hidden}
 .wm .btns button{border:none;border-radius:6px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--line);color:var(--fg)}
 .wm .btns button.pri{background:var(--accent);color:#1b1404}
 .wp{display:flex;flex-direction:column;gap:10px}
+.pbtns{position:absolute;display:flex;gap:3px;z-index:2}
+.pbtns button{width:24px;height:18px;padding:0;font-size:12px;line-height:1;border:1px solid var(--line);background:var(--panel2);color:var(--dim);border-radius:4px}
+.pbtns button:hover{color:var(--fg);border-color:var(--accent)}
 .indw{display:flex;flex-direction:column;gap:8px}
 .indrow{display:flex;align-items:center;gap:10px;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--fg);font-size:14px}
 .indrow .chk{width:20px;height:20px;border:1px solid var(--line);border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto}
@@ -583,6 +586,9 @@ ko: {
   "トレンドライン：2点目をタップ（やめる）": "추세선: 2번째 점을 탭하세요 (취소)",
   "トレンドライン：1点目をタップ（やめる）": "추세선: 1번째 점을 탭하세요 (취소)",
   "消す線をタップ（やめる）": "지울 선을 탭하세요 (취소)",
+  "元の大きさに戻す": "원래 크기로 되돌리기",
+  "最小化": "최소화",
+  "消す": "끔",
   "チャートを読み込んでいます…": "차트를 불러오는 중…",
   "{0}　終 {1}": "{0}  종 {1}",
   "{0}　始 {1} 高 {2} 安 {3} 終 {4}": "{0}  시 {1} 고 {2} 저 {3} 종 {4}",
@@ -625,6 +631,9 @@ ko: {
   "% は損益率（レバ込み）": "% = 수익률 (레버리지 포함)",
   "値段（ドル）": "가격 (달러)",
   "口座を読めていないので、割合からの計算はできません": "계좌를 읽지 못해 비율로 계산할 수 없습니다",
+  "内訳：いまのポジションを決済": "내역: 현재 포지션 청산",
+  "内訳：新しく建てる": "내역: 새로 진입",
+  "なし（決済だけ）": "없음 (청산만)",
   "入る値段より上にしてください": "진입가보다 위로 설정하세요",
   "入る値段より下にしてください": "진입가보다 아래로 설정하세요",
   "{0}（値動き {1}・損益率 {2}）": "{0} (가격 변동 {1} · 수익률 {2})",
@@ -1020,7 +1029,6 @@ ko: {
   "特大": "특대",
   "約定の音": "체결음",
   "鳴らす": "켬",
-  "消す": "끔",
   "試す": "테스트",
   "口座": "계좌",
   "口座アドレス（公開情報。秘密鍵ではありません）": "계좌 주소 (공개 정보. 비밀키가 아닙니다)",
@@ -1165,6 +1173,9 @@ en: {
   "トレンドライン：2点目をタップ（やめる）": "Trend line: tap the 2nd point (cancel)",
   "トレンドライン：1点目をタップ（やめる）": "Trend line: tap the 1st point (cancel)",
   "消す線をタップ（やめる）": "Tap the line to delete (cancel)",
+  "元の大きさに戻す": "Restore",
+  "最小化": "Minimize",
+  "消す": "Off",
   "チャートを読み込んでいます…": "Loading chart…",
   "{0}　終 {1}": "{0}  C {1}",
   "{0}　始 {1} 高 {2} 安 {3} 終 {4}": "{0}  O {1} H {2} L {3} C {4}",
@@ -1207,6 +1218,9 @@ en: {
   "% は損益率（レバ込み）": "% = ROE (with leverage)",
   "値段（ドル）": "Price (USD)",
   "口座を読めていないので、割合からの計算はできません": "Account not loaded — can't calculate from a percentage",
+  "内訳：いまのポジションを決済": "Breakdown: close current position",
+  "内訳：新しく建てる": "Breakdown: open new",
+  "なし（決済だけ）": "None (close only)",
   "入る値段より上にしてください": "Set it above the entry price",
   "入る値段より下にしてください": "Set it below the entry price",
   "{0}（値動き {1}・損益率 {2}）": "{0} (price move {1} · ROE {2})",
@@ -1602,7 +1616,6 @@ en: {
   "特大": "XL",
   "約定の音": "Fill sound",
   "鳴らす": "On",
-  "消す": "Off",
   "試す": "Test",
   "口座": "Account",
   "口座アドレス（公開情報。秘密鍵ではありません）": "Account address (public info — not a private key)",
@@ -1905,6 +1918,7 @@ const S = {
   side:1, otype:'market', unit:'usd', margin:'cross', lev: store.get('lev', {}),
   ma: store.get('ma', true),
   ind: Object.assign({ema:false, bb:false, vwap:false, rsi:false, macd:false}, store.get('ind', {})),
+  indMin: store.get('indMin', {}),   // 下の別枠を小さくたたんでいるか
   ccy: store.get('ccy','USD') === 'USD' ? 'USD' : 'LOC', fx: null, fxSrc: '', aTab:'pos', favs: store.get('favs', null)
 };
 if (!IV_MS[S.iv]) S.iv = '15m';
@@ -2510,6 +2524,26 @@ const chart = (() => {
   let bw = 8, off = -4, W = 0, H = 0, kz = 1, hover = null, act = null, vman = null, geo = null, drawn = [];
   const ptrs = new Map(); let pinch = null, lpTimer = null;
   let PADR = 60, TOP = 26; const PADB = 22;
+  // 下の別枠の右上に置く「最小化」「消す」のボタン（チャートの上に重ねる）
+  const pbtn = {};
+  function paneUi(panes, plotW){
+    for (const k of ['rsi', 'macd']){
+      let g = pbtn[k];
+      if (!g){
+        g = pbtn[k] = document.createElement('div'); g.className = 'pbtns'; g.hidden = true;
+        g.innerHTML = '<button type="button" data-a="min"></button><button type="button" data-a="x">×</button>';
+        $('chartWrap').appendChild(g);
+        g.onclick = e => { const b = e.target.closest('button'); if (!b) return;
+          if (b.dataset.a === 'x'){ S.ind[k] = false; store.set('ind', S.ind); $('indBtn').classList.toggle('sel', indAny()); }
+          else { S.indMin[k] = !S.indMin[k]; store.set('indMin', S.indMin); }
+          draw(); };
+      }
+      const pn = panes.find(p => p.kind === k); g.hidden = !pn; if (!pn) continue;
+      g.style.left = (plotW - 54) + 'px'; g.style.top = (pn.top + 2) + 'px';
+      const mn = g.children[0], x = g.children[1], t = S.indMin[k] ? _('元の大きさに戻す') : _('最小化');
+      if (mn.dataset.t !== t){ mn.dataset.t = t; mn.title = t; mn.textContent = S.indMin[k] ? '▢' : '—'; x.title = _('消す'); }
+    }
+  }
   const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
   function resize(){
     // 文字の大きさ（拡大）に合わせて、チャートも同じ倍率で描く
@@ -2532,13 +2566,14 @@ const chart = (() => {
     const pill = (x0, y0, w, h) => { ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x0, y0, w, h, h / 2); else ctx.rect(x0, y0, w, h); };
     ctx.clearRect(0,0,W,H); ctx.fillStyle = C.bg; ctx.fillRect(0,0,W,H);
     const a = S.candles, key = curKey(), n = a.length; drawn = [];
-    if (!n){ geo = null; ctx.fillStyle = C.dim; ctx.font = '13px sans-serif'; ctx.fillText(_('チャートを読み込んでいます…'), 16, 46); $('legend').textContent = ''; return; }
+    if (!n){ geo = null; Object.values(pbtn).forEach(g => g.hidden = true); ctx.fillStyle = C.dim; ctx.font = '13px sans-serif'; ctx.fillText(_('チャートを読み込んでいます…'), 16, 46); $('legend').textContent = ''; return; }
     ctx.font = MONO; { const lp0 = a[n-1].c; PADR = Math.ceil(Math.max(ctx.measureText(fpx(key, lp0 * 1.5)).width, ctx.measureText(fpx(key, lp0 * 0.5)).width)) + 12; }
     TOP = 26 + (S.ma ? 20 : 0) + 16 * indLines();   // 左上の値段と移動平均・指標の文字の下から描く（線の札が重ならないように）
     const IN = indAny() ? IND.calc(a) : null;
     const plotW = W - PADR, avail = H - PADB - TOP, subs = [S.ind.rsi && 'rsi', S.ind.macd && 'macd'].filter(Boolean), ns = subs.length;
-    const priceH = avail * (ns === 0 ? 0.8 : ns === 1 ? 0.62 : 0.5), volTop = TOP + priceH + 6, volH = ns ? avail * 0.1 : H - PADB - volTop;
-    const subTop0 = volTop + volH + 6, subH = ns ? (H - PADB - subTop0 - 6 * (ns - 1)) / ns : 0;
+    const CH = 22, nc = subs.filter(k => S.indMin[k]).length, ne = ns - nc, availE = avail - nc * (CH + 6);   // たたんだ枠は細い帯（CH）だけ
+    const priceH = availE * (ne === 0 ? 0.8 : ne === 1 ? 0.62 : 0.5), volTop = TOP + priceH + 6, volH = ne ? availE * 0.1 : H - PADB - volTop - nc * (CH + 6);
+    const subTop0 = volTop + volH + 6, subH = ne ? (H - PADB - subTop0 - nc * CH - 6 * (ns - 1)) / ne : 0;
     const last = n - 1 - off, x = i => plotW - (last - i + 0.5) * bw;
     const i0 = Math.max(0, Math.ceil(last - plotW / bw)), i1 = Math.min(n - 1, Math.floor(last));
     let lo = Infinity, hi = -Infinity, vmax = 0;
@@ -2617,18 +2652,24 @@ const chart = (() => {
       }
       if (S.ind.ema){ line(IN.e50, IND_COL.e50); line(IN.e20, IND_COL.e20); }
       if (S.ind.vwap) line(IN.vw, IND_COL.vwap, 1.6);
-      subs.forEach((kind, j) => {
-        const top = subTop0 + j * (subH + 6), bot = top + subH;
-        ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.rect(0.5, Math.round(top) + .5, plotW - 1, Math.round(subH)); ctx.stroke();
+      let ytop = subTop0;
+      subs.forEach((kind) => {
+        const mini = !!S.indMin[kind], hh = mini ? CH : subH, top = ytop, bot = top + hh; ytop += hh + 6;
+        ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.rect(0.5, Math.round(top) + .5, plotW - 1, Math.round(hh)); ctx.stroke();
+        if (mini){
+          const v = kind === 'rsi' ? IN.rsi[n - 1] : IN.ml[n - 1];
+          ctx.font = TAG; ctx.textBaseline = 'middle'; ctx.fillStyle = C.dim; ctx.fillText((kind === 'rsi' ? 'RSI 14  ' : 'MACD  ') + (v == null ? '' : kind === 'rsi' ? v.toFixed(1) : fpx(key, v)), 6, top + hh / 2);
+          panes.push({kind, top, bot, mini: true, ticks: []}); return;
+        }
         let slo, shi, yy2;
-        if (kind === 'rsi'){ slo = 0; shi = 100; yy2 = v => bot - (v - slo) / (shi - slo) * subH;
+        if (kind === 'rsi'){ slo = 0; shi = 100; yy2 = v => bot - (v - slo) / (shi - slo) * hh;
           ctx.setLineDash([3, 3]); for (const lv of [30, 70]){ ctx.beginPath(); ctx.moveTo(0, yy2(lv)); ctx.lineTo(plotW, yy2(lv)); ctx.stroke(); } ctx.setLineDash([]);
           ctx.strokeStyle = IND_COL.rsi; ctx.lineWidth = 1.4; ctx.beginPath(); let on = false;
           for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++){ const v = IN.rsi[i]; if (v == null) continue; on ? ctx.lineTo(x(i), yy2(v)) : ctx.moveTo(x(i), yy2(v)); on = true; } ctx.stroke();
           panes.push({kind, top, bot, ticks: [[30, yy2(30)], [70, yy2(70)]], lbl: v => v.toFixed(0)});
         } else {
           let mx = 0; for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++) for (const arr of [IN.ml, IN.sg, IN.mh]) if (arr[i] != null) mx = Math.max(mx, Math.abs(arr[i]));
-          mx = (mx || 1) * 1.15; slo = -mx; shi = mx; yy2 = v => bot - (v - slo) / (shi - slo) * subH;
+          mx = (mx || 1) * 1.15; slo = -mx; shi = mx; yy2 = v => bot - (v - slo) / (shi - slo) * hh;
           ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(0, yy2(0)); ctx.lineTo(plotW, yy2(0)); ctx.stroke(); ctx.setLineDash([]);
           const bwid = Math.max(1, Math.floor(bw * 0.6));
           for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++){ const v = IN.mh[i]; if (v == null) continue; ctx.fillStyle = v >= 0 ? C.up : C.down; ctx.globalAlpha = .55; const y0 = yy2(0), y1 = yy2(v); ctx.fillRect(Math.round(x(i)) - bwid / 2, Math.min(y0, y1), bwid, Math.max(1, Math.abs(y1 - y0))); ctx.globalAlpha = 1; }
@@ -2640,6 +2681,7 @@ const chart = (() => {
       });
       ctx.lineWidth = 1;
     }
+    paneUi(panes, plotW);
     // 自分で引いたトレンドライン（1点目から2点目を通って右へのばす）
     ctx.strokeStyle = DRAW_COL; ctx.lineWidth = 1.4;
     for (const d of (S.draw[key] || [])){
@@ -2674,7 +2716,7 @@ const chart = (() => {
       if (!T.out){ ctx.strokeStyle = T.col; ctx.lineWidth = T.bold ? 2 : 1; ctx.setLineDash(T.dash || []); ctx.beginPath(); ctx.moveTo(0, T.y); ctx.lineTo(plotW, T.y); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1; }
       if (T.L && T.L.drag && !T.out) drawn.push({y: T.y, L: T.L});
     }
-    for (const pn of panes){ ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.fillStyle = C.dim; for (const [v, yy3] of pn.ticks) ctx.fillText(String(v), plotW + 6, yy3);
+    for (const pn of panes){ if (pn.mini) continue; ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.fillStyle = C.dim; for (const [v, yy3] of pn.ticks) ctx.fillText(String(v), plotW + 6, yy3);
       ctx.font = TAG; ctx.fillText(pn.kind === 'rsi' ? 'RSI 14' : 'MACD', 6, pn.top + 9); }
     // 札の高さを決める（上から順に、前の札と18px以上あける。下にはみ出たら下から詰め直す）
     const ord = [...tags].sort((a, b) => a.y - b.y), GAP = 17, yMin = TOP + 9, yMax = TOP + priceH - 9;
@@ -3048,8 +3090,12 @@ function orderCalc(){
   const sz = px > 0 && v > 0 ? roundSz(k, S.unit === 'usd' ? v / px : S.unit === 'risk' ? (riskOk ? v / (Math.abs(px - slv) + feeRT) : 0) : v) : 0;
   const ntl = sz * px, fees = FEE[isPerp() ? 'perp' : 'spot'], fee = ntl * (S.otype === 'limit' ? fees.maker : fees.taker);
   const liq = isPerp() ? px - S.side * px * (1/lev - mm) / (1 - mm * S.side) : NaN;
-  return {k, lev, px, sz, ntl, margin: ntl / lev, fee, liq};
+  // 反対向きの注文は、まず持っているポジションを決済し、残りが新しいポジションになる（ドテン）。証拠金が要るのは新しく建てる分だけ
+  const pp = isPerp() ? posOf(k) : null, szi = pp ? +pp.szi : 0, closeSz = szi * S.side < 0 ? Math.min(sz, Math.abs(szi)) : 0, openSz = roundSz(k, sz - closeSz);
+  return {k, lev, px, sz, ntl, margin: openSz * px / lev, fee, liq, closeSz, openSz};
 }
+// ドテンのときの内訳（いまのポジションを決済する分と、新しく建てる分）
+const flipRows = c => c.closeSz > 0 ? [[_('内訳：いまのポジションを決済'), `${c.closeSz} ${label(c.k)}`], [_('内訳：新しく建てる'), c.openSz > 0 ? `${c.openSz} ${label(c.k)}` : _('なし（決済だけ）')]] : [];
 function tpslCheck(){
   if (!isPerp() || !$('tpslOn').checked) return {ok:true};
   const k0 = curKey(), e = entryPx(), tp = roundPx(k0, parseFloat($('tp').value)), sl = roundPx(k0, parseFloat($('sl').value)), s = S.side, c = orderCalc();
@@ -3068,7 +3114,7 @@ function renderTicket(){
   $('szLbl').textContent = S.unit === 'risk' ? _('損切りに当たったときに負ける額（USD・手数料込み）。下の損切りの値段から枚数を自動で出します') : S.unit === 'usd' ? (isPerp() ? _('注文額（USD・レバレッジ込みの建玉の大きさ）') : _('注文額（USDC）')) : _('数量（{0}）右のボタンで USD に切り替え', label(k));
   const c = orderCalc(), av = avail(), t = tpslCheck();
   const need = isPerp() ? c.margin : c.ntl, short = av != null && c.sz > 0 && need > av;
-  const rows = [[_('数量'), c.sz ? `${c.sz} ${label(k)}` : '—'], [isPerp() ? _('建玉の大きさ') : _('金額'), money(c.ntl)]];
+  const rows = [[_('数量'), c.sz ? `${c.sz} ${label(k)}` : '—'], ...flipRows(c), [isPerp() ? _('建玉の大きさ') : _('金額'), money(c.ntl)]];
   if (isPerp()) rows.push([_('必要な証拠金'), money(c.margin)], [S.margin === 'cross' ? _('清算価格の目安（クロスは口座全体で変わる）') : _('清算価格の目安'), c.sz ? '$' + fmtPx(k, c.liq) : '—']);
   rows.push([_('手数料の目安'), money(c.fee, 3)], [_('使える余力'), av == null ? '—' : money(av)]);
   $('calc').innerHTML = rows.map(([a,b]) => `<span>${a}</span><span class="${short && (a === _('必要な証拠金') || a === _('金額')) ? 'bad' : ''}">${b}</span>`).join('') + (short ? `<span></span><span class="bad" style="font-family:var(--sans)">${_('余力が足りません')}</span>` : '');
@@ -3107,7 +3153,7 @@ $('submit').onclick = () => {
   if (av != null && need > av) bads.push(_('使える余力（{0}）が、必要な{1}（{2}）より少ないので出せません。', money(av), isPerp() ? _('証拠金') : _('金額'), money(need)));
   const rows = [[_('種類'), alo ? _('指値・メイカー専用（板で待つ。手数料が安い）') : {market:_('成行（すぐ約定）'), limit:_('指値（その値段で待つ）'), stop:_('逆指値（届いたら成行）')}[S.otype]],
     [_('価格'), S.otype === 'market' ? _('いまの値段 ${0} 付近', fmtPx(k, c.px)) : '$' + fmtPx(k, roundPx(k, c.px))],
-    [_('数量'), `${c.sz} ${label(k)}`], [_('金額'), money(c.ntl)]];
+    [_('数量'), `${c.sz} ${label(k)}`], ...flipRows(c), [_('金額'), money(c.ntl)]];
   if (isPerp()) rows.push([_('レバレッジ'), _('{0}倍（{1}）', c.lev, S.margin === 'cross' ? _('クロス') : _('分離'))], [_('必要な証拠金'), money(c.margin)], [_('清算価格の目安'), '$' + fmtPx(k, c.liq)]);
   if (t.tp) rows.push([_('利確'), '$' + fmtPx(k, t.tp)]); if (t.sl) rows.push([_('損切り'), '$' + fmtPx(k, t.sl)]);
   rows.push([BUILD.on() ? _('手数料の目安（取引所）') : _('手数料の目安'), money(c.fee, 3)]);

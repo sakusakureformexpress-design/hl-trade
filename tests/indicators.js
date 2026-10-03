@@ -35,6 +35,22 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     ok(await page.evaluate(() => JSON.parse(localStorage.getItem('hlts.ind')).rsi === true), '選んだ指標を覚えている');
     await page.reload(); await page.waitForFunction(() => window.__HL_MOCK && document.querySelector('#cMark') && document.querySelector('#cMark').textContent.length > 1, null, { timeout: 15000 }); await page.waitForTimeout(700);
     ok(await page.evaluate(() => S.ind.macd && S.ind.rsi && document.getElementById('indBtn').classList.contains('sel')), '開き直しても指標が残っている');
+    // 下の別枠：最小化と消す
+    await page.click('#indBtn'); await page.waitForSelector('.indrow');
+    for (const k of ['ema', 'bb', 'vwap']) if (await page.evaluate(kk => S.ind[kk], k)) await page.click(`.indrow[data-k=${k}]`);
+    await page.click('#mClose'); await page.waitForTimeout(300);
+    ok(await page.isVisible('.pbtns >> nth=0') && (await page.locator('.pbtns:visible').count()) === 2, '下の2つの枠に、最小化・消すのボタンが出る');
+    const hOf = () => page.evaluate(() => { const v = [...document.querySelectorAll('.pbtns')].filter(e => !e.hidden).map(e => e.getBoundingClientRect().top); return v; });
+    const tops0 = await hOf();
+    await page.locator('.pbtns:visible').first().locator('button').first().click(); await page.waitForTimeout(300);
+    ok(await page.evaluate(() => S.indMin.rsi === true), '最小化を押すと、その枠がたたまれる');
+    const tops1 = await hOf();
+    ok(tops1.length === 2 && (tops1[1] - tops1[0]) < (tops0[1] - tops0[0]) - 5, 'たたむと、その枠が細くなる（次の枠との間が縮む）', JSON.stringify([tops0, tops1]));
+    await page.locator('.pbtns:visible').first().locator('button').first().click(); await page.waitForTimeout(300);
+    ok(await page.evaluate(() => !S.indMin.rsi), 'もう一度押すと元の大きさに戻る');
+    await page.locator('.pbtns:visible').first().locator('button').nth(1).click(); await page.waitForTimeout(300);
+    ok(await page.evaluate(() => S.ind.rsi === false && S.ind.macd === true) && (await page.locator('.pbtns:visible').count()) === 1, '消すを押すと、その枠だけが消える');
+    ok(await page.evaluate(() => JSON.parse(localStorage.getItem('hlts.ind')).rsi === false), '消した状態を覚えている');
     // 足を動かしても、ズームしてもエラーにならない
     await page.mouse.move(300, 300); await page.mouse.wheel(0, -400); await page.waitForTimeout(200);
     await page.click('#ivs button:nth-child(4)').catch(() => {}); await page.waitForTimeout(500);
