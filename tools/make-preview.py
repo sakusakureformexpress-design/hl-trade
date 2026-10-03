@@ -3,7 +3,7 @@
   python3 tools/make-preview.py            → preview.html（<html>〜<body> の枠なし。Artifact に載せる形）
   python3 tools/make-preview.py --wrapped  → preview-wrapped.html（枠つき。ブラウザで直接開ける）
 手数料の画面も見られるように、デモ版だけ手数料をオンにしている（index.html 本体の設定は変えない）。"""
-import re, sys, pathlib
+import re, sys, pathlib, base64, json
 root = pathlib.Path(__file__).resolve().parent.parent
 s = (root / 'index.html').read_text(encoding='utf-8')
 demo = (root / 'demo.js').read_text(encoding='utf-8')
@@ -11,6 +11,9 @@ s = re.sub(r"<script>if \(/\[\?&\]demo.*?</script>\n", '', s, count=1)          
 s = s.replace('<script id="dict">', '<script>\n' + demo.replace('</script>', '<\\/script>') + '\n</script>\n<script id="dict">', 1)
 s = re.sub(r"const BUILDER = \{[^}]*\};", "const BUILDER = {addr:'0xfee0fee0fee0fee0fee0fee0fee0fee0fee0fee0', fee:25, required:true};", s, count=1)
 s = re.sub(r"const WC = \{projectId:'[^']*',", "const WC = {projectId:'demo',", s, count=1)
+# 使い方ページの画像（guide/言語/名前.jpg）を、1ファイルの中に埋め込む
+imgs = {d.name: {f.stem: 'data:image/jpeg;base64,' + base64.b64encode(f.read_bytes()).decode() for f in sorted(d.glob('*.jpg'))} for d in sorted((root / 'guide').glob('*')) if d.is_dir()}
+if imgs: s = s.replace('<script id="dict">', '<script>window.__GUIDE_IMGS = ' + json.dumps(imgs) + ';</script>\n<script id="dict">', 1)
 s = s.replace('<title>HL トレード画面</title>', '<title>HL Trading Demo</title>', 1)
 head = re.search(r'<head>(.*?)</head>', s, re.S).group(1)
 body = re.search(r'<body>(.*)</body>', s, re.S).group(1)

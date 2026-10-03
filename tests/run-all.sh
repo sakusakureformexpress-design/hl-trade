@@ -17,5 +17,6 @@ run mobile-pos node mobile_pos.js
 run zoom-modal node zoom_modal.js
 run indicators node indicators.js
 run flip node flip.js
+run guide node guide.js
 run preview node preview.js
 printf '%s\n' "${res[@]}"

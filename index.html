@@ -106,6 +106,24 @@ body.fsOn{overflow:hidden}
 .wm .btns button{border:none;border-radius:6px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--line);color:var(--fg)}
 .wm .btns button.pri{background:var(--accent);color:#1b1404}
 .wp{display:flex;flex-direction:column;gap:10px}
+.guide{max-width:880px;margin:0 auto;padding:6px 4px 48px;line-height:1.75;font-size:14px}
+.guide h2{font-size:18px;margin:30px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.guide h3{font-size:15px;margin:20px 0 6px;color:var(--accent)}
+.guide p{margin:8px 0}.guide ol,.guide ul{margin:8px 0;padding-left:22px}.guide li{margin:5px 0}
+.guide .gtoc{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
+.guide .gtoc button{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:6px 12px;color:var(--fg);font-size:13px}
+.guide .gtoc button:hover{border-color:var(--accent)}
+.guide figure{margin:12px 0;padding:0}
+.guide figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.guide figcaption{font-size:12px;color:var(--dim);margin-top:4px}
+.guide .gwarn{border:1px solid var(--accent);border-radius:8px;padding:8px 12px;color:var(--accent);font-size:13px;margin:10px 0}
+.guide .gmock{border:1px dashed var(--line);border-radius:10px;padding:12px;background:var(--panel);font-family:var(--mono);font-size:12.5px;max-width:420px}
+.guide .gmock .r{display:flex;gap:8px;align-items:center;margin:8px 0;flex-wrap:wrap}
+.guide .gmock .in{border:1px solid var(--line);border-radius:6px;padding:5px 10px;background:var(--bg)}
+.guide .gmock .bt{border-radius:6px;padding:5px 10px;background:var(--line);font-weight:700}
+.guide .gmock .bt.pri{background:var(--accent);color:#1b1404}
+.guide .gmock .t{color:var(--dim);margin-bottom:6px}
+.guide code{background:var(--panel2);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:12.5px}
 .pbtns{position:absolute;display:flex;gap:3px;z-index:2}
 .pbtns button{width:24px;height:18px;padding:0;font-size:12px;line-height:1;border:1px solid var(--line);background:var(--panel2);color:var(--dim);border-radius:4px}
 .pbtns button:hover{color:var(--fg);border-color:var(--accent)}
@@ -373,7 +391,7 @@ td.ja{font-family:var(--sans)}
 <div id="demoBar" hidden>デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。</div>
 <div id="acctBar" hidden><span class="dim">口座アドレス（公開情報。秘密鍵ではありません）</span><input id="addr" spellcheck="false" placeholder="0x…"></div>
 
-<nav id="pages"><button data-p="trade">📈 トレード</button><button data-p="multi">▦ 4画面チャート</button><button data-p="list">📊 銘柄一覧</button></nav>
+<nav id="pages"><button data-p="trade">📈 トレード</button><button data-p="multi">▦ 4画面チャート</button><button data-p="list">📊 銘柄一覧</button><button data-p="help">❓ 使い方</button></nav>
 <div id="strip">
   <div class="mkt" id="mkt"><button data-v="perp">先物（レバレッジ）</button><button data-v="spot">現物</button></div>
   <nav id="coins" aria-label="銘柄"></nav>
@@ -482,6 +500,8 @@ td.ja{font-family:var(--sans)}
   <div class="mq"><div class="seg" id="lTabs"><button data-v="perp">先物（レバレッジ）</button><button data-v="spot">現物</button></div><input id="lQ" placeholder="銘柄を検索（例: BTC）" autocomplete="off" spellcheck="false"><div class="chips" id="lSort"></div></div>
   <div id="lsBody"></div>
 </div>
+<!-- 使い方 -->
+<div id="vHelp" class="view" hidden></div>
 <!-- 銘柄をえらぶ窓 -->
 <div id="picker" hidden><div class="pbox">
   <div class="phead"><b>銘柄をえらぶ</b><button id="pClose" type="button">閉じる</button></div>
@@ -1017,6 +1037,89 @@ ko: {
   "接続を外しました": "연결을 해제했습니다",
   "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "데모 표시: 가상의 데이터입니다. 거래소에 연결되어 있지 않습니다 (주문도 실제로 나가지 않습니다).",
   "デモの暗証番号は {0} です。": "데모용 PIN은 {0}입니다.",
+  "はじめに（画面の見方）": "시작하기 (화면 보는 법)",
+  "この画面は、取引所 Hyperliquid に、あなたのウォレットからつないで取引するための画面です。お金は取引所のあなたの口座にあり、この画面は預かりません。": "이 화면은 내 지갑을 거래소 Hyperliquid에 연결해 거래하기 위한 화면입니다. 자금은 거래소의 내 계좌에 있으며, 이 화면은 자금을 맡아 두지 않습니다.",
+  "最初は「練習モード」です。ボタンを押しても注文の中身を確認する画面が出るだけで、取引所には何も送られません。本番にする方法は「注文用の鍵」の項目を見てください。": "처음에는 \"연습 모드\"입니다. 버튼을 눌러도 주문 내용을 확인하는 화면만 나오고 거래소에는 아무것도 전송되지 않습니다. 실전으로 바꾸는 방법은 \"주문용 키\" 항목을 보세요.",
+  "画面の見方（数字は下の説明と同じです）": "화면 보는 법 (숫자는 아래 설명과 같습니다)",
+  "<b>①</b> 右上の「ウォレット接続」：ウォレットをつなぐボタンです。つなぐと短いアドレスの表示に変わります。": "<b>①</b> 오른쪽 위 \"지갑 연결\": 지갑을 연결하는 버튼입니다. 연결하면 짧은 주소 표시로 바뀝니다.",
+  "<b>②</b> 上の帯：銘柄（BTC・ETH など）。★で好きな銘柄を入れ替えられ、「すべての銘柄」から全部の中を探せます。": "<b>②</b> 위쪽 띠: 종목(BTC·ETH 등). ★로 원하는 종목으로 바꿀 수 있고, \"모든 종목\"에서 전체를 찾을 수 있습니다.",
+  "<b>③</b> チャート：ローソク足の画面です。使い方は「チャート」の項目を見てください。": "<b>③</b> 차트: 캔들 차트 화면입니다. 사용법은 \"차트\" 항목을 보세요.",
+  "<b>④</b> 板：いま出ている売り注文（赤）と買い注文（緑）です。値段の行を押すと、その値段で指値の注文になります。": "<b>④</b> 호가창: 현재 나와 있는 매도 주문(빨강)과 매수 주문(초록)입니다. 가격 줄을 누르면 그 가격의 지정가 주문이 됩니다.",
+  "<b>⑤</b> 注文の欄：ロング・ショートや数量を決めて注文します。": "<b>⑤</b> 주문란: 롱·숏과 수량을 정해 주문합니다.",
+  "<b>⑥</b> 下の表：ポジション・待ち注文・約定履歴などです。決済もここからできます。": "<b>⑥</b> 아래 표: 포지션·대기 주문·체결 내역 등입니다. 청산도 여기서 할 수 있습니다.",
+  "ウォレットをつなぐ": "지갑 연결하기",
+  "右上の「ウォレット接続」を押します。": "오른쪽 위 \"지갑 연결\"을 누릅니다.",
+  "つなぐウォレットを選びます。パソコンに入っている MetaMask・Rabby・Phantom などが一覧に出ます。入っていないとき（スマホなど）は「WalletConnect」を選び、QR をスマホのウォレットで読み取ります。": "연결할 지갑을 선택합니다. 컴퓨터에 설치된 MetaMask·Rabby·Phantom 등이 목록에 나옵니다. 없을 때(스마트폰 등)는 \"WalletConnect\"를 선택하고 QR을 스마트폰 지갑으로 읽습니다.",
+  "ウォレットの画面で、接続を許可します。": "지갑 화면에서 연결을 허용합니다.",
+  "右上に短いアドレスが出たら完了です。ボタンを押すと、アドレスのコピー・ウォレットの切り替え・接続を外すができます。": "오른쪽 위에 짧은 주소가 나오면 완료입니다. 버튼을 누르면 주소 복사·지갑 전환·연결 해제를 할 수 있습니다.",
+  "ウォレットを選ぶ画面": "지갑을 선택하는 화면",
+  "Phantom を使うときは、Solana ではなく <b>EVM（0x で始まるアドレス）</b>のほうをつないでください。": "Phantom을 사용할 때는 Solana가 아니라 <b>EVM(0x로 시작하는 주소)</b> 쪽을 연결하세요.",
+  "ウォレットをつなぐだけでは注文は出せません。注文には、次の「注文用の鍵」が必要です。": "지갑을 연결하는 것만으로는 주문을 낼 수 없습니다. 주문에는 다음 \"주문용 키\"가 필요합니다.",
+  "口座のアドレスは公開されている情報で、秘密鍵ではありません。": "계좌 주소는 공개된 정보이며 비밀 키가 아닙니다.",
+  "注文用の鍵（API ウォレット）": "주문용 키 (API 지갑)",
+  "取引所に注文を出すには署名が要ります。毎回ウォレットで署名する代わりに、<b>注文だけができる「鍵」</b>をこの端末の中に作っておきます。この鍵では、出金や送金はできません。": "거래소에 주문을 내려면 서명이 필요합니다. 매번 지갑으로 서명하는 대신 <b>주문만 할 수 있는 \"키\"</b>를 이 기기 안에 만들어 둡니다. 이 키로는 출금이나 송금을 할 수 없습니다.",
+  "A. 自動で作る（おすすめ）": "A. 자동으로 만들기 (추천)",
+  "先にウォレットをつなぎます。": "먼저 지갑을 연결합니다.",
+  "上の「練習モード」のボタンを押します。": "위의 \"연습 모드\" 버튼을 누릅니다.",
+  "暗証番号（数字6〜12桁）を2回入れます。この端末で鍵を開けるときに使います。忘れないようにしてください。": "비밀번호(숫자 6~12자리)를 두 번 입력합니다. 이 기기에서 키를 열 때 사용합니다. 잊지 않도록 하세요.",
+  "「ウォレットをつないで鍵を作る」を押し、ウォレットの署名画面で署名します。これで鍵が口座に登録されます。": "\"지갑을 연결하고 키 만들기\"를 누르고 지갑의 서명 화면에서 서명합니다. 이것으로 키가 계좌에 등록됩니다.",
+  "「つながりを確かめる（お金は動きません）」を一度押して、取引所が受け付けるか確かめます。": "\"연결 확인(돈은 움직이지 않습니다)\"을 한 번 눌러 거래소가 받아들이는지 확인합니다.",
+  "「本番」に切り替えると、注文が実際に出るようになります。": "\"실전\"으로 바꾸면 주문이 실제로 나갑니다.",
+  "本番の注文の設定の画面": "실전 주문 설정 화면",
+  "B. 自分で作る（Hyperliquid の API の画面）": "B. 직접 만들기 (Hyperliquid의 API 화면)",
+  "すでに作った鍵があるとき、または自分で作りたいときの方法です。": "이미 만든 키가 있거나 직접 만들고 싶을 때의 방법입니다.",
+  "<code>app.hyperliquid.xyz</code> を開き、同じウォレットをつなぎます。": "<code>app.hyperliquid.xyz</code>를 열고 같은 지갑을 연결합니다.",
+  "メニューの「More」から「API」を開きます。": "메뉴의 \"More\"에서 \"API\"를 엽니다.",
+  "鍵の名前を入れて「Generate」を押します。": "키 이름을 입력하고 \"Generate\"를 누릅니다.",
+  "「Authorize API Wallet」を押し、ウォレットで署名します。": "\"Authorize API Wallet\"을 누르고 지갑으로 서명합니다.",
+  "表示される秘密鍵（0x で始まる長い文字）を、その場でコピーします。この鍵は、あとからは見られません。": "표시되는 비밀 키(0x로 시작하는 긴 문자)를 그 자리에서 복사합니다. 이 키는 나중에는 볼 수 없습니다.",
+  "この画面の本番の設定にある「すでに作った鍵を使う」を開き、貼り付けて暗証番号をかけて保存します。": "이 화면의 실전 설정에 있는 \"이미 만든 키 사용\"을 열고 붙여넣은 뒤 비밀번호를 걸어 저장합니다.",
+  "イメージ図（実際の画面とは少し違うことがあります）": "이미지 도해 (실제 화면과 조금 다를 수 있습니다)",
+  "秘密鍵は人に見せないでください。この画面は、鍵を暗証番号をかけてこの端末の中だけに保存し、取引所にも他のどこにも送りません。使わなくなったら、設定の「鍵を消す」で消せます。": "비밀 키는 다른 사람에게 보여주지 마세요. 이 화면은 키를 비밀번호로 잠가 이 기기 안에만 저장하며, 거래소나 다른 어디에도 보내지 않습니다. 쓰지 않게 되면 설정의 \"키 삭제\"로 지울 수 있습니다.",
+  "注文の出し方": "주문하는 방법",
+  "注文の欄": "주문란",
+  "<b>①</b> ロング（上がると思うとき）か、ショート（下がると思うとき）を選びます。": "<b>①</b> 롱(오를 것 같을 때) 또는 숏(내릴 것 같을 때)을 선택합니다.",
+  "<b>②</b> 注文の種類：成行（すぐ約定）・指値（その値段で待つ）・逆指値（届いたら成行）。": "<b>②</b> 주문 종류: 시장가(즉시 체결)·지정가(그 가격에서 대기)·스톱(도달하면 시장가).",
+  "<b>③</b> 注文額（USD）：レバレッジをかけた後の建玉の大きさです。10%・25%…のボタンは、使える余力に対する割合です。": "<b>③</b> 주문 금액(USD): 레버리지를 적용한 뒤의 포지션 크기입니다. 10%·25%… 버튼은 사용 가능 여력에 대한 비율입니다.",
+  "<b>④</b> レバレッジと担保の方式。クロスは口座全体、分離はその建玉だけを担保にします。": "<b>④</b> 레버리지와 증거금 방식. 교차는 계좌 전체, 격리는 그 포지션만 담보로 합니다.",
+  "<b>⑤</b> 「利確と損切りも一緒に入れる」にすると、決めた値段で自動で決済する注文も一緒に出ます。": "<b>⑤</b> \"익절과 손절도 함께 설정\"을 켜면 정한 가격에서 자동으로 청산하는 주문도 함께 나갑니다.",
+  "<b>⑥</b> ロング／ショートのボタンを押すと確認画面が出ます。中身を確かめてから「注文する」を押します。": "<b>⑥</b> 롱/숏 버튼을 누르면 확인 화면이 나옵니다. 내용을 확인한 뒤 \"주문하기\"를 누릅니다.",
+  "1回の注文額は、約 10 ドル以上が必要です。": "1회 주문 금액은 약 10달러 이상이어야 합니다.",
+  "持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。": "가진 포지션과 반대 방향으로 주문하면 먼저 그 포지션을 청산하고 나머지가 새 포지션이 됩니다(반대 전환). 수량 아래에 내역이 표시됩니다.",
+  "現物は、現物の口座にある USDC で買います。先物の口座とは別です。": "현물은 현물 계좌에 있는 USDC로 매수합니다. 선물 계좌와는 별개입니다.",
+  "チャート": "차트",
+  "チャートの上のボタン": "차트 위의 버튼",
+  "<b>1分〜月足</b>：足の長さを変えます。": "<b>1분~월봉</b>: 봉의 길이를 바꿉니다.",
+  "<b>＋ −</b>：拡大・縮小（ピンチやマウスのホイールでもできます）。": "<b>＋ −</b>: 확대·축소(핀치나 마우스 휠로도 가능합니다).",
+  "<b>縦自動</b>：縦の縮尺を自動に戻します。右の目盛りを上下にドラッグすると、縦の縮尺を変えられます。": "<b>세로 자동</b>: 세로 축척을 자동으로 되돌립니다. 오른쪽 눈금을 위아래로 드래그하면 세로 축척을 바꿀 수 있습니다.",
+  "<b>最新</b>：いちばん新しい足に戻ります。": "<b>최신</b>: 가장 최근 봉으로 돌아갑니다.",
+  "<b>平均線</b>：移動平均線（7・25・75本）の表示を切り替えます。": "<b>이평선</b>: 이동평균선(7·25·75개) 표시를 전환합니다.",
+  "<b>指標</b>：EMA・ボリンジャーバンド・VWAP を重ね、RSI・MACD を下の別枠に出せます。別枠は右上のボタンで、小さくたたむ・消すができます。": "<b>지표</b>: EMA·볼린저 밴드·VWAP를 겹쳐 표시하고, RSI·MACD를 아래 별도 창에 표시할 수 있습니다. 별도 창은 오른쪽 위 버튼으로 작게 접거나 지울 수 있습니다.",
+  "<b>全画面</b>：チャートを画面いっぱいに出します。": "<b>전체 화면</b>: 차트를 화면 가득 표시합니다.",
+  "<b>線を動かす</b>：押してから30秒だけ、建値・損切り・利確・待ち注文の線をドラッグで動かせます。離すと確認が出ます。": "<b>선 움직이기</b>: 누른 뒤 30초 동안만 진입가·손절·익절·대기 주문의 선을 드래그로 움직일 수 있습니다. 놓으면 확인이 나옵니다.",
+  "<b>✏ 線を引く</b>：水平線とトレンドラインを引けます。": "<b>✏ 선 그리기</b>: 수평선과 추세선을 그을 수 있습니다.",
+  "チャートを長押し（パソコンは右クリック）すると、その値段への注文を出せます。": "차트를 길게 누르면(컴퓨터는 오른쪽 클릭) 그 가격에 주문을 낼 수 있습니다.",
+  "4画面チャートと銘柄一覧": "4분할 차트와 종목 목록",
+  "4画面チャート": "4분할 차트",
+  "4つの銘柄を同時に並べて見る画面です。それぞれの上で銘柄と足の長さを変えられます。「全部同じ銘柄に」で、4つとも同じ銘柄にそろえます。気になるチャートの「開く」を押すと、トレード画面でその銘柄を開きます。": "4개 종목을 동시에 나란히 보는 화면입니다. 각 차트 위에서 종목과 봉 길이를 바꿀 수 있습니다. \"모두 같은 종목으로\"를 누르면 4개를 같은 종목으로 맞춥니다. 관심 있는 차트의 \"열기\"를 누르면 트레이드 화면에서 그 종목이 열립니다.",
+  "銘柄一覧": "종목 목록",
+  "Hyperliquid にある先物と現物のすべての銘柄を、一覧で見られます。上の並べ替えのボタンで、出来高・上昇率・下落率などの順にできます。検索もできます。銘柄の行を押すと、トレード画面でその銘柄を開きます。": "Hyperliquid에 있는 선물과 현물의 모든 종목을 목록으로 볼 수 있습니다. 위의 정렬 버튼으로 거래량·상승률·하락률 등의 순서로 정렬할 수 있고, 검색도 할 수 있습니다. 종목 줄을 누르면 트레이드 화면에서 그 종목이 열립니다.",
+  "手数料と安全のこと": "수수료와 안전",
+  "取引にかかる手数料は、Hyperliquid が決めたものです。成行（すぐ約定）は高め、指値で板に置くと安めです。": "거래 수수료는 Hyperliquid가 정한 것입니다. 시장가(즉시 체결)는 높은 편이고, 지정가로 호가창에 두면 낮은 편입니다.",
+  "この画面の運営者が受け取る手数料（ビルダーコード）が設定されているときは、最初に一度、ウォレットの署名で承認が必要です。承認画面に料率が出ます。いつでも取り消せます。": "이 화면의 운영자가 받는 수수료(빌더 코드)가 설정되어 있을 때는 처음에 한 번 지갑 서명으로 승인해야 합니다. 승인 화면에 요율이 표시됩니다. 언제든 취소할 수 있습니다.",
+  "注文用の鍵は、この端末の中だけに暗証番号をかけて保存されます。鍵では出金も送金もできません。": "주문용 키는 이 기기 안에만 비밀번호를 걸어 저장됩니다. 이 키로는 출금도 송금도 할 수 없습니다.",
+  "暗証番号を忘れたときは、設定の「鍵を消す」で消して、作り直してください。": "비밀번호를 잊었을 때는 설정의 \"키 삭제\"로 지우고 다시 만드세요.",
+  "この画面は取引の利益を保証するものではありません。レバレッジをかけると、損失が大きくなることがあります。自分で決めた範囲で使ってください。": "이 화면은 거래 수익을 보장하지 않습니다. 레버리지를 사용하면 손실이 커질 수 있습니다. 스스로 정한 범위 안에서 사용하세요.",
+  "よくある質問": "자주 묻는 질문",
+  "「余力が足りません」と出る": "\"여력이 부족합니다\"라고 나온다",
+  "使える余力より、必要な証拠金が大きいときに出ます。数量を減らすか、レバレッジを上げてください。反対向きの注文は、持っているポジションの分は証拠金が要りません。": "필요한 증거금이 사용 가능한 여력보다 클 때 나옵니다. 수량을 줄이거나 레버리지를 높이세요. 반대 방향 주문은 가진 포지션만큼은 증거금이 필요 없습니다.",
+  "現物が買えない": "현물을 살 수 없다",
+  "現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。": "현물은 현물 계좌의 USDC로 매수합니다. 선물 계좌에 있는 돈은 거래소 화면에서 현물 계좌로 옮기세요.",
+  "「鍵が口座に登録されていません」と出る": "\"키가 계좌에 등록되어 있지 않습니다\"라고 나온다",
+  "鍵の有効期限が切れたか、別の口座の鍵かもしれません。本番の設定から、鍵を作り直してください。": "키의 유효 기간이 지났거나 다른 계좌의 키일 수 있습니다. 실전 설정에서 키를 다시 만드세요.",
+  "スマホで使いたい": "스마트폰에서 사용하고 싶다",
+  "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari만으로는 지갑을 찾을 수 없으므로, 지갑 앱 안의 브라우저로 열거나 \"지갑 연결\"에서 WalletConnect를 선택해 스마트폰 지갑 앱에 연결하세요.",
+  "使い方ガイド": "사용 가이드",
   "銘柄情報を取れませんでした: ": "종목 정보를 가져오지 못했습니다: ",
   "HL トレード画面": "HL 트레이딩",
   "口座残高": "계좌 잔고",
@@ -1035,6 +1138,7 @@ ko: {
   "📈 トレード": "📈 트레이드",
   "▦ 4画面チャート": "▦ 4분할 차트",
   "📊 銘柄一覧": "📊 종목 목록",
+  "❓ 使い方": "❓ 사용법",
   "先物（レバレッジ）": "선물 (레버리지)",
   "現物": "현물",
   "🔍 すべての銘柄": "🔍 모든 종목",
@@ -1062,12 +1166,10 @@ ko: {
   "約定履歴": "체결 내역",
   "注文履歴": "주문 내역",
   "集計": "집계",
-  "4画面チャート": "4분할 차트",
   "銘柄と足は各チャートの上で変えられます": "종목과 봉은 각 차트 위에서 바꿀 수 있습니다",
   "1列": "1열",
   "2列": "2열",
   "全部同じ銘柄に": "모두 같은 종목으로",
-  "銘柄一覧": "종목 목록",
   "銘柄をえらぶ": "종목 선택",
   "見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。": "연습 모드이므로 이 주문은 전송되지 않았습니다. 실전 주문을 낼 수 있게 되는 것은 '실전으로 사용'하기로 결정한 다음입니다.",
   "変更する": "변경하기",
@@ -1604,6 +1706,89 @@ en: {
   "接続を外しました": "Disconnected",
   "デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。": "Demo: this is simulated data. It is not connected to the exchange (no real orders are sent).",
   "デモの暗証番号は {0} です。": "The demo PIN is {0}.",
+  "はじめに（画面の見方）": "Getting started (reading the screen)",
+  "この画面は、取引所 Hyperliquid に、あなたのウォレットからつないで取引するための画面です。お金は取引所のあなたの口座にあり、この画面は預かりません。": "This screen lets you connect your own wallet to the Hyperliquid exchange and trade. Your funds stay in your account on the exchange; this screen never holds them.",
+  "最初は「練習モード」です。ボタンを押しても注文の中身を確認する画面が出るだけで、取引所には何も送られません。本番にする方法は「注文用の鍵」の項目を見てください。": "You start in \"Practice mode\". Pressing a button only shows a screen to check the order; nothing is sent to the exchange. See \"Order key\" below to switch to live trading.",
+  "画面の見方（数字は下の説明と同じです）": "Reading the screen (numbers match the list below)",
+  "<b>①</b> 右上の「ウォレット接続」：ウォレットをつなぐボタンです。つなぐと短いアドレスの表示に変わります。": "<b>①</b> \"Connect wallet\" at the top right: connects your wallet. Once connected it shows your short address.",
+  "<b>②</b> 上の帯：銘柄（BTC・ETH など）。★で好きな銘柄を入れ替えられ、「すべての銘柄」から全部の中を探せます。": "<b>②</b> Top strip: markets (BTC, ETH, etc.). Use ★ to choose your favorites, or \"All markets\" to search everything.",
+  "<b>③</b> チャート：ローソク足の画面です。使い方は「チャート」の項目を見てください。": "<b>③</b> Chart: the candlestick chart. See the \"Chart\" section for how to use it.",
+  "<b>④</b> 板：いま出ている売り注文（赤）と買い注文（緑）です。値段の行を押すと、その値段で指値の注文になります。": "<b>④</b> Order book: current sell orders (red) and buy orders (green). Tap a price row to set a limit order at that price.",
+  "<b>⑤</b> 注文の欄：ロング・ショートや数量を決めて注文します。": "<b>⑤</b> Order panel: choose long or short and the size, then place the order.",
+  "<b>⑥</b> 下の表：ポジション・待ち注文・約定履歴などです。決済もここからできます。": "<b>⑥</b> Table below: positions, open orders, trade history, and more. You can close positions here too.",
+  "ウォレットをつなぐ": "Connect a wallet",
+  "右上の「ウォレット接続」を押します。": "Press \"Connect wallet\" at the top right.",
+  "つなぐウォレットを選びます。パソコンに入っている MetaMask・Rabby・Phantom などが一覧に出ます。入っていないとき（スマホなど）は「WalletConnect」を選び、QR をスマホのウォレットで読み取ります。": "Choose the wallet to connect. MetaMask, Rabby, Phantom, etc. installed on your computer appear in the list. If none is installed (for example on a phone), choose \"WalletConnect\" and scan the QR with your phone wallet.",
+  "ウォレットの画面で、接続を許可します。": "Approve the connection in your wallet.",
+  "右上に短いアドレスが出たら完了です。ボタンを押すと、アドレスのコピー・ウォレットの切り替え・接続を外すができます。": "When your short address appears at the top right, you are connected. Press the button to copy the address, switch wallets, or disconnect.",
+  "ウォレットを選ぶ画面": "The wallet chooser",
+  "Phantom を使うときは、Solana ではなく <b>EVM（0x で始まるアドレス）</b>のほうをつないでください。": "If you use Phantom, connect its <b>EVM (address starting with 0x)</b> account, not Solana.",
+  "ウォレットをつなぐだけでは注文は出せません。注文には、次の「注文用の鍵」が必要です。": "Connecting a wallet alone does not let you place orders. You also need the \"order key\" described next.",
+  "口座のアドレスは公開されている情報で、秘密鍵ではありません。": "Your account address is public information, not a private key.",
+  "注文用の鍵（API ウォレット）": "Order key (API wallet)",
+  "取引所に注文を出すには署名が要ります。毎回ウォレットで署名する代わりに、<b>注文だけができる「鍵」</b>をこの端末の中に作っておきます。この鍵では、出金や送金はできません。": "Placing orders requires a signature. Instead of signing in your wallet every time, you create an <b>\"key\" that can only place orders</b> and keep it on this device. This key cannot withdraw or transfer funds.",
+  "A. 自動で作る（おすすめ）": "A. Create it automatically (recommended)",
+  "先にウォレットをつなぎます。": "Connect your wallet first.",
+  "上の「練習モード」のボタンを押します。": "Press the \"Practice mode\" button at the top.",
+  "暗証番号（数字6〜12桁）を2回入れます。この端末で鍵を開けるときに使います。忘れないようにしてください。": "Enter a PIN (6 to 12 digits) twice. You use it to unlock the key on this device. Do not forget it.",
+  "「ウォレットをつないで鍵を作る」を押し、ウォレットの署名画面で署名します。これで鍵が口座に登録されます。": "Press \"Connect wallet & create key\", then sign in your wallet. This registers the key to your account.",
+  "「つながりを確かめる（お金は動きません）」を一度押して、取引所が受け付けるか確かめます。": "Press \"Test the connection (no money moves)\" once to confirm the exchange accepts it.",
+  "「本番」に切り替えると、注文が実際に出るようになります。": "Switch to \"Live\" and orders are actually sent.",
+  "本番の注文の設定の画面": "The live trading setup screen",
+  "B. 自分で作る（Hyperliquid の API の画面）": "B. Create it yourself (Hyperliquid API page)",
+  "すでに作った鍵があるとき、または自分で作りたいときの方法です。": "Use this if you already have a key or want to create one yourself.",
+  "<code>app.hyperliquid.xyz</code> を開き、同じウォレットをつなぎます。": "Open <code>app.hyperliquid.xyz</code> and connect the same wallet.",
+  "メニューの「More」から「API」を開きます。": "Open \"API\" from the \"More\" menu.",
+  "鍵の名前を入れて「Generate」を押します。": "Enter a name for the key and press \"Generate\".",
+  "「Authorize API Wallet」を押し、ウォレットで署名します。": "Press \"Authorize API Wallet\" and sign in your wallet.",
+  "表示される秘密鍵（0x で始まる長い文字）を、その場でコピーします。この鍵は、あとからは見られません。": "Copy the private key shown (a long string starting with 0x) right away. You cannot view it again later.",
+  "この画面の本番の設定にある「すでに作った鍵を使う」を開き、貼り付けて暗証番号をかけて保存します。": "On this screen, open \"Use a key I already made\" in the live setup, paste it, and save it with a PIN.",
+  "イメージ図（実際の画面とは少し違うことがあります）": "Illustration (the real screen may look a little different)",
+  "秘密鍵は人に見せないでください。この画面は、鍵を暗証番号をかけてこの端末の中だけに保存し、取引所にも他のどこにも送りません。使わなくなったら、設定の「鍵を消す」で消せます。": "Never show your private key to anyone. This screen stores the key locked with your PIN only on this device and never sends it to the exchange or anywhere else. When you stop using it, delete it with \"Delete key\" in the settings.",
+  "注文の出し方": "How to place an order",
+  "注文の欄": "The order panel",
+  "<b>①</b> ロング（上がると思うとき）か、ショート（下がると思うとき）を選びます。": "<b>①</b> Choose long (you expect a rise) or short (you expect a fall).",
+  "<b>②</b> 注文の種類：成行（すぐ約定）・指値（その値段で待つ）・逆指値（届いたら成行）。": "<b>②</b> Order type: market (fills right away), limit (waits at that price), stop (becomes a market order when reached).",
+  "<b>③</b> 注文額（USD）：レバレッジをかけた後の建玉の大きさです。10%・25%…のボタンは、使える余力に対する割合です。": "<b>③</b> Order amount (USD): the position size after leverage. The 10%, 25%… buttons are fractions of your available margin.",
+  "<b>④</b> レバレッジと担保の方式。クロスは口座全体、分離はその建玉だけを担保にします。": "<b>④</b> Leverage and margin mode. Cross uses your whole account as collateral; isolated uses only that position.",
+  "<b>⑤</b> 「利確と損切りも一緒に入れる」にすると、決めた値段で自動で決済する注文も一緒に出ます。": "<b>⑤</b> Turn on \"Also set take profit and stop loss\" to also send orders that close automatically at the prices you set.",
+  "<b>⑥</b> ロング／ショートのボタンを押すと確認画面が出ます。中身を確かめてから「注文する」を押します。": "<b>⑥</b> Press the Long/Short button to open a confirmation screen. Check the details, then press \"Place order\".",
+  "1回の注文額は、約 10 ドル以上が必要です。": "Each order must be worth about 10 dollars or more.",
+  "持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。": "If you order in the opposite direction of a position you hold, that position is closed first and the rest becomes a new position (a flip). A breakdown appears under the size.",
+  "現物は、現物の口座にある USDC で買います。先物の口座とは別です。": "Spot trades use the USDC in your spot account, which is separate from your perpetuals account.",
+  "チャート": "Chart",
+  "チャートの上のボタン": "Buttons above the chart",
+  "<b>1分〜月足</b>：足の長さを変えます。": "<b>1m to 1M</b>: change the candle length.",
+  "<b>＋ −</b>：拡大・縮小（ピンチやマウスのホイールでもできます）。": "<b>+ −</b>: zoom in and out (pinching or the mouse wheel works too).",
+  "<b>縦自動</b>：縦の縮尺を自動に戻します。右の目盛りを上下にドラッグすると、縦の縮尺を変えられます。": "<b>Auto Y</b>: reset the vertical scale to automatic. Drag the right-hand scale up or down to change it.",
+  "<b>最新</b>：いちばん新しい足に戻ります。": "<b>Latest</b>: jump back to the newest candle.",
+  "<b>平均線</b>：移動平均線（7・25・75本）の表示を切り替えます。": "<b>MA</b>: toggle the moving averages (7, 25, 75).",
+  "<b>指標</b>：EMA・ボリンジャーバンド・VWAP を重ね、RSI・MACD を下の別枠に出せます。別枠は右上のボタンで、小さくたたむ・消すができます。": "<b>Indicators</b>: overlay EMA, Bollinger Bands, and VWAP, and show RSI and MACD in panes below. Use the buttons at the top right of a pane to minimize or remove it.",
+  "<b>全画面</b>：チャートを画面いっぱいに出します。": "<b>Fullscreen</b>: show the chart across the whole screen.",
+  "<b>線を動かす</b>：押してから30秒だけ、建値・損切り・利確・待ち注文の線をドラッグで動かせます。離すと確認が出ます。": "<b>Move lines</b>: for 30 seconds after pressing it, you can drag the lines for entry, stop-loss, take-profit, and open orders. A confirmation appears when you let go.",
+  "<b>✏ 線を引く</b>：水平線とトレンドラインを引けます。": "<b>✏ Draw</b>: draw horizontal lines and trend lines.",
+  "チャートを長押し（パソコンは右クリック）すると、その値段への注文を出せます。": "Long-press the chart (right-click on a computer) to place an order at that price.",
+  "4画面チャートと銘柄一覧": "4-chart view and market list",
+  "4画面チャート": "4-chart view",
+  "4つの銘柄を同時に並べて見る画面です。それぞれの上で銘柄と足の長さを変えられます。「全部同じ銘柄に」で、4つとも同じ銘柄にそろえます。気になるチャートの「開く」を押すと、トレード画面でその銘柄を開きます。": "View four markets side by side. You can change the market and candle length above each chart. \"Same market for all\" sets all four to one market. Press \"Open\" on a chart to open that market on the trade screen.",
+  "銘柄一覧": "Markets",
+  "Hyperliquid にある先物と現物のすべての銘柄を、一覧で見られます。上の並べ替えのボタンで、出来高・上昇率・下落率などの順にできます。検索もできます。銘柄の行を押すと、トレード画面でその銘柄を開きます。": "See every perpetual and spot market on Hyperliquid in one list. Use the sort buttons to order by volume, gainers, losers, and more, or search. Press a row to open that market on the trade screen.",
+  "手数料と安全のこと": "Fees and safety",
+  "取引にかかる手数料は、Hyperliquid が決めたものです。成行（すぐ約定）は高め、指値で板に置くと安めです。": "Trading fees are set by Hyperliquid. Market orders (filled right away) cost more; limit orders resting on the book cost less.",
+  "この画面の運営者が受け取る手数料（ビルダーコード）が設定されているときは、最初に一度、ウォレットの署名で承認が必要です。承認画面に料率が出ます。いつでも取り消せます。": "When a fee for this screen's operator (a builder code) is set, you approve it once with a wallet signature. The rate is shown on the approval screen, and you can revoke it at any time.",
+  "注文用の鍵は、この端末の中だけに暗証番号をかけて保存されます。鍵では出金も送金もできません。": "The order key is stored only on this device, locked with your PIN. It cannot withdraw or transfer funds.",
+  "暗証番号を忘れたときは、設定の「鍵を消す」で消して、作り直してください。": "If you forget your PIN, delete the key with \"Delete key\" in the settings and create a new one.",
+  "この画面は取引の利益を保証するものではありません。レバレッジをかけると、損失が大きくなることがあります。自分で決めた範囲で使ってください。": "This screen does not guarantee any profit. Leverage can make losses larger. Use it only within limits you have set yourself.",
+  "よくある質問": "FAQ",
+  "「余力が足りません」と出る": "\"Not enough available margin\" appears",
+  "使える余力より、必要な証拠金が大きいときに出ます。数量を減らすか、レバレッジを上げてください。反対向きの注文は、持っているポジションの分は証拠金が要りません。": "This appears when the required margin is larger than your available margin. Reduce the size or raise the leverage. An opposite-direction order needs no margin for the part that closes your existing position.",
+  "現物が買えない": "I can't buy spot",
+  "現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。": "Spot is bought with the USDC in your spot account. Move money from your perpetuals account to your spot account on the exchange.",
+  "「鍵が口座に登録されていません」と出る": "\"The key is not registered to the account\" appears",
+  "鍵の有効期限が切れたか、別の口座の鍵かもしれません。本番の設定から、鍵を作り直してください。": "The key may have expired or belong to a different account. Create a new key from the live setup.",
+  "スマホで使いたい": "I want to use it on my phone",
+  "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari alone cannot find a wallet. Open this page in the browser inside your wallet app, or choose WalletConnect in \"Connect wallet\" to link your phone wallet app.",
+  "使い方ガイド": "User guide",
   "銘柄情報を取れませんでした: ": "Couldn't load market info: ",
   "HL トレード画面": "HL Trading",
   "口座残高": "Account value",
@@ -1622,6 +1807,7 @@ en: {
   "📈 トレード": "📈 Trade",
   "▦ 4画面チャート": "▦ 4-chart view",
   "📊 銘柄一覧": "📊 Markets",
+  "❓ 使い方": "❓ Guide",
   "先物（レバレッジ）": "Perps (leverage)",
   "現物": "Spot",
   "🔍 すべての銘柄": "🔍 All markets",
@@ -1649,12 +1835,10 @@ en: {
   "約定履歴": "Fills",
   "注文履歴": "Order history",
   "集計": "Summary",
-  "4画面チャート": "4-chart view",
   "銘柄と足は各チャートの上で変えられます": "Change the market and interval above each chart",
   "1列": "1 col",
   "2列": "2 cols",
   "全部同じ銘柄に": "Same market for all",
-  "銘柄一覧": "Markets",
   "銘柄をえらぶ": "Choose a market",
   "見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。": "This is practice mode, so this order was not sent. Live orders become possible only after you decide to go live.",
   "変更する": "Confirm",
@@ -2120,15 +2304,16 @@ async function loadMyFills(){
 }
 
 // ===== ページ（タブ）の切り替え =====
-S.page = store.get('page', 'trade'); if (!['trade','multi','list'].includes(S.page)) S.page = 'trade';
+S.page = store.get('page', 'trade'); if (!['trade','multi','list','help'].includes(S.page)) S.page = 'trade';
 function setPage(pg){
   S.page = pg; store.set('page', pg);
   [...$('pages').children].forEach(b => b.classList.toggle('sel', b.dataset.p === pg));
   const trade = pg === 'trade';
   $('strip').hidden = !trade; document.querySelector('main').hidden = !trade;
-  $('vMulti').hidden = pg !== 'multi'; $('vList').hidden = pg !== 'list';
+  $('vMulti').hidden = pg !== 'multi'; $('vList').hidden = pg !== 'list'; $('vHelp').hidden = pg !== 'help';
   if (pg === 'multi') MC.show(); else MC.hide();
   if (pg === 'list') renderList();
+  if (pg === 'help'){ GUIDE.render(); scrollTo(0, 0); }
   if (trade) setTimeout(() => chart.resize(), 30);
 }
 $('pages').onclick = e => { const b = e.target.closest('button'); if (b) setPage(b.dataset.p); };
@@ -4035,8 +4220,68 @@ function relocalize(){
   $('fsBtn').textContent = $('chartBox').classList.contains('fs') ? _('戻る') : _('全画面');
   $('bigBtn').textContent = document.querySelector('main').classList.contains('big') ? _('元に戻す') : _('広げる');
   $('drawBtn').textContent = drawBtnText();
-  renderAcct(); renderAll(); MC.refreshCoins(); renderMarketViews(); renderFav(); renderDemoBar(); renderWallet();
+  renderAcct(); renderAll(); MC.refreshCoins(); renderMarketViews(); renderFav(); renderDemoBar(); renderWallet(); if (S.page === 'help') GUIDE.render();
 }
+
+// ===== 使い方ガイド（画面の見方・ウォレット・鍵・注文・チャート）=====
+const GUIDE = (() => {
+  const fig = (n, cap) => `<figure><img src="${esc((window.__GUIDE_IMGS && window.__GUIDE_IMGS[LANG] && window.__GUIDE_IMGS[LANG][n]) || `guide/${LANG}/${n}.jpg`)}" alt="${esc(cap)}" loading="lazy"><figcaption>${esc(cap)}</figcaption></figure>`;
+  const ol = a => `<ol>${a.map(x => `<li>${x}</li>`).join('')}</ol>`, ul = a => `<ul>${a.map(x => `<li>${x}</li>`).join('')}</ul>`;
+  function html(){
+    const S1 = [
+      ['g1', _('はじめに（画面の見方）'), `
+        <p>${_('この画面は、取引所 Hyperliquid に、あなたのウォレットからつないで取引するための画面です。お金は取引所のあなたの口座にあり、この画面は預かりません。')}</p>
+        <div class="gwarn">${_('最初は「練習モード」です。ボタンを押しても注文の中身を確認する画面が出るだけで、取引所には何も送られません。本番にする方法は「注文用の鍵」の項目を見てください。')}</div>
+        ${fig('overview', _('画面の見方（数字は下の説明と同じです）'))}
+        ${ul([_('<b>①</b> 右上の「ウォレット接続」：ウォレットをつなぐボタンです。つなぐと短いアドレスの表示に変わります。'), _('<b>②</b> 上の帯：銘柄（BTC・ETH など）。★で好きな銘柄を入れ替えられ、「すべての銘柄」から全部の中を探せます。'), _('<b>③</b> チャート：ローソク足の画面です。使い方は「チャート」の項目を見てください。'), _('<b>④</b> 板：いま出ている売り注文（赤）と買い注文（緑）です。値段の行を押すと、その値段で指値の注文になります。'), _('<b>⑤</b> 注文の欄：ロング・ショートや数量を決めて注文します。'), _('<b>⑥</b> 下の表：ポジション・待ち注文・約定履歴などです。決済もここからできます。')])}`],
+      ['g2', _('ウォレットをつなぐ'), `
+        ${ol([_('右上の「ウォレット接続」を押します。'), _('つなぐウォレットを選びます。パソコンに入っている MetaMask・Rabby・Phantom などが一覧に出ます。入っていないとき（スマホなど）は「WalletConnect」を選び、QR をスマホのウォレットで読み取ります。'), _('ウォレットの画面で、接続を許可します。'), _('右上に短いアドレスが出たら完了です。ボタンを押すと、アドレスのコピー・ウォレットの切り替え・接続を外すができます。')])}
+        ${fig('wallet', _('ウォレットを選ぶ画面'))}
+        ${ul([_('Phantom を使うときは、Solana ではなく <b>EVM（0x で始まるアドレス）</b>のほうをつないでください。'), _('ウォレットをつなぐだけでは注文は出せません。注文には、次の「注文用の鍵」が必要です。'), _('口座のアドレスは公開されている情報で、秘密鍵ではありません。')])}`],
+      ['g3', _('注文用の鍵（API ウォレット）'), `
+        <p>${_('取引所に注文を出すには署名が要ります。毎回ウォレットで署名する代わりに、<b>注文だけができる「鍵」</b>をこの端末の中に作っておきます。この鍵では、出金や送金はできません。')}</p>
+        <h3>${_('A. 自動で作る（おすすめ）')}</h3>
+        ${ol([_('先にウォレットをつなぎます。'), _('上の「練習モード」のボタンを押します。'), _('暗証番号（数字6〜12桁）を2回入れます。この端末で鍵を開けるときに使います。忘れないようにしてください。'), _('「ウォレットをつないで鍵を作る」を押し、ウォレットの署名画面で署名します。これで鍵が口座に登録されます。'), _('「つながりを確かめる（お金は動きません）」を一度押して、取引所が受け付けるか確かめます。'), _('「本番」に切り替えると、注文が実際に出るようになります。')])}
+        ${fig('live', _('本番の注文の設定の画面'))}
+        <h3>${_('B. 自分で作る（Hyperliquid の API の画面）')}</h3>
+        <p>${_('すでに作った鍵があるとき、または自分で作りたいときの方法です。')}</p>
+        ${ol([_('<code>app.hyperliquid.xyz</code> を開き、同じウォレットをつなぎます。'), _('メニューの「More」から「API」を開きます。'), _('鍵の名前を入れて「Generate」を押します。'), _('「Authorize API Wallet」を押し、ウォレットで署名します。'), _('表示される秘密鍵（0x で始まる長い文字）を、その場でコピーします。この鍵は、あとからは見られません。'), _('この画面の本番の設定にある「すでに作った鍵を使う」を開き、貼り付けて暗証番号をかけて保存します。')])}
+        <div class="gmock"><div class="t">${_('イメージ図（実際の画面とは少し違うことがあります）')}</div><div>Hyperliquid › More › API</div>
+          <div class="r"><span>Name</span><span class="in">my-key</span><span class="bt">Generate</span></div><div class="r"><span class="bt pri">Authorize API Wallet</span></div></div>
+        <div class="gwarn">${_('秘密鍵は人に見せないでください。この画面は、鍵を暗証番号をかけてこの端末の中だけに保存し、取引所にも他のどこにも送りません。使わなくなったら、設定の「鍵を消す」で消せます。')}</div>`],
+      ['g4', _('注文の出し方'), `
+        ${fig('order', _('注文の欄'))}
+        ${ol([_('<b>①</b> ロング（上がると思うとき）か、ショート（下がると思うとき）を選びます。'), _('<b>②</b> 注文の種類：成行（すぐ約定）・指値（その値段で待つ）・逆指値（届いたら成行）。'), _('<b>③</b> 注文額（USD）：レバレッジをかけた後の建玉の大きさです。10%・25%…のボタンは、使える余力に対する割合です。'), _('<b>④</b> レバレッジと担保の方式。クロスは口座全体、分離はその建玉だけを担保にします。'), _('<b>⑤</b> 「利確と損切りも一緒に入れる」にすると、決めた値段で自動で決済する注文も一緒に出ます。'), _('<b>⑥</b> ロング／ショートのボタンを押すと確認画面が出ます。中身を確かめてから「注文する」を押します。')])}
+        ${ul([_('1回の注文額は、約 10 ドル以上が必要です。'), _('持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。'), _('現物は、現物の口座にある USDC で買います。先物の口座とは別です。')])}`],
+      ['g5', _('チャート'), `
+        ${fig('chart', _('チャートの上のボタン'))}
+        ${ul([_('<b>1分〜月足</b>：足の長さを変えます。'), _('<b>＋ −</b>：拡大・縮小（ピンチやマウスのホイールでもできます）。'), _('<b>縦自動</b>：縦の縮尺を自動に戻します。右の目盛りを上下にドラッグすると、縦の縮尺を変えられます。'), _('<b>最新</b>：いちばん新しい足に戻ります。'), _('<b>平均線</b>：移動平均線（7・25・75本）の表示を切り替えます。'), _('<b>指標</b>：EMA・ボリンジャーバンド・VWAP を重ね、RSI・MACD を下の別枠に出せます。別枠は右上のボタンで、小さくたたむ・消すができます。'), _('<b>全画面</b>：チャートを画面いっぱいに出します。'), _('<b>線を動かす</b>：押してから30秒だけ、建値・損切り・利確・待ち注文の線をドラッグで動かせます。離すと確認が出ます。'), _('<b>✏ 線を引く</b>：水平線とトレンドラインを引けます。'), _('チャートを長押し（パソコンは右クリック）すると、その値段への注文を出せます。')])}`],
+      ['g6', _('4画面チャートと銘柄一覧'), `
+        <h3>${_('4画面チャート')}</h3>
+        <p>${_('4つの銘柄を同時に並べて見る画面です。それぞれの上で銘柄と足の長さを変えられます。「全部同じ銘柄に」で、4つとも同じ銘柄にそろえます。気になるチャートの「開く」を押すと、トレード画面でその銘柄を開きます。')}</p>
+        ${fig('multi', _('4画面チャート'))}
+        <h3>${_('銘柄一覧')}</h3>
+        <p>${_('Hyperliquid にある先物と現物のすべての銘柄を、一覧で見られます。上の並べ替えのボタンで、出来高・上昇率・下落率などの順にできます。検索もできます。銘柄の行を押すと、トレード画面でその銘柄を開きます。')}</p>
+        ${fig('list', _('銘柄一覧'))}`],
+      ['g7', _('手数料と安全のこと'), `
+        ${ul([_('取引にかかる手数料は、Hyperliquid が決めたものです。成行（すぐ約定）は高め、指値で板に置くと安めです。'), _('この画面の運営者が受け取る手数料（ビルダーコード）が設定されているときは、最初に一度、ウォレットの署名で承認が必要です。承認画面に料率が出ます。いつでも取り消せます。'), _('注文用の鍵は、この端末の中だけに暗証番号をかけて保存されます。鍵では出金も送金もできません。'), _('暗証番号を忘れたときは、設定の「鍵を消す」で消して、作り直してください。'), _('この画面は取引の利益を保証するものではありません。レバレッジをかけると、損失が大きくなることがあります。自分で決めた範囲で使ってください。')])}`],
+      ['g8', _('よくある質問'), `
+        <h3>${_('「余力が足りません」と出る')}</h3><p>${_('使える余力より、必要な証拠金が大きいときに出ます。数量を減らすか、レバレッジを上げてください。反対向きの注文は、持っているポジションの分は証拠金が要りません。')}</p>
+        <h3>${_('現物が買えない')}</h3><p>${_('現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。')}</p>
+        <h3>${_('「鍵が口座に登録されていません」と出る')}</h3><p>${_('鍵の有効期限が切れたか、別の口座の鍵かもしれません。本番の設定から、鍵を作り直してください。')}</p>
+        <h3>${_('スマホで使いたい')}</h3><p>${_('Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。')}</p>`]
+    ];
+    return {S1};
+  }
+  function render(){
+    const {S1} = html(), el = $('vHelp');
+    el.innerHTML = `<div class="guide"><h2 style="margin-top:6px;border:0">${_('使い方ガイド')}</h2>
+      <div class="gtoc">${S1.map(([id, t]) => `<button type="button" data-g="${id}">${t}</button>`).join('')}</div>
+      ${S1.map(([id, t, h]) => `<h2 id="${id}">${t}</h2>${h}`).join('')}</div>`;
+    el.querySelector('.gtoc').onclick = e => { const b = e.target.closest('button'); if (b) document.getElementById(b.dataset.g).scrollIntoView({behavior:'smooth', block:'start'}); };
+  }
+  return {render};
+})();
 
 // ===== 起動 =====
 (async () => {
