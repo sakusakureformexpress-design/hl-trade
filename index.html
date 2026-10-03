@@ -106,6 +106,10 @@ body.fsOn{overflow:hidden}
 .wm .btns button{border:none;border-radius:6px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--line);color:var(--fg)}
 .wm .btns button.pri{background:var(--accent);color:#1b1404}
 .wp{display:flex;flex-direction:column;gap:10px}
+.indw{display:flex;flex-direction:column;gap:8px}
+.indrow{display:flex;align-items:center;gap:10px;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--fg);font-size:14px}
+.indrow .chk{width:20px;height:20px;border:1px solid var(--line);border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto}
+.indrow.on{border-color:var(--accent)}
 .wl{display:flex;flex-direction:column;gap:8px}
 .wi{display:grid;grid-template-columns:36px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--fg)}
 .wi img,.wi .wic{grid-row:1/3;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--bg)}
@@ -389,6 +393,7 @@ td.ja{font-family:var(--sans)}
           <button id="zAuto" title="縦の縮尺を自動に戻す" class="sel">縦自動</button>
           <button id="zLast" title="最新の足へ戻る">最新</button>
           <button id="maBtn" title="移動平均線（7・25・75本）の表示を切り替え">平均線</button>
+          <button id="indBtn" title="チャートに足す指標を選ぶ（EMA・ボリンジャー・VWAP・RSI・MACD）">指標</button>
           <button id="fsBtn" title="チャートを画面いっぱいに（横向きにすると横いっぱい）">全画面</button>
           <button id="lineLock" title="押すと30秒だけ、チャートの線をドラッグで動かせるようになります">線を動かす</button>
           <button id="drawBtn" title="水平線・トレンドラインを引く・消す">✏ 線を引く</button>
@@ -510,6 +515,11 @@ ko: {
   "日足": "일봉",
   "週足": "주봉",
   "月足": "월봉",
+  "EMA（20・50本）": "EMA (20·50개)",
+  "ボリンジャーバンド（20本・±2σ）": "볼린저 밴드 (20개·±2σ)",
+  "VWAP（日ごとの出来高加重平均）": "VWAP (일별 거래량 가중 평균)",
+  "RSI（14本）": "RSI (14개)",
+  "MACD（12・26・9）": "MACD (12·26·9 설정)",
   "接続中…": "연결 중…",
   "リアルタイム": "실시간",
   "切れました。つなぎ直しています…": "연결이 끊어졌습니다. 다시 연결하는 중…",
@@ -583,6 +593,9 @@ ko: {
   "線を消しました": "선을 지웠습니다",
   "戻る": "돌아가기",
   "全画面": "전체 화면",
+  "チャートの上に重ねる": "차트 위에 겹쳐 표시",
+  "チャートの下に別枠で出す": "차트 아래 별도 창에 표시",
+  "インジケーター": "인디케이터",
   "水平線を引く": "수평선 그리기",
   "トレンドラインを引く（2点をタップ）": "추세선 그리기 (2점을 탭)",
   "引いた線を動かす（30秒。線や端の丸をドラッグ）": "그린 선 움직이기 (30초. 선이나 끝점을 드래그)",
@@ -1022,6 +1035,7 @@ ko: {
   "縦自動": "세로 자동",
   "最新": "최신",
   "平均線": "이평선",
+  "指標": "지표",
   "線を動かすときは上の「線を動かす」を押してから ・ 長押し（右クリック）でその値段に注文 ・ 右の目盛りを上下にドラッグで縦の縮尺": "선을 움직이려면 위의 '선 움직이기'를 먼저 누르세요 · 길게 누르기(우클릭)로 그 가격에 주문 · 오른쪽 눈금을 위아래로 드래그하면 세로 축척 변경",
   "板": "호가창",
   "押すと指値に": "누르면 지정가로",
@@ -1060,6 +1074,7 @@ ko: {
   "縦の縮尺を自動に戻す": "세로 축척을 자동으로 되돌리기",
   "最新の足へ戻る": "최신 봉으로 돌아가기",
   "移動平均線（7・25・75本）の表示を切り替え": "이동평균선(7·25·75개) 표시 전환",
+  "チャートに足す指標を選ぶ（EMA・ボリンジャー・VWAP・RSI・MACD）": "차트에 추가할 지표 선택 (EMA·볼린저·VWAP·RSI·MACD)",
   "チャートを画面いっぱいに（横向きにすると横いっぱい）": "차트를 화면 가득 표시 (가로로 돌리면 가로 가득)",
   "押すと30秒だけ、チャートの線をドラッグで動かせるようになります": "누르면 30초 동안 차트의 선을 드래그해서 움직일 수 있습니다",
   "水平線・トレンドラインを引く・消す": "수평선·추세선 그리기/지우기",
@@ -1082,6 +1097,11 @@ en: {
   "日足": "1D",
   "週足": "1W",
   "月足": "1M",
+  "EMA（20・50本）": "EMA (20, 50)",
+  "ボリンジャーバンド（20本・±2σ）": "Bollinger Bands (20, ±2σ)",
+  "VWAP（日ごとの出来高加重平均）": "VWAP (daily volume-weighted average)",
+  "RSI（14本）": "RSI (14)",
+  "MACD（12・26・9）": "MACD (12, 26, 9)",
   "接続中…": "Connecting…",
   "リアルタイム": "Live",
   "切れました。つなぎ直しています…": "Disconnected. Reconnecting…",
@@ -1155,6 +1175,9 @@ en: {
   "線を消しました": "Line deleted",
   "戻る": "Back",
   "全画面": "Fullscreen",
+  "チャートの上に重ねる": "Overlay on the chart",
+  "チャートの下に別枠で出す": "Show in a separate pane below",
+  "インジケーター": "Indicators",
   "水平線を引く": "Draw horizontal line",
   "トレンドラインを引く（2点をタップ）": "Draw trend line (tap 2 points)",
   "引いた線を動かす（30秒。線や端の丸をドラッグ）": "Move drawn lines (30 s. Drag a line or its end dot)",
@@ -1594,6 +1617,7 @@ en: {
   "縦自動": "Auto Y",
   "最新": "Latest",
   "平均線": "MA",
+  "指標": "Indicators",
   "線を動かすときは上の「線を動かす」を押してから ・ 長押し（右クリック）でその値段に注文 ・ 右の目盛りを上下にドラッグで縦の縮尺": "To move lines, press \"Move lines\" above first · Long-press (right-click) to order at that price · Drag the right-hand scale up/down to rescale",
   "板": "Order book",
   "押すと指値に": "Click to use as limit price",
@@ -1632,6 +1656,7 @@ en: {
   "縦の縮尺を自動に戻す": "Reset the vertical scale to automatic",
   "最新の足へ戻る": "Back to the latest candle",
   "移動平均線（7・25・75本）の表示を切り替え": "Toggle moving averages (7 / 25 / 75)",
+  "チャートに足す指標を選ぶ（EMA・ボリンジャー・VWAP・RSI・MACD）": "Choose indicators to add (EMA, Bollinger, VWAP, RSI, MACD)",
   "チャートを画面いっぱいに（横向きにすると横いっぱい）": "Fill the screen with the chart (landscape fills the width)",
   "押すと30秒だけ、チャートの線をドラッグで動かせるようになります": "Lets you drag the chart's lines for 30 seconds",
   "水平線・トレンドラインを引く・消す": "Draw / delete horizontal and trend lines",
@@ -1831,6 +1856,35 @@ const FEE = {perp:{taker:0.00045, maker:0.00015}, spot:{taker:0.0007, maker:0.00
 const IVS = [['1m','1分',6e4],['5m','5分',3e5],['15m','15分',9e5],['30m','30分',18e5],['1h','1時間',36e5],['4h','4時間',144e5],['8h','8時間',288e5],['1d','日足',864e5],['1w','週足',6048e5],['1M','月足',2592e6]];
 // 移動平均線：暗号資産でよく使われる 7・25・75 本（短い＝緑、中間＝青、長い＝紫）
 const MAS = [{n:7, col:'#34d399'}, {n:25, col:'#60a5fa'}, {n:75, col:'#c084fc'}];
+// ===== 指標（インジケーター）：EMA・ボリンジャーバンド・VWAP・RSI・MACD =====
+const IND_DEF = [['ema', 'EMA（20・50本）', 0], ['bb', 'ボリンジャーバンド（20本・±2σ）', 0], ['vwap', 'VWAP（日ごとの出来高加重平均）', 0], ['rsi', 'RSI（14本）', 1], ['macd', 'MACD（12・26・9）', 1]];
+const IND_COL = {e20:'#fbbf24', e50:'#f472b6', bb:'#94a3b8', vwap:'#22d3ee', rsi:'#a78bfa', macd:'#60a5fa', sig:'#f59e0b'};
+const indAny = () => Object.values(S.ind).some(Boolean);
+const indLines = () => { const c = Object.values(S.ind).filter(Boolean).length; return c ? Math.ceil(c / (innerWidth >= 900 ? 5 : innerWidth >= 560 ? 2 : 1)) : 0; };   // 凡例の行数（幅が狭いと折り返す）
+const IND = (() => {
+  let memo = null;
+  const emaOf = (arr, p) => { const r = new Array(arr.length).fill(null), k = 2 / (p + 1); let e = null, cnt = 0, sum = 0;
+    for (let i = 0; i < arr.length; i++){ const v = arr[i]; if (v == null) continue;
+      if (e === null){ sum += v; if (++cnt === p){ e = sum / p; r[i] = e; } } else { e = v * k + e * (1 - k); r[i] = e; } }
+    return r; };
+  function calc(a){
+    const n = a.length, last = a[n - 1];
+    if (memo && memo.a === a && memo.n === n && memo.c === last.c && memo.iv === S.iv) return memo.d;
+    const cl = a.map(k => k.c), d = {};
+    d.e20 = emaOf(cl, 20); d.e50 = emaOf(cl, 50);
+    d.bm = new Array(n).fill(null); d.bu = d.bm.slice(); d.bl = d.bm.slice();
+    for (let i = 19; i < n; i++){ let m = 0; for (let j = i - 19; j <= i; j++) m += cl[j]; m /= 20; let v = 0; for (let j = i - 19; j <= i; j++) v += (cl[j] - m) ** 2; const sd = Math.sqrt(v / 20); d.bm[i] = m; d.bu[i] = m + 2 * sd; d.bl[i] = m - 2 * sd; }
+    d.vw = new Array(n).fill(null);
+    if (!['1d', '3d', '1w', '1M'].includes(S.iv)){ let pv = 0, vv = 0, day = -1;
+      for (let i = 0; i < n; i++){ const dd = Math.floor(a[i].t / 86400000); if (dd !== day){ day = dd; pv = 0; vv = 0; } const tp = (a[i].h + a[i].l + a[i].c) / 3; pv += tp * a[i].v; vv += a[i].v; d.vw[i] = vv > 0 ? pv / vv : null; } }
+    d.rsi = new Array(n).fill(null);
+    if (n > 14){ let g = 0, l = 0; for (let i = 1; i <= 14; i++){ const ch = cl[i] - cl[i - 1]; if (ch > 0) g += ch; else l -= ch; } g /= 14; l /= 14; d.rsi[14] = l === 0 ? 100 : 100 - 100 / (1 + g / l);
+      for (let i = 15; i < n; i++){ const ch = cl[i] - cl[i - 1]; g = (g * 13 + (ch > 0 ? ch : 0)) / 14; l = (l * 13 + (ch < 0 ? -ch : 0)) / 14; d.rsi[i] = l === 0 ? 100 : 100 - 100 / (1 + g / l); } }
+    const e12 = emaOf(cl, 12), e26 = emaOf(cl, 26); d.ml = cl.map((_, i) => e12[i] != null && e26[i] != null ? e12[i] - e26[i] : null); d.sg = emaOf(d.ml, 9); d.mh = d.ml.map((v, i) => v != null && d.sg[i] != null ? v - d.sg[i] : null);
+    memo = {a, n, c: last.c, iv: S.iv, d}; return d;
+  }
+  return {calc};
+})();
 function maAt(a, i, n){ if (i < n - 1) return null; let s = 0; for (let j = i - n + 1; j <= i; j++) s += a[j].c; return s / n; }
 // 外から来た文字を画面に出すときは必ずこれを通す（文字として表示し、命令として動かさない）
 const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -1850,6 +1904,7 @@ const S = {
   user: store.get('addr', DEFAULT_ADDR), acct:null, spot:null, orders:[],
   side:1, otype:'market', unit:'usd', margin:'cross', lev: store.get('lev', {}),
   ma: store.get('ma', true),
+  ind: Object.assign({ema:false, bb:false, vwap:false, rsi:false, macd:false}, store.get('ind', {})),
   ccy: store.get('ccy','USD') === 'USD' ? 'USD' : 'LOC', fx: null, fxSrc: '', aTab:'pos', favs: store.get('favs', null)
 };
 if (!IV_MS[S.iv]) S.iv = '15m';
@@ -2479,12 +2534,16 @@ const chart = (() => {
     const a = S.candles, key = curKey(), n = a.length; drawn = [];
     if (!n){ geo = null; ctx.fillStyle = C.dim; ctx.font = '13px sans-serif'; ctx.fillText(_('チャートを読み込んでいます…'), 16, 46); $('legend').textContent = ''; return; }
     ctx.font = MONO; { const lp0 = a[n-1].c; PADR = Math.ceil(Math.max(ctx.measureText(fpx(key, lp0 * 1.5)).width, ctx.measureText(fpx(key, lp0 * 0.5)).width)) + 12; }
-    TOP = S.ma ? 46 : 26;   // 左上の値段と移動平均の文字の下から描く（線の札が重ならないように）
-    const plotW = W - PADR, priceH = (H - PADB - TOP) * 0.8, volTop = TOP + priceH + 6, volH = H - PADB - volTop;
+    TOP = 26 + (S.ma ? 20 : 0) + 16 * indLines();   // 左上の値段と移動平均・指標の文字の下から描く（線の札が重ならないように）
+    const IN = indAny() ? IND.calc(a) : null;
+    const plotW = W - PADR, avail = H - PADB - TOP, subs = [S.ind.rsi && 'rsi', S.ind.macd && 'macd'].filter(Boolean), ns = subs.length;
+    const priceH = avail * (ns === 0 ? 0.8 : ns === 1 ? 0.62 : 0.5), volTop = TOP + priceH + 6, volH = ns ? avail * 0.1 : H - PADB - volTop;
+    const subTop0 = volTop + volH + 6, subH = ns ? (H - PADB - subTop0 - 6 * (ns - 1)) / ns : 0;
     const last = n - 1 - off, x = i => plotW - (last - i + 0.5) * bw;
     const i0 = Math.max(0, Math.ceil(last - plotW / bw)), i1 = Math.min(n - 1, Math.floor(last));
     let lo = Infinity, hi = -Infinity, vmax = 0;
     for (let i = i0; i <= i1; i++){ lo = Math.min(lo, a[i].l); hi = Math.max(hi, a[i].h); vmax = Math.max(vmax, a[i].v); }
+    if (IN) for (let i = i0; i <= i1; i++) for (const [on, arr] of [[S.ind.ema, IN.e20], [S.ind.ema, IN.e50], [S.ind.bb, IN.bu], [S.ind.bb, IN.bl], [S.ind.vwap, IN.vw]]) if (on && arr[i] != null){ lo = Math.min(lo, arr[i]); hi = Math.max(hi, arr[i]); }
     if (!isFinite(lo)){ lo = a[n-1].l; hi = a[n-1].h; }
     if (vman){ lo = vman.lo; hi = vman.hi; } else { const pad = (hi - lo) * 0.08 || hi * 0.001; lo -= pad; hi += pad; }
     const y = p => TOP + (hi - p) / (hi - lo) * priceH;
@@ -2545,6 +2604,42 @@ const chart = (() => {
       }
       ctx.lineWidth = 1;
     }
+    const panes = [];
+    if (IN){
+      ctx.lineJoin = 'round';
+      const line = (arr, col, w2) => { ctx.strokeStyle = col; ctx.lineWidth = w2 || 1.4; ctx.beginPath(); let on = false;
+        for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++){ const v = arr[i]; if (v == null){ on = false; continue; } on ? ctx.lineTo(x(i), y(v)) : ctx.moveTo(x(i), y(v)); on = true; } ctx.stroke(); };
+      if (S.ind.bb){
+        ctx.fillStyle = IND_COL.bb + '22'; ctx.beginPath(); let st3 = false;
+        for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++){ if (IN.bu[i] == null) continue; st3 ? ctx.lineTo(x(i), y(IN.bu[i])) : ctx.moveTo(x(i), y(IN.bu[i])); st3 = true; }
+        for (let i = Math.min(n - 1, i1 + 1); i >= Math.max(0, i0 - 1); i--){ if (IN.bl[i] == null) continue; ctx.lineTo(x(i), y(IN.bl[i])); }
+        ctx.closePath(); ctx.fill(); line(IN.bu, IND_COL.bb, 1.1); line(IN.bl, IND_COL.bb, 1.1); line(IN.bm, IND_COL.bb, 1.1);
+      }
+      if (S.ind.ema){ line(IN.e50, IND_COL.e50); line(IN.e20, IND_COL.e20); }
+      if (S.ind.vwap) line(IN.vw, IND_COL.vwap, 1.6);
+      subs.forEach((kind, j) => {
+        const top = subTop0 + j * (subH + 6), bot = top + subH;
+        ctx.strokeStyle = C.line; ctx.lineWidth = 1; ctx.beginPath(); ctx.rect(0.5, Math.round(top) + .5, plotW - 1, Math.round(subH)); ctx.stroke();
+        let slo, shi, yy2;
+        if (kind === 'rsi'){ slo = 0; shi = 100; yy2 = v => bot - (v - slo) / (shi - slo) * subH;
+          ctx.setLineDash([3, 3]); for (const lv of [30, 70]){ ctx.beginPath(); ctx.moveTo(0, yy2(lv)); ctx.lineTo(plotW, yy2(lv)); ctx.stroke(); } ctx.setLineDash([]);
+          ctx.strokeStyle = IND_COL.rsi; ctx.lineWidth = 1.4; ctx.beginPath(); let on = false;
+          for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++){ const v = IN.rsi[i]; if (v == null) continue; on ? ctx.lineTo(x(i), yy2(v)) : ctx.moveTo(x(i), yy2(v)); on = true; } ctx.stroke();
+          panes.push({kind, top, bot, ticks: [[30, yy2(30)], [70, yy2(70)]], lbl: v => v.toFixed(0)});
+        } else {
+          let mx = 0; for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++) for (const arr of [IN.ml, IN.sg, IN.mh]) if (arr[i] != null) mx = Math.max(mx, Math.abs(arr[i]));
+          mx = (mx || 1) * 1.15; slo = -mx; shi = mx; yy2 = v => bot - (v - slo) / (shi - slo) * subH;
+          ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.moveTo(0, yy2(0)); ctx.lineTo(plotW, yy2(0)); ctx.stroke(); ctx.setLineDash([]);
+          const bwid = Math.max(1, Math.floor(bw * 0.6));
+          for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++){ const v = IN.mh[i]; if (v == null) continue; ctx.fillStyle = v >= 0 ? C.up : C.down; ctx.globalAlpha = .55; const y0 = yy2(0), y1 = yy2(v); ctx.fillRect(Math.round(x(i)) - bwid / 2, Math.min(y0, y1), bwid, Math.max(1, Math.abs(y1 - y0))); ctx.globalAlpha = 1; }
+          for (const [arr, col] of [[IN.ml, IND_COL.macd], [IN.sg, IND_COL.sig]]){ ctx.strokeStyle = col; ctx.lineWidth = 1.4; ctx.beginPath(); let on = false;
+            for (let i = Math.max(0, i0 - 1); i <= Math.min(n - 1, i1 + 1); i++){ const v = arr[i]; if (v == null) continue; on ? ctx.lineTo(x(i), yy2(v)) : ctx.moveTo(x(i), yy2(v)); on = true; } ctx.stroke(); }
+          panes.push({kind, top, bot, ticks: [[0, yy2(0)]], lbl: v => fpx(key, v)});
+        }
+        ctx.lineWidth = 1;
+      });
+      ctx.lineWidth = 1;
+    }
     // 自分で引いたトレンドライン（1点目から2点目を通って右へのばす）
     ctx.strokeStyle = DRAW_COL; ctx.lineWidth = 1.4;
     for (const d of (S.draw[key] || [])){
@@ -2579,6 +2674,8 @@ const chart = (() => {
       if (!T.out){ ctx.strokeStyle = T.col; ctx.lineWidth = T.bold ? 2 : 1; ctx.setLineDash(T.dash || []); ctx.beginPath(); ctx.moveTo(0, T.y); ctx.lineTo(plotW, T.y); ctx.stroke(); ctx.setLineDash([]); ctx.lineWidth = 1; }
       if (T.L && T.L.drag && !T.out) drawn.push({y: T.y, L: T.L});
     }
+    for (const pn of panes){ ctx.font = MONO; ctx.textBaseline = 'middle'; ctx.fillStyle = C.dim; for (const [v, yy3] of pn.ticks) ctx.fillText(String(v), plotW + 6, yy3);
+      ctx.font = TAG; ctx.fillText(pn.kind === 'rsi' ? 'RSI 14' : 'MACD', 6, pn.top + 9); }
     // 札の高さを決める（上から順に、前の札と18px以上あける。下にはみ出たら下から詰め直す）
     const ord = [...tags].sort((a, b) => a.y - b.y), GAP = 17, yMin = TOP + 9, yMax = TOP + priceH - 9;
     let prev = -1e9; for (const T of ord){ T.ly = Math.max(T.y, prev + GAP, yMin); prev = T.ly; }
@@ -2618,10 +2715,18 @@ const chart = (() => {
     }
     const ch = k.c / k.o - 1, f = v => `<span style="color:var(--fg)">${fpx(key, v)}</span>`;
     const ki = a.indexOf(k);
+    let indTxt = '';
+    if (indAny() && ki >= 0){ const IN2 = IND.calc(a), fv = v => v == null ? '—' : fpx(key, v), parts = [];
+      if (S.ind.ema) parts.push(`<span style="color:${IND_COL.e20}">EMA20 ${fv(IN2.e20[ki])}</span> <span style="color:${IND_COL.e50}">EMA50 ${fv(IN2.e50[ki])}</span>`);
+      if (S.ind.bb) parts.push(`<span style="color:${IND_COL.bb}">BB ${fv(IN2.bu[ki])} / ${fv(IN2.bm[ki])} / ${fv(IN2.bl[ki])}</span>`);
+      if (S.ind.vwap) parts.push(`<span style="color:${IND_COL.vwap}">VWAP ${fv(IN2.vw[ki])}</span>`);
+      if (S.ind.rsi) parts.push(`<span style="color:${IND_COL.rsi}">RSI ${IN2.rsi[ki] == null ? '—' : IN2.rsi[ki].toFixed(1)}</span>`);
+      if (S.ind.macd) parts.push(`<span style="color:${IND_COL.macd}">MACD ${fv(IN2.ml[ki])}</span> <span style="color:${IND_COL.sig}">${fv(IN2.sg[ki])}</span>`);
+      const per = Math.ceil(parts.length / indLines()); indTxt = parts.reduce((acc, p, i) => acc + (i % per === 0 ? '<br>' : ' ') + p, ''); }
     const maTxt = S.ma ? '<br>' + MAS.map(m => { const v = maAt(a, ki, m.n); return `<span style="color:${m.col}">MA${m.n} ${v == null ? '—' : fpx(key, v)}</span>`; }).join(' ') : '';
     $('legend').innerHTML = (W < 560   // 幅が狭いときは1行に収める
       ? `${_('{0}　終 {1}', fmtTime(k.t, true), f(k.c))} <span class="${cls(ch)}">${fmtPct(ch)}</span>`
-      : `${_('{0}　始 {1} 高 {2} 安 {3} 終 {4}', fmtTime(k.t, true), f(k.o), f(k.h), f(k.l), f(k.c))} <span class="${cls(ch)}">${fmtPct(ch)}</span>`) + maTxt;
+      : `${_('{0}　始 {1} 高 {2} 安 {3} 終 {4}', fmtTime(k.t, true), f(k.o), f(k.h), f(k.l), f(k.c))} <span class="${cls(ch)}">${fmtPct(ch)}</span>`) + maTxt + indTxt;
   }
   const pos = e => { const r = cv.getBoundingClientRect(); return {x: (e.clientX - r.left) / kz, y: (e.clientY - r.top) / kz}; };
   // トレンドラインをつかむ（線を動かせる間だけ）：端の丸ならその端、線の途中なら線ごと
@@ -2730,6 +2835,17 @@ const chart = (() => {
   addEventListener('orientationchange', () => setTimeout(resize, 300));
   $('maBtn').classList.toggle('sel', S.ma);
   $('maBtn').onclick = () => { S.ma = !S.ma; store.set('ma', S.ma); $('maBtn').classList.toggle('sel', S.ma); draw(); };
+  $('indBtn').classList.toggle('sel', indAny());
+  function openInd(){
+    const row = ([k, l, sub]) => `<button type="button" class="indrow ${S.ind[k] ? 'on' : ''}" data-k="${k}"><span class="chk">${S.ind[k] ? '✔' : ''}</span>${_(l)}</button>`;
+    const h = `<div class="indw"><p class="note">${_('チャートの上に重ねる')}</p>${IND_DEF.filter(d => !d[2]).map(row).join('')}<p class="note">${_('チャートの下に別枠で出す')}</p>${IND_DEF.filter(d => d[2]).map(row).join('')}</div>`;
+    preview(_('インジケーター'), [], h, {info:true});
+    document.querySelectorAll('.indrow').forEach(b => b.onclick = () => {
+      const k = b.dataset.k; S.ind[k] = !S.ind[k]; store.set('ind', S.ind); b.classList.toggle('on', S.ind[k]); b.firstChild.textContent = S.ind[k] ? '✔' : '';
+      $('indBtn').classList.toggle('sel', indAny()); draw();
+    });
+  }
+  $('indBtn').onclick = openInd;
   return {draw, resize, reset(){ off = -4; vman = null; $('zAuto').classList.add('sel'); }, priceAt: y => geo ? yToP(y) : NaN};
 })();
 

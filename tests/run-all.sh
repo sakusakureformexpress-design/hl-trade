@@ -15,5 +15,6 @@ run wallet node wallet.js
 run parity-agent bash -c "python3 parity_agent.py"
 run mobile-pos node mobile_pos.js
 run zoom-modal node zoom_modal.js
+run indicators node indicators.js
 run preview node preview.js
 printf '%s\n' "${res[@]}"
