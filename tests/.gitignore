@@ -1,4 +1,4 @@
-node_modules/
+node_modules
 shots/
 parity-cases.json
 typed-approveAgent.json

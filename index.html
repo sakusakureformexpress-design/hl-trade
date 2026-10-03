@@ -3259,8 +3259,8 @@ const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で
 //   required が true のあいだは、手数料を承認していない人の「新規の注文」は出せません。
 //   決済・取り消し・倍率変更は、承認がなくてもいつでもできます（ポジションから出られなくならないように）。
 const BUILDER = {addr:'', fee:25, required:true};   // fee は 0.01% の10分の1の単位（25 = 0.025%）。addr が空のあいだは手数料なし
-// WalletConnect（QR で携帯のウォレットとつなぐ）。プロジェクト ID を入れると、ウォレットの選択画面に出ます（空なら出ません）
-const WC = {projectId:'', url:'https://esm.sh/@walletconnect/ethereum-provider@2'};
+// WalletConnect（QR で携帯のウォレットとつなぐ）。Reown のプロジェクト ID（公開されても問題ない識別子）。空にすると、ウォレットの選択画面に出なくなります
+const WC = {projectId:'e4abdb60f0f9bea9c07d9195c3094691', url:'https://esm.sh/@walletconnect/ethereum-provider@2'};
 // ===== ウォレット（MetaMask など）につなぐ部品。鍵は預からず、署名だけをもらう =====
 const WALLET = (() => {
   // ブラウザに入っているウォレットは、EIP-6963（ウォレットが自分から名前とアイコンを知らせる決まり）で見つける

@@ -21,7 +21,7 @@ Hyperliquid 用のトレード画面です。HTML 1 枚で動き、価格・チ�
 
 押すと「ウォレットを選ぶ」画面が出ます。ブラウザに入っているウォレットは、アイコンと名前つきで自動で並びます（EIP-6963）。
 
-**QR で携帯のウォレットとつなぐ（WalletConnect）**：`index.html` の `WC.projectId` に、[Reown（旧 WalletConnect）](https://cloud.reown.com/) で無料で取れるプロジェクト ID を入れると、一覧に「WalletConnect」が出ます。押したときだけ公式のライブラリ（esm.sh から）を読み込みます。空のままなら出ません。外部のスクリプトを読み込むので、読み込むのは押したときだけにしてあります。
+**QR で携帯のウォレットとつなぐ（WalletConnect）**：`index.html` の `WC.projectId`（[Reown（旧 WalletConnect）](https://cloud.reown.com/) の無料のプロジェクト ID）が入っていると、一覧に「WalletConnect」が出ます。Reown の管理画面で、許可するサイトにこのページのアドレスを入れておいてください。押したときだけ公式のライブラリ（esm.sh から）を読み込みます。空のままなら出ません。外部のスクリプトを読み込むので、読み込むのは押したときだけにしてあります。
 
 ## ウォレットをつないで、注文用の鍵を作る
 
