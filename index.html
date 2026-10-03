@@ -1758,7 +1758,7 @@ $('submit').onclick = () => {
     ['数量', `${c.sz} ${label(k)}`], ['金額', money(c.ntl)]];
   if (isPerp()) rows.push(['レバレッジ', `${c.lev}倍（${S.margin === 'cross' ? 'クロス' : '分離'}）`], ['必要な証拠金', money(c.margin)], ['清算価格の目安', '$' + fmtPx(k, c.liq)]);
   if (t.tp) rows.push(['利確', '$' + fmtPx(k, t.tp)]); if (t.sl) rows.push(['損切り', '$' + fmtPx(k, t.sl)]);
-  rows.push(['手数料の目安（取引所）', money(c.fee, 3)]);
+  rows.push([BUILD.on() ? '手数料の目安（取引所）' : '手数料の目安', money(c.fee, 3)]);
   if (BUILD.on()){
     const applies = isPerp() || S.side < 0;   // 現物の買いには、アプリの手数料はかかりません
     rows.push(['アプリの手数料', applies ? `約定額の ${BUILD.rate(BUILDER.fee)}%（約 ${money(c.ntl * BUILDER.fee / 100000, 3)}）${BUILD.ok() ? '' : '。<b>承認がまだです</b>'}` : 'なし（現物の買いは対象外）']);
