@@ -14,5 +14,6 @@ run parity-sdk bash -c "python3 parity.py | tee /dev/stderr | grep -q 'mismatche
 run wallet node wallet.js
 run parity-agent bash -c "python3 parity_agent.py"
 run mobile-pos node mobile_pos.js
+run zoom-modal node zoom_modal.js
 run preview node preview.js
 printf '%s\n' "${res[@]}"
