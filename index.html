@@ -1910,12 +1910,16 @@ function sizeEditor(k, mode){
   const pos = posOf(k); if (!pos) return;
   const s = +pos.szi, abs = Math.abs(s), e = +pos.entryPx, long = s > 0, lev = +pos.leverage.value || 1;
   mode = mode || 'reduce';
+  // 増やすときの % は「いまの余力で増やせる上限」に対する割合。上限は取引所が出す数量（なければ 余力×倍率÷値段 から手数料分を引いた目安）
+  const aad = S.aad[k], m0 = priceOf(k), avAdd = perpAvail(k, long ? 1 : -1) ?? 0;
+  const maxAdd = roundSz(k, aad?.maxTradeSzs ? +aad.maxTradeSzs[long ? 0 : 1] * 0.99 : m0 > 0 ? avAdd * lev / m0 * 0.98 : 0);
+  const base = mode === 'reduce' ? abs : maxAdd;
   const chips = mode === 'reduce' ? [10, 25, 50, 75, 100] : [10, 25, 50, 100];
   const box = `<div class="seg" id="zMode"><button type="button" data-m="reduce" class="${mode==='reduce'?'sel':''}">減らす（一部決済）</button><button type="button" data-m="add" class="${mode==='add'?'sel':''}">増やす（買い増し・売り増し）</button></div>
     <label class="f" style="margin-top:10px">数量（${label(k)}）いま ${abs} 持っています
       <div class="row"><input id="zSz" class="num" inputmode="decimal"><input id="zPct" class="num" inputmode="decimal" placeholder="%" style="width:64px;flex:0 0 64px"><span>%</span></div>
-      <div class="chips" id="zChips">${chips.map(v => `<button type="button" data-p="${v}">${v === 100 && mode === 'reduce' ? '全部' : v + '%'}</button>`).join('')}</div>
-      <span class="note">% はいまの数量に対する割合です</span></label>
+      <div class="chips" id="zChips">${chips.map(v => `<button type="button" data-p="${v}">${v === 100 ? (mode === 'reduce' ? '全部' : '上限まで') : v + '%'}</button>`).join('')}</div>
+      <span class="note">${mode === 'reduce' ? '% はいまの数量に対する割合です' : `% は、いまの余力（${money(avAdd)}）で増やせる上限 <b>${maxAdd} ${label(k)}</b> に対する割合です`}</span></label>
     <div class="seg" id="zType" style="margin-top:10px"><button type="button" data-t="market" class="sel">成行</button><button type="button" data-t="limit">指値</button></div>
     <label class="f" id="zPxF" style="margin-top:8px" hidden>指値の価格（ドル）<input id="zPx" class="num" inputmode="decimal" value="${roundPx(k, priceOf(k))}"></label>
     <div class="calc" id="zCalc" style="margin-top:10px"></div>
@@ -1937,8 +1941,8 @@ function sizeEditor(k, mode){
   };
   $('zMode').onclick = ev => { const b = ev.target.closest('button'); if (b && b.dataset.m !== mode) sizeEditor(k, b.dataset.m); };
   $('zType').onclick = ev => { const b = ev.target.closest('button'); if (!b) return; type = b.dataset.t; [...$('zType').children].forEach(x => x.classList.toggle('sel', x === b)); $('zPxF').hidden = type !== 'limit'; calc(); };
-  $('zSz').oninput = () => { const v = parseFloat($('zSz').value); $('zPct').value = v > 0 ? +(v / abs * 100).toFixed(1) : ''; calc(); };
-  $('zPct').oninput = () => { const v = parseFloat($('zPct').value); $('zSz').value = v > 0 ? roundSz(k, abs * v / 100) : ''; calc(); };
+  $('zSz').oninput = () => { const v = parseFloat($('zSz').value); $('zPct').value = v > 0 && base > 0 ? +(v / base * 100).toFixed(1) : ''; calc(); };
+  $('zPct').oninput = () => { const v = parseFloat($('zPct').value); $('zSz').value = v > 0 ? roundSz(k, base * Math.min(v, 100) / 100) : ''; calc(); };
   $('zChips').onclick = ev => { const b = ev.target.closest('button'); if (!b) return; $('zPct').value = b.dataset.p; $('zPct').oninput(); };
   $('zPx').oninput = calc;
   $('zPct').value = mode === 'reduce' ? 50 : 25; $('zPct').oninput();
