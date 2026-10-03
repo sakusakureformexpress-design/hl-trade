@@ -85,7 +85,7 @@
   // ---------- 口座の状態 ----------
   let oidSeq = 900000, tidSeq = 5000;
   const S = {
-    cash: 10000, lev: {}, fills: [], orders: [], hist: [], pos: {}, spot: {USDC: 2500, HYPE: 120, UBTC: 0.02}, approved: {}, log: [],
+    cash: 10000, lev: {}, fills: [], orders: [], hist: [], pos: {}, spot: {USDC: 2500, HYPE: 120, UBTC: 0.02}, approved: {}, agents: [], log: [],
   };
   const isSpotKey = c => !!(byCoin[c] && byCoin[c].tk);
   const levOf = c => (S.lev[c] && S.lev[c].value) || Math.min(5, byCoin[c].lev);
@@ -205,6 +205,7 @@
       }
       case 'updateLeverage': { const c = perps[a.asset].name; S.lev[c] = {value: a.leverage, cross: !!a.isCross}; return {status: 'ok', response: {type: 'default'}}; }
       case 'updateIsolatedMargin': return {status: 'ok', response: {type: 'default'}};
+      case 'approveAgent': S.agents.push({name: a.agentName || '', address: a.agentAddress, validUntil: Date.now() + 90 * 864e5}); return {status: 'ok', response: {type: 'default'}};
       case 'approveBuilderFee': S.approved[a.builder.toLowerCase()] = pctToF(a.maxFeeRate); return {status: 'ok', response: {type: 'default'}};
       default: return {status: 'err', response: 'Unsupported action in demo: ' + a.type};
     }
@@ -228,7 +229,7 @@
       case 'spotClearinghouseState': return spotState();
       case 'frontendOpenOrders': case 'openOrders': return S.orders.map(({trigKind, builder, ...o}) => o);
       case 'activeAssetData': { const c = b.coin, d = byCoin[c], l = S.lev[c] || {value: levOf(c), cross: crossOf(c)}, m = mark(c), av = avail(); return {user: b.user, coin: c, leverage: {type: l.cross ? 'cross' : 'isolated', value: l.value}, maxTradeSzs: [(av * l.value / m).toFixed(d.szD), (av * l.value / m).toFixed(d.szD)], availableToTrade: [av.toFixed(2), av.toFixed(2)], markPx: fmtPx(c, m)}; }
-      case 'extraAgents': return [{name: 'hl-trade demo', address: AGENT_ADDR, validUntil: Date.now() + 90 * 864e5}];
+      case 'extraAgents': return [{name: 'hl-trade demo', address: AGENT_ADDR, validUntil: Date.now() + 90 * 864e5}, ...S.agents];
       case 'maxBuilderFee': return S.approved[String(b.builder).toLowerCase()] || 0;
       case 'userFillsByTime': return S.fills.filter(f => f.time >= (b.startTime || 0)).slice().reverse();
       case 'userFunding': return Array.from({length: 18}, (_, i) => ({time: Date.now() - (i + 1) * 288e5, hash: '0x0', delta: {type: 'funding', coin: i % 2 ? 'BTC' : 'ETH', usdc: ((i % 3 - 1) * 0.31).toFixed(4), szi: '0.05', fundingRate: '0.0000125', nSamples: null}})).reverse();
