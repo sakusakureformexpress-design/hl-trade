@@ -1188,21 +1188,22 @@ function chartLines(){
   const k = curKey(), L = [], pos = isPerp() ? posOf(k) : null;
   if (pos){
     L.push({id:'entry', p:+pos.entryPx, col:'--info', txt:'建値', dash:[6,4]});
-    if (pos.liquidationPx) L.push({id:'liq', p:+pos.liquidationPx, col:'--liq', txt:'RL', dash:[2,3]});
+    if (pos.liquidationPx) L.push({id:'liq', p:+pos.liquidationPx, col:'--liq', txt:'RL', dash:[2,3], pnl: x => pnlAt(pos, x), showPnl:true});
   }
   for (const o of S.orders.filter(o => o.coin === k)){
     const kind = orderKind(o), p = o.isTrigger ? +o.triggerPx : +o.limitPx;
     const col = kind === 'tp' ? '--up' : kind === 'sl' ? '--down' : '--dim';
-    L.push({id:'o' + o.oid, p, col, dash:[5,3], drag:true, txt:({tp:'TP', sl:'SL'})[kind] || (o.side === 'B' ? '買' : '売') + KIND_JA[kind], pnl: pos && (kind === 'tp' || kind === 'sl') ? x => pnlAt(pos, x) : null,
+    L.push({id:'o' + o.oid, p, col, dash:[5,3], drag:true, txt:({tp:'TP', sl:'SL'})[kind] || (o.side === 'B' ? '買' : '売') + KIND_JA[kind], pnl: pos && (kind === 'tp' || kind === 'sl') ? x => pnlAt(pos, x) : null, showPnl: !!pos && (kind === 'tp' || kind === 'sl'),
       drop: np => modifyPreview(o, kind, p, np)});
   }
   for (const al of (S.alerts[k] || [])) L.push({id:'al' + al.p, p: al.p, col:'--accent', dash:[2,4], txt:'🔔'});
   for (const d of (S.draw[k] || [])) if (d.type === 'h') L.push({id:'d' + d.id, p: d.p, raw: DRAW_COL, dash:[], txt:'', drag:true, free:true, drop: np => { d.p = np; saveDraw(); chart.draw(); }});
+  if (isPerp() && !pos){ const c = orderCalc(); if (c.sz > 0 && c.liq > 0) L.push({id:'nliq', p:c.liq, col:'--liq', dash:[2,5], txt:'新RL', pnl: x => (x - c.px) * c.sz * S.side, showPnl:true}); }
   if (S.otype !== 'market'){ const p = parseFloat($('px').value); if (p > 0) L.push({id:'npx', p, col:'--fg', dash:[4,4], drag:true, txt:'新' + (S.otype === 'stop' ? '逆指値' : '指値'), drop: np => { $('px').value = roundPx(k, np); schedule(); }}); }
   if (isPerp() && $('tpslOn').checked){
     const e = entryPx(), sz = orderCalc().sz * S.side;
     for (const [id, col, t] of [['tp','--up','新TP'], ['sl','--down','新SL']]){
-      const p = parseFloat($(id).value); if (p > 0) L.push({id:'n' + id, p, col, dash:[4,4], drag:true, txt:t, pnl: x => (x - e) * sz, drop: np => { $(id).value = roundPx(k, np); schedule(); }});
+      const p = parseFloat($(id).value); if (p > 0) L.push({id:'n' + id, p, col, dash:[4,4], drag:true, txt:t, pnl: x => (x - e) * sz, showPnl:true, drop: np => { $(id).value = roundPx(k, np); schedule(); }});
     }
   }
   return L;
@@ -1338,7 +1339,7 @@ const chart = (() => {
     for (const L of chartLines()){
       const dragging = act && act.type === 'line' && act.L.id === L.id;
       const p = dragging ? act.np : L.p; if (!isFinite(p)) continue;
-      let t = L.txt; if (L.pnl && dragging) t += ' ' + moneyS(L.pnl(p));   // 金額は動かしている間だけ出す
+      let t = L.txt; if (L.pnl && (dragging || L.showPnl)){ const v = L.pnl(p); t += ' ' + moneyS(v, Math.abs(v) >= 100 ? 0 : 1); }   // 損切り・利確・ロスカットは、そこで決済したときの損益も出す
       tags.push({p, col: L.raw || css(L.col), text: t, dash: L.dash, bold: dragging, L});
     }
     const lastK = a[n-1], lp = priceOf(key) ?? lastK.c;
