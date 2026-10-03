@@ -1758,7 +1758,11 @@ $('submit').onclick = () => {
     ['数量', `${c.sz} ${label(k)}`], ['金額', money(c.ntl)]];
   if (isPerp()) rows.push(['レバレッジ', `${c.lev}倍（${S.margin === 'cross' ? 'クロス' : '分離'}）`], ['必要な証拠金', money(c.margin)], ['清算価格の目安', '$' + fmtPx(k, c.liq)]);
   if (t.tp) rows.push(['利確', '$' + fmtPx(k, t.tp)]); if (t.sl) rows.push(['損切り', '$' + fmtPx(k, t.sl)]);
-  rows.push(['手数料の目安', money(c.fee, 3)]);
+  rows.push(['手数料の目安（取引所）', money(c.fee, 3)]);
+  if (BUILD.on()){
+    const applies = isPerp() || S.side < 0;   // 現物の買いには、アプリの手数料はかかりません
+    rows.push(['アプリの手数料', applies ? `約定額の ${BUILD.rate(BUILDER.fee)}%（約 ${money(c.ntl * BUILDER.fee / 100000, 3)}）${BUILD.ok() ? '' : '。<b>承認がまだです</b>'}` : 'なし（現物の買いは対象外）']);
+  }
   // 確認画面を開いた時点の中身を固定して持っておく（本番ではこの中身だけを送る）
   S.pendingOrder = {coin:k, side:S.side, type:S.otype, alo, px: S.otype === 'market' ? null : roundPx(k, c.px), sz:c.sz, lev:c.lev, margin:S.margin, tp:t.tp, sl:t.sl, at:Date.now()};
   const po = S.pendingOrder;
@@ -2013,6 +2017,48 @@ function posAction(act, k){
 }
 // ===== 本番の注文の中身を作る（取引所の決まった形・決まった順番） =====
 const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で、すぐ約定する分だけ約定させる（残りは取り消し）
+// ===== アプリの手数料（Hyperliquid の「ビルダーコード」）=====
+// addr を空のままにすると手数料なし（いままでどおり）。入れると、約定額の fee 分が addr の口座に入ります。
+//   fee は「1/10 bp」単位：10 = 0.01%、30 = 0.03%、100 = 0.1%（取引所が許す上限。現物は1%まで）
+//   required が true のあいだは、手数料を承認していない人の「新規の注文」は出せません。
+//   決済・取り消し・倍率変更は、承認がなくてもいつでもできます（ポジションから出られなくならないように）。
+const BUILDER = {addr:'', fee:0, required:true};
+const BUILD = (() => {
+  const ADDR = /^0x[0-9a-fA-F]{40}$/;
+  const addr = () => ADDR.test(BUILDER.addr) ? BUILDER.addr.toLowerCase() : '';
+  const on = () => !!addr() && Number.isInteger(BUILDER.fee) && BUILDER.fee > 0 && BUILDER.fee <= 100;
+  const rate = f => +(f / 1000).toFixed(3);        // 1/10 bp → %（10 → 0.01）
+  let ok = false;                                   // いまの口座が、必要な額まで承認済みか
+  async function refresh(){
+    ok = false; if (!on() || !ADDR.test(S.user)) return ok;
+    try { const r = await info({type:'maxBuilderFee', user:S.user, builder:addr()}); ok = +r >= BUILDER.fee; } catch {}
+    return ok;
+  }
+  // 注文に付ける「手数料の宛先」。承認が確認できているときだけ付ける（未承認で付けると取引所に断られる）
+  const field = () => on() && ok ? {b:addr(), f:BUILDER.fee} : null;
+  const needsApproval = action => on() && BUILDER.required && !ok && action.type === 'order' && action.orders.some(o => !o.r);
+  // ウォレット（MetaMask など）の署名で、手数料の上限を承認する。f = 0 なら取り消し。鍵や秘密は一切扱わない
+  async function approve(f){
+    const eth = window.ethereum; if (!eth) throw new Error('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。');
+    if (!ADDR.test(S.user)) throw new Error('先に、口座のアドレスを入れてください。');
+    const accts = await eth.request({method:'eth_requestAccounts'});
+    if (!accts.some(a => a.toLowerCase() === S.user.toLowerCase())) throw new Error('つないだウォレットが、設定した口座のアドレスと違います。');
+    try { await eth.request({method:'wallet_switchEthereumChain', params:[{chainId:'0xa4b1'}]}); } catch {}
+    const nonce = Date.now(), maxFeeRate = rate(f) + '%', builder = addr();
+    const typed = {domain:{name:'HyperliquidSignTransaction', version:'1', chainId:42161, verifyingContract:'0x0000000000000000000000000000000000000000'},
+      types:{EIP712Domain:[{name:'name', type:'string'}, {name:'version', type:'string'}, {name:'chainId', type:'uint256'}, {name:'verifyingContract', type:'address'}],
+        'HyperliquidTransaction:ApproveBuilderFee':[{name:'hyperliquidChain', type:'string'}, {name:'maxFeeRate', type:'string'}, {name:'builder', type:'address'}, {name:'nonce', type:'uint64'}]},
+      primaryType:'HyperliquidTransaction:ApproveBuilderFee', message:{hyperliquidChain:'Mainnet', maxFeeRate, builder, nonce}};
+    const sig = await eth.request({method:'eth_signTypedData_v4', params:[S.user, JSON.stringify(typed)]});
+    const signature = {r:'0x' + sig.slice(2, 66), s:'0x' + sig.slice(66, 130), v:parseInt(sig.slice(130, 132), 16)};
+    const action = {type:'approveBuilderFee', hyperliquidChain:'Mainnet', signatureChainId:'0xa4b1', maxFeeRate, builder, nonce};
+    const r = await fetch(API.replace(/\/info$/, '/exchange'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, nonce, signature})});
+    const t = await r.text(); let j; try { j = JSON.parse(t); } catch { j = {status:'err', response:t}; }
+    if (j.status !== 'ok') throw new Error('承認できませんでした：' + (j.response || t));
+    await refresh(); return true;
+  }
+  return {on, addr, rate, refresh, field, needsApproval, approve, ok: () => ok};
+})();
 const HLX = {
   aid(k){ const a = M[k]?.aid; if (a == null) throw new Error('銘柄の番号がわかりません。ページを開き直してください'); return a; },
   px(k, p){ const r = roundPx(k, p); if (!(r > 0)) throw new Error('値段が正しくありません'); return HLSign.wire(r); },
@@ -2022,7 +2068,7 @@ const HLX = {
   limit(k, buy, p, q, reduce, alo){ return HLX.ord(k, buy, p, q, reduce, {limit:{tif: alo ? 'Alo' : 'Gtc'}}); },
   // 届いたら成行（利確・損切り・逆指値）。成行の幅は取引所の決まりどおり10%
   trig(k, buy, trig, q, reduce, tpsl){ return HLX.ord(k, buy, trig * (buy ? 1.1 : 0.9), q, reduce, {trigger:{isMarket:true, triggerPx:HLX.px(k, trig), tpsl}}); },
-  orders(list, grouping){ return {type:'order', orders:list, grouping: grouping || 'na'}; },
+  orders(list, grouping){ const a = {type:'order', orders:list, grouping: grouping || 'na'}, b = BUILD.field(); if (b) a.builder = b; return a; },
   cancel(k, oid){ return {type:'cancel', cancels:[{a:HLX.aid(k), o:+oid}]}; },
   modify(oid, order){ return {type:'batchModify', modifies:[{oid:+oid, order}]}; },
   lev(k, lev, cross){ return {type:'updateLeverage', asset:HLX.aid(k), isCross:!!cross, leverage:Math.max(1, Math.round(lev))}; },
@@ -2076,9 +2122,10 @@ const LIVE = (() => {
   async function runSteps(steps){
     const rows = []; let ok = true;
     for (const st of steps){
+      if (BUILD.needsApproval(st.action)){ rows.push([esc(st.label), '<span class="bad">アプリの手数料の承認がまだなので、新しい注文は出せません。「本番の注文の設定」から承認してください（決済・取り消しは承認なしでもできます）。</span>']); ok = false; break; }
       let res; try { res = await send(st.action); } catch (e){ rows.push([esc(st.label), `<span class="bad">送れませんでした：${esc(e.message)}</span>`]); ok = false; break; }
       const ex = explainRes(res); rows.push([esc(st.label), ex.lines.map(x => ex.ok ? esc(x) : `<span class="bad">${esc(x)}</span>`).join('<br>')]);
-      if (!ex.ok){ ok = false; break; }
+      if (!ex.ok){ ok = false; BUILD.refresh(); break; }
     }
     return {ok, rows};
   }
@@ -2087,7 +2134,7 @@ const LIVE = (() => {
 })();
 S.live = store.get('live', false) && !!LIVE.saved();
 // 取引所の返事を日本語にする
-const ERR_JA = [[/insufficient margin|not enough margin/i, '証拠金（余力）が足りません'], [/could not immediately match/i, 'すぐ約定する相手がいませんでした（値段が急に動いたかもしれません）。何も約定していません'],
+const ERR_JA = [[/builder fee/i, 'アプリの手数料の承認が足りない、または取り消されています。「本番の注文の設定」から承認し直してください'], [/insufficient margin|not enough margin/i, '証拠金（余力）が足りません'], [/could not immediately match/i, 'すぐ約定する相手がいませんでした（値段が急に動いたかもしれません）。何も約定していません'],
   [/post only.*immediately matched|would have immediately matched/i, 'メイカー専用なのに、すぐ約定する値段だったので取り消されました'], [/does not exist/i, 'この鍵が口座に登録されていません（作り直しが必要かもしれません）'],
   [/reduce only.*increase/i, '決済用の注文なのに、ポジションが増える向きでした'], [/tick size|divisible/i, '値段の刻みが合っていません'], [/minimum value|min.*\$10/i, '注文額が小さすぎます（10ドル以上が必要）'],
   [/leverage/i, '倍率の設定でエラーになりました'], [/rate limit|too many/i, '短い時間に送りすぎました。少し待ってください'], [/never placed|already canceled|filled/i, 'もう約定したか、取り消し済みです']];
@@ -2135,6 +2182,10 @@ function openLiveSetup(){
     <div class="btns"><button id="lvTest">つながりを確かめる（お金は動きません）</button></div>
     <p class="note">最初に一度押してください。ポジションも注文もない銘柄の倍率を「いまと同じ値」に設定し直して、取引所が署名を受け付けるかだけを確かめます。</p>
     <div class="btns">${S.live ? '<button class="pri" id="lvOff">練習モードに戻す</button>' : '<button class="red" id="lvOn" disabled>本番にする</button>'}<button id="lvLock">鍵を閉じる</button><button id="lvForget">鍵を消す</button></div>`;
+  if (BUILD.on()) h += `<div style="border-top:1px solid var(--line);padding-top:10px"><p><b>アプリの手数料</b></p>
+    <p class="note">このアプリは、取引所の手数料とは別に、<b>約定した金額の ${BUILD.rate(BUILDER.fee)}%</b>（現物は売りのときだけ）をアプリの運営に受け取ります。承認した上限を超えて請求されることはありません。承認はウォレットの署名で行い、<b>お金は動かず、秘密鍵も使いません</b>。いつでも取り消せます。受け取り口座：<span class="num" style="word-break:break-all">${esc(BUILD.addr())}</span></p>
+    <p id="bfStat" class="note">承認の状態を確かめています…</p>
+    <div class="btns"><button class="pri" id="bfOk">手数料を承認する（ウォレットで署名）</button><button id="bfNo">承認を取り消す</button></div></div>`;
   h += '<p class="msg bad" id="lvMsg"></p></div>';
   preview('本番の注文の設定', [], h, {info:true});
   const msg = t => $('lvMsg').textContent = t;
@@ -2148,6 +2199,14 @@ function openLiveSetup(){
   if ($('lvOpen')){ const go = async () => { try { $('lvOpen').disabled = true; await LIVE.unlock($('lvPin').value); renderMode(); openLiveSetup(); } catch (e){ $('lvOpen').disabled = false; msg(e.message); } };
     $('lvOpen').onclick = go; $('lvPin').onkeydown = e => { if (e.key === 'Enter') go(); }; $('lvPin').focus(); }
   if ($('lvOff')) $('lvOff').onclick = () => { LIVE.setLive(false); openLiveSetup(); };
+  if ($('bfStat')){
+    const show = () => { if ($('bfStat')) $('bfStat').innerHTML = BUILD.ok() ? '<span class="up">承認済みです</span>' : '<span class="bad">まだ承認されていません</span>（承認するまで、新しい注文は出せません）'; };
+    BUILD.refresh().then(show, show);
+    const act = (id, f, label) => $(id).onclick = async () => { const b = $(id); b.disabled = true; b.textContent = '署名を待っています…'; msg('');
+      try { await BUILD.approve(f); show(); toast(f ? '手数料を承認しました' : '手数料の承認を取り消しました', 4000); } catch (e){ msg(e.message || String(e)); }
+      b.disabled = false; b.textContent = label; };
+    act('bfOk', BUILDER.fee, '手数料を承認する（ウォレットで署名）'); act('bfNo', 0, '承認を取り消す');
+  }
   if ($('lvTest')) $('lvTest').onclick = async () => {
     const b = $('lvTest'); b.disabled = true; b.textContent = '確かめています…';
     try {
@@ -2176,6 +2235,7 @@ function openLiveSetup(){
 }
 $('modeBtn').onclick = openLiveSetup;
 renderMode();
+BUILD.refresh();
 function log(t){ const d = document.createElement('div'); d.textContent = t; $('log').prepend(d); }
 
 // ===== 口座 =====
@@ -2350,7 +2410,7 @@ function renderHist(){
 setInterval(() => { if (HIST_TABS.includes(S.aTab) && Date.now() - H.at > 60000) loadHist(); }, 15000);
 $('gear').onclick = () => { $('acctBar').hidden = !$('acctBar').hidden; };
 $('addr').value = S.user;
-$('addr').onchange = e => { S.user = e.target.value.trim(); store.set('addr', S.user); H.at = 0; watchFills(); loadAcct(); if (HIST_TABS.includes(S.aTab)) loadHist(); };
+$('addr').onchange = e => { S.user = e.target.value.trim(); store.set('addr', S.user); BUILD.refresh(); H.at = 0; watchFills(); loadAcct(); if (HIST_TABS.includes(S.aTab)) loadHist(); };
 
 // ===== 銘柄情報（最大レバレッジ・資金調達率・前日の値段）=====
 async function loadMeta(){
