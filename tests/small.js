@@ -42,6 +42,19 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     if (iso){ await page.evaluate(c => posAction('margin', c), iso); await page.waitForTimeout(200);
       ok(await page.isVisible('#gMode'), '分離のポジションの「証拠金」は、足す・減らすの画面が出る'); await page.evaluate(() => closeModal()); }
     await ctx.close(); }
+  // 分離：パネルを開かなくても「クロス／分離」が見えて、分離で注文すると、取引所へ「分離にする」が先に送られる
+  { const { page, ctx } = await L.open(b, { lang: 'ja', w: 1280, h: 900, noSeed: false }); await page.evaluate(() => window.__HL_DEMO_READY); await page.waitForTimeout(800);
+    await page.evaluate(async () => { await LIVE.unlock(__HL_MOCK.DEMO_PIN); LIVE.setLive(true); });
+    const coin = await page.evaluate(() => Object.keys(M).find(k => M[k].kind === 'perp' && !posOf(k) && !M[k].onlyIso));
+    await page.evaluate(c => selectCoin(c), coin); await page.waitForTimeout(300);
+    ok(await page.isVisible('#mMode') && await page.isHidden('#levPanel'), '「クロス／分離」が、パネルを開かなくても見える');
+    ok(await page.evaluate(() => S.margin) === 'cross', '初期値はクロスのまま');
+    await page.click('#mMode [data-v=isolated]'); await page.waitForTimeout(200);
+    ok(await page.evaluate(() => S.margin) === 'isolated' && /分離/.test(await page.textContent('#levMode')), '分離を選べる');
+    await page.fill('#sz', '120'); await page.dispatchEvent('#sz', 'input'); await page.click('#submit'); await page.waitForSelector('#mOk'); await page.click('#mOk'); await page.waitForTimeout(1200);
+    const lg = await page.evaluate(() => __HL_MOCK.state.log.map(x => ({ t: x.action.type, c: x.action.isCross, ok: x.verdict && x.verdict.ok })));
+    ok(lg.some(x => x.t === 'updateLeverage' && x.c === false && x.ok) && lg.some(x => x.t === 'order' && x.ok), '分離で注文すると、「分離にする」の署名つき指示が先に送られ、注文も通る', JSON.stringify(lg));
+    await ctx.close(); }
   // ?lang=__proto__ で壊れない
   { const r2 = await L.open(b, { lang: '__proto__', w: 1000, h: 800 }).catch(e => ({ err: e.message }));
     if (r2.page){ await r2.page.waitForTimeout(500); const l = await r2.page.evaluate(() => document.documentElement.lang); ok(['ja','ko','en'].includes(l), '?lang=__proto__ でも、対応する言語に落ち着く', l); await r2.ctx.close(); } else ok(false, '?lang=__proto__ を開けた', r2.err); }

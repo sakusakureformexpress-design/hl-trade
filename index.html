@@ -496,11 +496,12 @@ td.ja{font-family:var(--sans)}
       <div id="levWrap" class="f">
         <span>レバレッジと担保の方式</span>
         <button class="levBtn" id="levBtn" type="button"><span id="levMode">クロス</span><b id="levV">5x</b></button>
+        <div class="seg" id="mMode"><button data-v="cross">クロス（口座全体）</button><button data-v="isolated">分離（この建玉だけ）</button></div>
+        <p class="note" id="mModeNote">クロス：口座全体が担保で、清算されにくい。分離：この建玉だけが担保で、損失は入れた証拠金まで。あとから証拠金を減らして資金に戻せる。</p>
         <div id="levPanel" hidden>
           <input type="range" id="lev" min="1" max="40" value="5" aria-label="レバレッジ">
           <p class="note" id="levLock" hidden>この銘柄はポジションを持っているので、取引所のいまの倍率と方式で計算しています。変えるには、先にポジションを閉じてください。</p>
           <div class="chips" id="levChips"></div>
-          <div class="seg" id="mMode"><button data-v="cross">クロス（口座全体）</button><button data-v="isolated">分離（この建玉だけ）</button></div>
         </div>
       </div>
       <div id="tpslWrap" class="f">
@@ -1236,6 +1237,7 @@ ko: {
   "持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。": "가진 포지션과 반대 방향으로 주문하면 먼저 그 포지션을 청산하고 나머지가 새 포지션이 됩니다(반대 전환). 수량 아래에 내역이 표시됩니다.",
   "現物は、現物の口座にある USDC で買います。先物の口座とは別です。": "현물은 현물 계좌에 있는 USDC로 매수합니다. 선물 계좌와는 별개입니다.",
   "板の数字を押すと、その値段が指値として入り、チャートに点線が出ます。消すときは、価格の欄の右にある「クリア」を押します（成行に戻ります）。": "호가의 숫자를 누르면 그 가격이 지정가로 들어가고 차트에 점선이 나타납니다. 지우려면 가격 입력란 오른쪽의 \"초기화\"를 누르세요 (시장가로 돌아갑니다).",
+  "担保の方式は、注文の欄の「クロス／分離」で選べます。クロスは口座全体が担保で清算されにくく、分離はこの建玉だけが担保で損失が証拠金までです（分離のポジションは、証拠金を減らして資金に戻せます）。持っているポジションの方式は、決済するまで変えられません。": "담보 방식은 주문 영역의 \"크로스/분리\"에서 고를 수 있습니다. 크로스는 계좌 전체가 담보라 청산되기 어렵고, 분리는 이 포지션만 담보라 손실이 증거금까지입니다 (분리 포지션은 증거금을 줄여 자금으로 되돌릴 수 있습니다). 보유 중인 포지션의 방식은 청산할 때까지 바꿀 수 없습니다.",
   "チャート": "차트",
   "チャートの上のボタン": "차트 위의 버튼",
   "<b>1分〜月足</b>：足の長さを変えます。": "<b>1분~월봉</b>: 봉의 길이를 바꿉니다.",
@@ -1311,9 +1313,10 @@ ko: {
   "注文額": "주문 금액",
   "全力": "최대",
   "レバレッジと担保の方式": "레버리지와 담보 방식",
-  "この銘柄はポジションを持っているので、取引所のいまの倍率と方式で計算しています。変えるには、先にポジションを閉じてください。": "이 종목은 포지션을 보유 중이어서 거래소의 현재 레버리지와 방식으로 계산합니다. 바꾸려면 먼저 포지션을 닫으세요.",
   "クロス（口座全体）": "교차 (계좌 전체)",
   "分離（この建玉だけ）": "격리 (이 포지션만)",
+  "クロス：口座全体が担保で、清算されにくい。分離：この建玉だけが担保で、損失は入れた証拠金まで。あとから証拠金を減らして資金に戻せる。": "크로스: 계좌 전체가 담보라 청산되기 어렵습니다. 분리: 이 포지션만 담보이며 손실은 넣은 증거금까지입니다. 나중에 증거금을 줄여 자금으로 되돌릴 수 있습니다.",
+  "この銘柄はポジションを持っているので、取引所のいまの倍率と方式で計算しています。変えるには、先にポジションを閉じてください。": "이 종목은 포지션을 보유 중이어서 거래소의 현재 레버리지와 방식으로 계산합니다. 바꾸려면 먼저 포지션을 닫으세요.",
   "利確と損切りも一緒に入れる": "익절과 손절도 함께 설정",
   "ポジション": "포지션",
   "待ち注文": "미체결 주문",
@@ -2021,6 +2024,7 @@ en: {
   "持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。": "If you order in the opposite direction of a position you hold, that position is closed first and the rest becomes a new position (a flip). A breakdown appears under the size.",
   "現物は、現物の口座にある USDC で買います。先物の口座とは別です。": "Spot trades use the USDC in your spot account, which is separate from your perpetuals account.",
   "板の数字を押すと、その値段が指値として入り、チャートに点線が出ます。消すときは、価格の欄の右にある「クリア」を押します（成行に戻ります）。": "Tapping a number in the order book enters that price as a limit price and draws a dotted line on the chart. To remove it, press \"Clear\" to the right of the price box (it goes back to market).",
+  "担保の方式は、注文の欄の「クロス／分離」で選べます。クロスは口座全体が担保で清算されにくく、分離はこの建玉だけが担保で損失が証拠金までです（分離のポジションは、証拠金を減らして資金に戻せます）。持っているポジションの方式は、決済するまで変えられません。": "You can choose the collateral mode with \"Cross / Isolated\" in the order panel. Cross uses the whole account as collateral and is harder to liquidate; Isolated uses only this position as collateral, so the loss is limited to its margin (an isolated position lets you reduce margin and return it to free funds). The mode of an open position cannot be changed until you close it.",
   "チャート": "Chart",
   "チャートの上のボタン": "Buttons above the chart",
   "<b>1分〜月足</b>：足の長さを変えます。": "<b>1m to 1M</b>: change the candle length.",
@@ -2096,9 +2100,10 @@ en: {
   "注文額": "Order value",
   "全力": "Max",
   "レバレッジと担保の方式": "Leverage & margin mode",
-  "この銘柄はポジションを持っているので、取引所のいまの倍率と方式で計算しています。変えるには、先にポジションを閉じてください。": "You hold a position in this market, so calculations use the exchange's current leverage and mode. Close the position first to change it.",
   "クロス（口座全体）": "Cross (whole account)",
   "分離（この建玉だけ）": "Isolated (this position only)",
+  "クロス：口座全体が担保で、清算されにくい。分離：この建玉だけが担保で、損失は入れた証拠金まで。あとから証拠金を減らして資金に戻せる。": "Cross: the whole account is collateral, so it is harder to get liquidated. Isolated: only this position is collateral, so the loss is capped at the margin you put in. You can later reduce the margin and return it to free funds.",
+  "この銘柄はポジションを持っているので、取引所のいまの倍率と方式で計算しています。変えるには、先にポジションを閉じてください。": "You hold a position in this market, so calculations use the exchange's current leverage and mode. Close the position first to change it.",
   "利確と損切りも一緒に入れる": "Also set take profit and stop loss",
   "ポジション": "Positions",
   "待ち注文": "Open orders",
@@ -3470,7 +3475,7 @@ function syncLev(){
   $('lev').max = max; $('lev').value = v; $('levV').textContent = v + 'x'; $('levMode').textContent = S.margin === 'cross' ? _('クロス（口座全体で担保）') : _('分離（この建玉だけで担保）');
   const opts = [...new Set([1,2,3,5,10,20,max].filter(x => x <= max))];
   $('levChips').innerHTML = opts.map(x => `<button data-l="${x}" class="${x===v?'sel':''}">${x}x</button>`).join('');
-  [...$('mMode').children].forEach(b => b.classList.toggle('sel', b.dataset.v === S.margin));
+  [...$('mMode').children].forEach(b => { b.classList.toggle('sel', b.dataset.v === S.margin); b.disabled = !!pos || (!!cur()?.onlyIso && b.dataset.v === 'cross'); });   // ポジションがあるとき（方式は変えられない）と、分離しかできない銘柄では押せない
 }
 function setLev(v){ if (isPerp() && posOf(curKey())) return; S.lev[curKey()] = v; store.set('lev', S.lev); syncLev(); schedule(); }
 $('levBtn').onclick = () => { $('levPanel').hidden = !$('levPanel').hidden; };
@@ -4712,7 +4717,7 @@ const GUIDE = (() => {
       ['g4', _('注文の出し方'), `
         ${fig('order', _('注文の欄'))}
         ${ol([_('<b>①</b> ロング（上がると思うとき）か、ショート（下がると思うとき）を選びます。'), _('<b>②</b> 注文の種類：成行（すぐ約定）・指値（その値段で待つ）・逆指値（届いたら成行）。'), _('<b>③</b> 注文額（USD）：レバレッジをかけた後の建玉の大きさです。10%・25%…のボタンは、使える余力に対する割合です。'), _('<b>④</b> レバレッジと担保の方式。クロスは口座全体、分離はその建玉だけを担保にします。'), _('<b>⑤</b> 「利確と損切りも一緒に入れる」にすると、決めた値段で自動で決済する注文も一緒に出ます。'), _('<b>⑥</b> ロング／ショートのボタンを押すと確認画面が出ます。中身を確かめてから「注文する」を押します。')])}
-        ${ul([_('1回の注文額は、約 10 ドル以上が必要です。'), _('持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。'), _('現物は、現物の口座にある USDC で買います。先物の口座とは別です。'), _('板の数字を押すと、その値段が指値として入り、チャートに点線が出ます。消すときは、価格の欄の右にある「クリア」を押します（成行に戻ります）。')])}`],
+        ${ul([_('1回の注文額は、約 10 ドル以上が必要です。'), _('持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。'), _('現物は、現物の口座にある USDC で買います。先物の口座とは別です。'), _('板の数字を押すと、その値段が指値として入り、チャートに点線が出ます。消すときは、価格の欄の右にある「クリア」を押します（成行に戻ります）。'), _('担保の方式は、注文の欄の「クロス／分離」で選べます。クロスは口座全体が担保で清算されにくく、分離はこの建玉だけが担保で損失が証拠金までです（分離のポジションは、証拠金を減らして資金に戻せます）。持っているポジションの方式は、決済するまで変えられません。')])}`],
       ['g5', _('チャート'), `
         ${fig('chart', _('チャートの上のボタン'))}
         ${ul([_('<b>1分〜月足</b>：足の長さを変えます。'), _('<b>＋ −</b>：拡大・縮小（ピンチやマウスのホイールでもできます）。'), _('<b>縦自動</b>：縦の縮尺を自動に戻します。右の目盛りを上下にドラッグすると、縦の縮尺を変えられます。'), _('<b>最新</b>：いちばん新しい足に戻ります。'), _('<b>平均線</b>：移動平均線（7・25・75本）の表示を切り替えます。'), _('<b>指標</b>：EMA・ボリンジャーバンド・VWAP を重ね、RSI・MACD を下の別枠に出せます。別枠は右上のボタンで、小さくたたむ・消すができます。'), _('<b>全画面</b>：チャートを画面いっぱいに出します。'), _('<b>線を動かす</b>：押してから30秒だけ、建値・損切り・利確・待ち注文の線をドラッグで動かせます。離すと確認が出ます。'), _('<b>✏ 線を引く</b>：水平線とトレンドラインを引けます。'), _('チャートを長押し（パソコンは右クリック）すると、その値段への注文を出せます。')])}`],
