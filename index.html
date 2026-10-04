@@ -1073,6 +1073,7 @@ ko: {
   "このブラウザにあります": "이 브라우저에 있음",
   "ウォレットを選ぶ": "지갑 선택",
   "つなぐウォレットを選んでください。": "연결할 지갑을 선택해 주세요.",
+  "スマホでウォレットが見つからないときは、ウォレットアプリ（MetaMask など）の中のブラウザで、このページを開くと確実です。「WalletConnect」を選んだときは、ウォレットアプリを開いて、接続の要求を確かめてください。": "스마트폰에서 지갑을 찾을 수 없을 때는 지갑 앱(MetaMask 등) 안의 브라우저에서 이 페이지를 열면 확실합니다. \"WalletConnect\"를 선택했을 때는 지갑 앱을 열어 연결 요청을 확인해 주세요.",
   "ウォレットをつなぎました（{0}）": "지갑을 연결했습니다 ({0})",
   "つないでいる口座のアドレス": "연결된 계좌 주소",
   "つないでいるウォレット：{0}": "연결된 지갑: {0}",
@@ -1823,6 +1824,7 @@ en: {
   "このブラウザにあります": "Installed in this browser",
   "ウォレットを選ぶ": "Choose a wallet",
   "つなぐウォレットを選んでください。": "Choose the wallet to connect.",
+  "スマホでウォレットが見つからないときは、ウォレットアプリ（MetaMask など）の中のブラウザで、このページを開くと確実です。「WalletConnect」を選んだときは、ウォレットアプリを開いて、接続の要求を確かめてください。": "If no wallet is found on your phone, the surest way is to open this page in the browser inside your wallet app (such as MetaMask). If you chose \"WalletConnect\", open your wallet app and check for the connection request.",
   "ウォレットをつなぎました（{0}）": "Wallet connected ({0})",
   "つないでいる口座のアドレス": "Connected account address",
   "つないでいるウォレット：{0}": "Connected wallet: {0}",
@@ -4355,7 +4357,7 @@ function openWalletPicker(fresh){
   const draw = () => {
     const l = WALLET.list();
     const rows = l.map(w => `<button class="wi" type="button" data-id="${esc(w.id)}">${w.icon ? `<img src="${esc(w.icon)}" alt="" width="32" height="32">` : `<span class="wic">${w.wc ? '▦' : '👛'}</span>`}<span class="wn">${esc(w.name)}</span><small>${w.wc ? _('QR・スマホのウォレット') : _('このブラウザにあります')}</small></button>`).join('');
-    preview(_('ウォレットを選ぶ'), [], `<div class="wp"><p class="note">${_('つなぐウォレットを選んでください。')} <button class="qh" type="button" data-help="g2" title="${_('使い方を見る')}">?</button></p><div class="wl" id="wpList">${rows}</div>${l.length ? '' : `<p class="note bad">${_('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。')}</p>`}</div>`, {info:true});
+    preview(_('ウォレットを選ぶ'), [], `<div class="wp"><p class="note">${_('つなぐウォレットを選んでください。')} <button class="qh" type="button" data-help="g2" title="${_('使い方を見る')}">?</button></p><div class="wl" id="wpList">${rows}</div>${l.some(x => !x.wc) || !l.some(x => x.wc) ? '' : `<p class="note wnote">${_('スマホでウォレットが見つからないときは、ウォレットアプリ（MetaMask など）の中のブラウザで、このページを開くと確実です。「WalletConnect」を選んだときは、ウォレットアプリを開いて、接続の要求を確かめてください。')}</p>`}${l.length ? '' : `<p class="note bad">${_('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。')}</p>`}</div>`, {info:true});
     document.querySelectorAll('#wpList .wi').forEach(btn => btn.onclick = () => pickWallet(btn.dataset.id, fresh));
     return l.length;
   };

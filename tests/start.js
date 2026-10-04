@@ -30,6 +30,15 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
       await page.evaluate(() => openLiveSetup()); await page.waitForSelector('#wlGo');
       ok(await page.isVisible('#modal .lv .note.bad'), '鍵を作る画面に、残高が見当たらない警告が出る');
       ok(errors.length === 0, 'JSエラーなし', errors.join(' | ')); await ctx.close(); }
+    // スマホなどでウォレットが入っていないとき：アプリの中のブラウザで開く案内が出る
+    { const { page, errors, ctx } = await L.open(b, { lang, w, h, ls: { addr: '' }, noSeed: true, noWallet: true, wc: true });
+      await page.click('#walletBtn'); await page.waitForSelector('#wpList .wi');
+      ok(await page.isVisible('#modal .wnote'), 'ウォレットが見つからないとき、アプリの中のブラウザで開く案内が出る');
+      const tx = await page.textContent('#modal .wnote'); if (lang !== 'ja') ok(!L.KANA_KANJI.test(tx), '案内に日本語が残っていない', tx);
+      await ctx.close(); }
+    { const { page, ctx } = await L.open(b, { lang, w, h, ls: { addr: '' }, noSeed: true });
+      await page.click('#walletBtn'); await page.waitForSelector('#wpList .wi');
+      ok((await page.locator('#modal .wnote').count()) === 0, 'ウォレットが入っているときは、この案内は出ない'); await ctx.close(); }
     // ぜんぶ終わった人（デモは、鍵が入っている）
     { const { page, errors, ctx } = await L.open(b, { lang, w, h, ls: { startOff: false, firstLive: true } });
       await page.evaluate(() => window.__HL_DEMO_READY); await page.waitForTimeout(3500);
