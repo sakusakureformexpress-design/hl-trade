@@ -3,7 +3,10 @@
 Hyperliquid 用のトレード画面です。HTML 1 枚で動き、価格・チャート・板・ポジション・履歴を取引所の公開 API から読みます。
 日本語・한국어・English を画面の上で切り替えられます。
 
-- 開く: https://sakusakureformexpress-design.github.io/hl-trade/
+- 開く（**一般に公開する URL**・Cloudflare）: https://hl-trade.pbot-relay.workers.dev
+- 予備・確認用（GitHub Pages。検索には出ません）: https://sakusakureformexpress-design.github.io/hl-trade/
+  - どちらも `main` から自動で公開され、中身は同じです。ただ、設定・鍵・規約の確認の記録は、URL ごとに別々に保存されます。
+  - 手数料を取る使い方は GitHub Pages の規約に合わない可能性があるので、一般に公開するのは Cloudflare のほうにしています。
 - 試す（架空のデータ・取引所にはつながらない）: `index.html?demo`
 - 見本モード（練習）: 注文ボタンは送る中身を表示するだけで、取引所には何も送りません。
 - 鍵やアドレスはこのリポジトリに入っていません。口座アドレスと（暗号化した）注文用の鍵は、各端末のブラウザにだけ保存されます。
