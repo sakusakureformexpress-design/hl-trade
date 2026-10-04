@@ -55,6 +55,22 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     const lg = await page.evaluate(() => __HL_MOCK.state.log.map(x => ({ t: x.action.type, c: x.action.isCross, ok: x.verdict && x.verdict.ok })));
     ok(lg.some(x => x.t === 'updateLeverage' && x.c === false && x.ok) && lg.some(x => x.t === 'order' && x.ok), '分離で注文すると、「分離にする」の署名つき指示が先に送られ、注文も通る', JSON.stringify(lg));
     await ctx.close(); }
+  // 他の銘柄の余力：取引所の「この銘柄で使える額」が小さくても、口座全体の空き証拠金が足りるなら、止めずに注意だけ出す（足りないときは止める）
+  { const { page, ctx } = await L.open(b, { lang: 'ja', w: 1280, h: 900 }); await page.evaluate(() => window.__HL_DEMO_READY); await page.waitForTimeout(800);
+    await page.evaluate(async () => { await LIVE.unlock(__HL_MOCK.DEMO_PIN); LIVE.setLive(true); });
+    const coin = await page.evaluate(() => Object.keys(M).find(k => M[k].kind === 'perp' && !posOf(k) && !M[k].onlyIso));
+    await page.evaluate(c => selectCoin(c), coin); await page.waitForTimeout(400);
+    await page.evaluate(c => { S.aad[c] = Object.assign({}, S.aad[c], { availableToTrade: ['5.00', '5.00'] }); }, coin);
+    await page.fill('#sz', '200'); await page.dispatchEvent('#sz', 'input');
+    await page.evaluate(() => { S.side = 1; renderTicket(); $('submit').click(); }); await page.waitForSelector('#modal', { state: 'visible' });
+    let t = await page.textContent('#modal');
+    ok(/口座全体の空き証拠金/.test(t) && await page.isVisible('#mOk'), '口座全体に余力があれば、取引所の数字が小さくても、注意だけで「注文する」が出る', t.slice(-260));
+    await page.evaluate(() => closeModal());
+    await page.evaluate(() => { S.acct.marginSummary.totalMarginUsed = '1000000000'; S.acctAt = Date.now(); });
+    await page.evaluate(() => { S.side = 1; $('submit').click(); }); await page.waitForSelector('#modal', { state: 'visible' });
+    t = await page.textContent('#modal');
+    ok(/余力/.test(t) && !/口座全体の空き証拠金/.test(t) && await page.isHidden('#mOk'), '口座全体も足りないときは、これまでどおり止める', t.slice(-200));
+    await ctx.close(); }
   // ?lang=__proto__ で壊れない
   { const r2 = await L.open(b, { lang: '__proto__', w: 1000, h: 800 }).catch(e => ({ err: e.message }));
     if (r2.page){ await r2.page.waitForTimeout(500); const l = await r2.page.evaluate(() => document.documentElement.lang); ok(['ja','ko','en'].includes(l), '?lang=__proto__ でも、対応する言語に落ち着く', l); await r2.ctx.close(); } else ok(false, '?lang=__proto__ を開けた', r2.err); }
