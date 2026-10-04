@@ -484,7 +484,7 @@ td.ja{font-family:var(--sans)}
       <div class="side" id="side"><button data-v="1">ロング</button><button data-v="-1">ショート</button></div>
       <div class="seg" id="oType"></div>
       <label class="f" id="pxField" hidden><span id="pxLbl">指値の価格（ドル）</span>
-        <div class="row"><input id="px" class="num" inputmode="decimal"><button class="unit" id="pxMid" type="button">いまの値段</button></div>
+        <div class="row"><input id="px" class="num" inputmode="decimal"><button class="unit" id="pxMid" type="button">いまの値段</button><button class="unit" id="pxClr" type="button" title="入れた値段と、チャートの点線を消して、成行に戻します">クリア</button></div>
       </label>
       <label class="toggle" id="aloWrap" hidden><input type="checkbox" id="alo"> メイカー専用（手数料が安い。すぐ約定してしまう値段なら取り消し）</label>
       <div class="f">
@@ -849,6 +849,14 @@ ko: {
   "{0} を{1}（{2}）": "{0} {1} ({2})",
   "一部決済": "일부 청산",
   "買い増し・売り増し": "추가 매수·매도",
+  "{0} の証拠金（クロス）": "{0} 증거금 (크로스)",
+  "口座残高": "계좌 잔고",
+  "この銘柄に使われている証拠金": "이 종목에 사용 중인 증거금",
+  "いま使える余力（新しい注文に使える額）": "현재 사용 가능 여력 (새 주문에 쓸 수 있는 금액)",
+  "出金できる額（取引所の表示）": "출금 가능 금액 (거래소 표시)",
+  "クロス（口座全体で担保）のポジションには、ポジションごとの証拠金の出し入れはありません。口座全体の残高が担保になり、利益が増えると、その分は「使える余力」に反映されます。": "크로스(계좌 전체 담보) 포지션에는 포지션별 증거금을 넣고 빼는 기능이 없습니다. 계좌 전체 잔고가 담보가 되며, 이익이 늘어나면 그만큼이 \"사용 가능 여력\"에 반영됩니다.",
+  "証拠金だけを減らして資金に戻したいときは、分離（この建玉だけで担保）で建てたポジションなら、この「証拠金」ボタンから減らせます。いまのポジションの方式は、先に決済しないと変えられません。": "증거금만 줄여서 자금으로 되돌리고 싶다면, 분리(이 포지션만 담보)로 연 포지션에서 이 \"증거금\" 버튼으로 줄일 수 있습니다. 현재 포지션의 방식은 먼저 청산해야 바꿀 수 있습니다.",
+  "出金は、Hyperliquid の公式サイトで行います。この画面ではできません。": "출금은 Hyperliquid 공식 사이트에서 합니다. 이 화면에서는 할 수 없습니다.",
   "足す（清算を遠ざける）": "추가 (청산가를 멀리)",
   "減らして資金に戻す": "줄여서 자금으로 되돌리기",
   "足せる上限 {0}（使える余力）": "추가 가능 상한 {0} (사용 가능 금액)",
@@ -1225,6 +1233,7 @@ ko: {
   "1回の注文額は、約 10 ドル以上が必要です。": "1회 주문 금액은 약 10달러 이상이어야 합니다.",
   "持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。": "가진 포지션과 반대 방향으로 주문하면 먼저 그 포지션을 청산하고 나머지가 새 포지션이 됩니다(반대 전환). 수량 아래에 내역이 표시됩니다.",
   "現物は、現物の口座にある USDC で買います。先物の口座とは別です。": "현물은 현물 계좌에 있는 USDC로 매수합니다. 선물 계좌와는 별개입니다.",
+  "板の数字を押すと、その値段が指値として入り、チャートに点線が出ます。消すときは、価格の欄の右にある「クリア」を押します（成行に戻ります）。": "호가의 숫자를 누르면 그 가격이 지정가로 들어가고 차트에 점선이 나타납니다. 지우려면 가격 입력란 오른쪽의 \"초기화\"를 누르세요 (시장가로 돌아갑니다).",
   "チャート": "차트",
   "チャートの上のボタン": "차트 위의 버튼",
   "<b>1分〜月足</b>：足の長さを変えます。": "<b>1분~월봉</b>: 봉의 길이를 바꿉니다.",
@@ -1253,6 +1262,8 @@ ko: {
   "使える余力より、必要な証拠金が大きいときに出ます。数量を減らすか、レバレッジを上げてください。反対向きの注文は、持っているポジションの分は証拠金が要りません。": "필요한 증거금이 사용 가능한 여력보다 클 때 나옵니다. 수량을 줄이거나 레버리지를 높이세요. 반대 방향 주문은 가진 포지션만큼은 증거금이 필요 없습니다.",
   "「入金されていません」と出る": "\"입금되어 있지 않습니다\"라고 나온다",
   "つないだウォレットのアドレスが、まだ Hyperliquid に入金されていません。そのウォレットから、先に Hyperliquid へ USDC を入金してください。別のウォレットで入金したときは、そのウォレットをつなぎ直してください。右上のアドレスが、入金したアドレスと同じか確かめてください。": "연결한 지갑 주소가 아직 Hyperliquid에 입금되어 있지 않습니다. 그 지갑에서 먼저 Hyperliquid로 USDC를 입금하세요. 다른 지갑으로 입금했다면 그 지갑을 다시 연결하세요. 오른쪽 위의 주소가 입금한 주소와 같은지 확인하세요.",
+  "証拠金だけを減らして、資金に戻したい": "증거금만 줄여서 자금으로 되돌리고 싶어요",
+  "ポジションの「証拠金」ボタンから行います。分離（この建玉だけで担保）のポジションなら、証拠金を足す・減らすができます。クロス（口座全体で担保）のポジションには、ポジションごとの証拠金がなく、口座全体の残高が担保なので、ボタンを押すと仕組みと使える余力が出ます。出金は、Hyperliquid の公式サイトで行います。": "포지션의 \"증거금\" 버튼에서 합니다. 분리(이 포지션만 담보) 포지션이라면 증거금을 늘리거나 줄일 수 있습니다. 크로스(계좌 전체 담보) 포지션에는 포지션별 증거금이 없고 계좌 전체 잔고가 담보이므로, 버튼을 누르면 구조와 사용 가능 여력이 표시됩니다. 출금은 Hyperliquid 공식 사이트에서 합니다.",
   "現物が買えない": "현물을 살 수 없다",
   "現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。": "현물은 현물 계좌의 USDC로 매수합니다. 선물 계좌에 있는 돈은 거래소 화면에서 현물 계좌로 옮기세요.",
   "「鍵が口座に登録されていません」と出る": "\"키가 계좌에 등록되어 있지 않습니다\"라고 나온다",
@@ -1263,7 +1274,6 @@ ko: {
   "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari만으로는 지갑을 찾을 수 없으므로, 지갑 앱 안의 브라우저로 열거나 \"지갑 연결\"에서 WalletConnect를 선택해 스마트폰 지갑 앱에 연결하세요.",
   "銘柄情報を取れませんでした: ": "종목 정보를 가져오지 못했습니다: ",
   "HL トレード画面": "HL 트레이딩",
-  "口座残高": "계좌 잔고",
   "⚙ 設定": "⚙ 설정",
   "1ドル = —円": "1달러 = —원",
   "文字の大きさ": "글자 크기",
@@ -1294,6 +1304,7 @@ ko: {
   "板": "호가창",
   "押すと指値に": "누르면 지정가로",
   "累計": "누적",
+  "クリア": "초기화",
   "メイカー専用（手数料が安い。すぐ約定してしまう値段なら取り消し）": "메이커 전용 (수수료가 저렴. 즉시 체결되는 가격이면 취소)",
   "注文額": "주문 금액",
   "全力": "최대",
@@ -1330,6 +1341,7 @@ ko: {
   "チャートを画面いっぱいに（横向きにすると横いっぱい）": "차트를 화면 가득 표시 (가로로 돌리면 가로 가득)",
   "押すと30秒だけ、チャートの線をドラッグで動かせるようになります": "누르면 30초 동안 차트의 선을 드래그해서 움직일 수 있습니다",
   "水平線・トレンドラインを引く・消す": "수평선·추세선 그리기/지우기",
+  "入れた値段と、チャートの点線を消して、成行に戻します": "입력한 가격과 차트의 점선을 지우고 시장가로 되돌립니다",
   "余力に対する割合": "사용 가능 금액 대비 비율",
   "4つとも同じ銘柄にする": "네 개 모두 같은 종목으로 설정",
   "銘柄を検索（例: BTC）": "종목 검색 (예: BTC)"
@@ -1620,6 +1632,14 @@ en: {
   "{0} を{1}（{2}）": "{1} {0} ({2})",
   "一部決済": "Partial close",
   "買い増し・売り増し": "Add to position",
+  "{0} の証拠金（クロス）": "{0} margin (cross)",
+  "口座残高": "Account value",
+  "この銘柄に使われている証拠金": "Margin used by this market",
+  "いま使える余力（新しい注文に使える額）": "Available now (can be used for new orders)",
+  "出金できる額（取引所の表示）": "Withdrawable (as shown by the exchange)",
+  "クロス（口座全体で担保）のポジションには、ポジションごとの証拠金の出し入れはありません。口座全体の残高が担保になり、利益が増えると、その分は「使える余力」に反映されます。": "A cross-margin position (the whole account is the collateral) has no per-position margin to add or remove. Your whole balance is the collateral, and as profit grows it is reflected in \"available now\".",
+  "証拠金だけを減らして資金に戻したいときは、分離（この建玉だけで担保）で建てたポジションなら、この「証拠金」ボタンから減らせます。いまのポジションの方式は、先に決済しないと変えられません。": "To take only margin back as free funds, use a position opened in isolated mode (collateral for that position only): you can reduce its margin with this \"Margin\" button. The margin mode of an open position can only be changed after closing it.",
+  "出金は、Hyperliquid の公式サイトで行います。この画面ではできません。": "Withdrawals are done on the official Hyperliquid site. They cannot be made on this screen.",
   "足す（清算を遠ざける）": "Add (move liquidation away)",
   "減らして資金に戻す": "Remove (return to available balance)",
   "足せる上限 {0}（使える余力）": "Max you can add: {0} (available)",
@@ -1996,6 +2016,7 @@ en: {
   "1回の注文額は、約 10 ドル以上が必要です。": "Each order must be worth about 10 dollars or more.",
   "持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。": "If you order in the opposite direction of a position you hold, that position is closed first and the rest becomes a new position (a flip). A breakdown appears under the size.",
   "現物は、現物の口座にある USDC で買います。先物の口座とは別です。": "Spot trades use the USDC in your spot account, which is separate from your perpetuals account.",
+  "板の数字を押すと、その値段が指値として入り、チャートに点線が出ます。消すときは、価格の欄の右にある「クリア」を押します（成行に戻ります）。": "Tapping a number in the order book enters that price as a limit price and draws a dotted line on the chart. To remove it, press \"Clear\" to the right of the price box (it goes back to market).",
   "チャート": "Chart",
   "チャートの上のボタン": "Buttons above the chart",
   "<b>1分〜月足</b>：足の長さを変えます。": "<b>1m to 1M</b>: change the candle length.",
@@ -2024,6 +2045,8 @@ en: {
   "使える余力より、必要な証拠金が大きいときに出ます。数量を減らすか、レバレッジを上げてください。反対向きの注文は、持っているポジションの分は証拠金が要りません。": "This appears when the required margin is larger than your available margin. Reduce the size or raise the leverage. An opposite-direction order needs no margin for the part that closes your existing position.",
   "「入金されていません」と出る": "\"Has not deposited\" appears",
   "つないだウォレットのアドレスが、まだ Hyperliquid に入金されていません。そのウォレットから、先に Hyperliquid へ USDC を入金してください。別のウォレットで入金したときは、そのウォレットをつなぎ直してください。右上のアドレスが、入金したアドレスと同じか確かめてください。": "The address of the wallet you connected has not deposited into Hyperliquid yet. Deposit USDC into Hyperliquid from that wallet first. If you deposited with a different wallet, reconnect that one. Check that the address at the top right matches the one you deposited with.",
+  "証拠金だけを減らして、資金に戻したい": "I want to reduce only the margin and return it to free funds",
+  "ポジションの「証拠金」ボタンから行います。分離（この建玉だけで担保）のポジションなら、証拠金を足す・減らすができます。クロス（口座全体で担保）のポジションには、ポジションごとの証拠金がなく、口座全体の残高が担保なので、ボタンを押すと仕組みと使える余力が出ます。出金は、Hyperliquid の公式サイトで行います。": "Use the \"Margin\" button on the position. For an isolated position (collateral for that position only) you can add or reduce margin. A cross position (the whole account is the collateral) has no per-position margin, so the button shows how it works and your available funds. Withdrawals are done on the official Hyperliquid site.",
   "現物が買えない": "I can't buy spot",
   "現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。": "Spot is bought with the USDC in your spot account. Move money from your perpetuals account to your spot account on the exchange.",
   "「鍵が口座に登録されていません」と出る": "\"The key is not registered to the account\" appears",
@@ -2034,7 +2057,6 @@ en: {
   "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari alone cannot find a wallet. Open this page in the browser inside your wallet app, or choose WalletConnect in \"Connect wallet\" to link your phone wallet app.",
   "銘柄情報を取れませんでした: ": "Couldn't load market info: ",
   "HL トレード画面": "HL Trading",
-  "口座残高": "Account value",
   "⚙ 設定": "⚙ Settings",
   "1ドル = —円": "1 USD = —",
   "文字の大きさ": "Text size",
@@ -2065,6 +2087,7 @@ en: {
   "板": "Order book",
   "押すと指値に": "Click to use as limit price",
   "累計": "Total",
+  "クリア": "Clear",
   "メイカー専用（手数料が安い。すぐ約定してしまう値段なら取り消し）": "Post-only (lower fee; canceled if it would fill immediately)",
   "注文額": "Order value",
   "全力": "Max",
@@ -2101,6 +2124,7 @@ en: {
   "チャートを画面いっぱいに（横向きにすると横いっぱい）": "Fill the screen with the chart (landscape fills the width)",
   "押すと30秒だけ、チャートの線をドラッグで動かせるようになります": "Lets you drag the chart's lines for 30 seconds",
   "水平線・トレンドラインを引く・消す": "Draw / delete horizontal and trend lines",
+  "入れた値段と、チャートの点線を消して、成行に戻します": "Clears the entered price and the dotted line on the chart, and goes back to market",
   "余力に対する割合": "Share of available margin",
   "4つとも同じ銘柄にする": "Use the same market for all four",
   "銘柄を検索（例: BTC）": "Search markets (e.g. BTC)"
@@ -3414,6 +3438,7 @@ function setOType(v){
 }
 $('oType').onclick = e => { const b = e.target.closest('button'); if (b) setOType(b.dataset.v); };
 $('pxMid').onclick = () => { $('px').value = roundPx(curKey(), priceOf(curKey())); schedule(); };
+$('pxClr').onclick = () => { $('px').value = ''; setOType('market'); };   // 板などで入った値段と、チャートの点線を消す
 $('unit').onclick = () => {
   // USD → 枚数 → 損失額（先物だけ）→ USD の順に切り替え
   const k = orderCalc(), next = S.unit === 'usd' ? 'coin' : S.unit === 'coin' && isPerp() ? 'risk' : 'usd';
@@ -3638,7 +3663,7 @@ function renderPosCard(){
   el.innerHTML = `<div class="t"><b class="${s>0?'up':'down'}">${label(k)} ${s>0?_('ロング'):_('ショート')} ${Math.abs(s)}</b><span class="pnl ${cls(u)}">${moneyS(u)}</span></div>
     <div class="s"><span>${_('建値 ${0}', fmtPx(k,+p.entryPx))}</span><span>${_('{0}倍 {1}', p.leverage.value, p.leverage.type==='cross'?_('クロス'):_('分離'))}</span><span>${_('清算 {0}', p.liquidationPx?'$'+fmtPx(k,+p.liquidationPx):'—')}</span>
     <span class="up">${_('利確 {0}', tps.tp?'$'+fmtPx(k,+tps.tp.triggerPx):_('なし'))}</span><span class="down">${_('損切り {0}', tps.sl?'$'+fmtPx(k,+tps.sl.triggerPx):_('なし'))}</span></div>
-    <div class="acts3"><button class="x" data-act="close" data-c="${esc(k)}">${_('全部決済')}</button><button data-act="size" data-c="${esc(k)}">${_('増減')}</button><button data-act="be" data-c="${esc(k)}">${_('建値へ')}</button><button data-act="flip" data-c="${esc(k)}">${_('ドテン')}</button><button data-act="tpsl" data-c="${esc(k)}">${_('利確損切')}</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${esc(k)}">${_('証拠金')}</button>` : ''}</div>`;
+    <div class="acts3"><button class="x" data-act="close" data-c="${esc(k)}">${_('全部決済')}</button><button data-act="size" data-c="${esc(k)}">${_('増減')}</button><button data-act="be" data-c="${esc(k)}">${_('建値へ')}</button><button data-act="flip" data-c="${esc(k)}">${_('ドテン')}</button><button data-act="tpsl" data-c="${esc(k)}">${_('利確損切')}</button><button data-act="margin" data-c="${esc(k)}">${_('証拠金')}</button></div>`;
 }
 $('posCard').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) posAction(b.dataset.act, b.dataset.c); });
 
@@ -3827,6 +3852,14 @@ function sizeEditor(k, mode){
 // ===== 分離（アイソレーテッド）の証拠金を足す・減らす =====
 function marginEditor(k, mode){
   const pos = posOf(k); if (!pos) return;
+  if (pos.leverage.type !== 'isolated'){   // クロスは、ポジションごとの証拠金がない。出し入れの代わりに、仕組みと数字を見せる
+    const wd = S.acct ? +S.acct.withdrawable : NaN;
+    preview(_('{0} の証拠金（クロス）', label(k)), [[_('口座残高'), money(equity())], [_('この銘柄に使われている証拠金'), money(+pos.marginUsed)], [_('いま使える余力（新しい注文に使える額）'), money(perpAvail(k, +pos.szi > 0 ? 1 : -1))], [_('出金できる額（取引所の表示）'), isFinite(wd) ? money(wd) : '—']],
+      `<p class="note" style="margin-top:8px">${_('クロス（口座全体で担保）のポジションには、ポジションごとの証拠金の出し入れはありません。口座全体の残高が担保になり、利益が増えると、その分は「使える余力」に反映されます。')}</p>
+       <p class="note">${_('証拠金だけを減らして資金に戻したいときは、分離（この建玉だけで担保）で建てたポジションなら、この「証拠金」ボタンから減らせます。いまのポジションの方式は、先に決済しないと変えられません。')}</p>
+       <p class="note">${_('出金は、Hyperliquid の公式サイトで行います。この画面ではできません。')}</p>`, {info:true});
+    return;
+  }
   const s = +pos.szi, abs = Math.abs(s), side = Math.sign(s), mUsed = +pos.marginUsed, liq = +pos.liquidationPx, lev = +pos.leverage.value || 1;
   const l = 1 / (2 * (M[k]?.maxLev || 20)), ntl = abs * priceOf(k);
   // ハイパーリキッドの決まり：減らしたあとも「倍率どおりの証拠金」と「建玉の10%」の大きい方を残す必要がある
@@ -4310,7 +4343,7 @@ function renderAcct(){
         return `<tr><td class="coin" data-c="${esc(k)}">${label(k)}</td><td class="${s>0?'up':'down'}">${s>0?_('ロング'):_('ショート')}</td><td>${Math.abs(s)}</td><td>${fmtPxC(k,+p.entryPx)}</td><td>${fmtPxC(k,priceOf(k))}</td>
         <td class="${cls(u)}">${moneyS(u)} (${fmtPct(+p.returnOnEquity)})</td><td>${p.leverage.value}x ${p.leverage.type==='cross'?_('クロス'):_('分離')}</td><td>${p.liquidationPx?fmtPxC(k,+p.liquidationPx):'—'}</td>
         <td><button class="lk up" data-act="tpsl" data-c="${esc(k)}">${t.tp?fmtPxC(k,+t.tp.triggerPx):'—'}</button> / <button class="lk down" data-act="tpsl" data-c="${esc(k)}">${t.sl?fmtPxC(k,+t.sl.triggerPx):'—'}</button></td><td>${money(+p.marginUsed)}</td>
-        <td><button data-act="close" data-c="${esc(k)}">${_('全部決済')}</button><button data-act="half" data-c="${esc(k)}">${_('半分')}</button><button data-act="flip" data-c="${esc(k)}">${_('ドテン')}</button><button data-act="size" data-c="${esc(k)}">${_('増減')}</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${esc(k)}">${_('証拠金')}</button>` : ''}</td></tr>`; }).join('') + '</table>';
+        <td><button data-act="close" data-c="${esc(k)}">${_('全部決済')}</button><button data-act="half" data-c="${esc(k)}">${_('半分')}</button><button data-act="flip" data-c="${esc(k)}">${_('ドテン')}</button><button data-act="size" data-c="${esc(k)}">${_('増減')}</button><button data-act="margin" data-c="${esc(k)}">${_('証拠金')}</button></td></tr>`; }).join('') + '</table>';
   } else if (S.aTab === 'ord'){
     if (!S.orders.length){ $('aTbl').innerHTML = `<div class="empty">${_('待っている注文はありません')}</div>`; return; }
     $('aTbl').innerHTML = `<table><tr><th>${_('銘柄')}</th><th>${_('向き')}</th><th>${_('種類')}</th><th>${_('値段')}</th><th>${_('数量')}</th><th>${_('出した時刻')}</th><th></th></tr>` +
@@ -4673,7 +4706,7 @@ const GUIDE = (() => {
       ['g4', _('注文の出し方'), `
         ${fig('order', _('注文の欄'))}
         ${ol([_('<b>①</b> ロング（上がると思うとき）か、ショート（下がると思うとき）を選びます。'), _('<b>②</b> 注文の種類：成行（すぐ約定）・指値（その値段で待つ）・逆指値（届いたら成行）。'), _('<b>③</b> 注文額（USD）：レバレッジをかけた後の建玉の大きさです。10%・25%…のボタンは、使える余力に対する割合です。'), _('<b>④</b> レバレッジと担保の方式。クロスは口座全体、分離はその建玉だけを担保にします。'), _('<b>⑤</b> 「利確と損切りも一緒に入れる」にすると、決めた値段で自動で決済する注文も一緒に出ます。'), _('<b>⑥</b> ロング／ショートのボタンを押すと確認画面が出ます。中身を確かめてから「注文する」を押します。')])}
-        ${ul([_('1回の注文額は、約 10 ドル以上が必要です。'), _('持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。'), _('現物は、現物の口座にある USDC で買います。先物の口座とは別です。')])}`],
+        ${ul([_('1回の注文額は、約 10 ドル以上が必要です。'), _('持っているポジションと反対向きに注文すると、まずそのポジションを決済し、残りが新しいポジションになります（ドテン）。数量の下に内訳が出ます。'), _('現物は、現物の口座にある USDC で買います。先物の口座とは別です。'), _('板の数字を押すと、その値段が指値として入り、チャートに点線が出ます。消すときは、価格の欄の右にある「クリア」を押します（成行に戻ります）。')])}`],
       ['g5', _('チャート'), `
         ${fig('chart', _('チャートの上のボタン'))}
         ${ul([_('<b>1分〜月足</b>：足の長さを変えます。'), _('<b>＋ −</b>：拡大・縮小（ピンチやマウスのホイールでもできます）。'), _('<b>縦自動</b>：縦の縮尺を自動に戻します。右の目盛りを上下にドラッグすると、縦の縮尺を変えられます。'), _('<b>最新</b>：いちばん新しい足に戻ります。'), _('<b>平均線</b>：移動平均線（7・25・75本）の表示を切り替えます。'), _('<b>指標</b>：EMA・ボリンジャーバンド・VWAP を重ね、RSI・MACD を下の別枠に出せます。別枠は右上のボタンで、小さくたたむ・消すができます。'), _('<b>全画面</b>：チャートを画面いっぱいに出します。'), _('<b>線を動かす</b>：押してから30秒だけ、建値・損切り・利確・待ち注文の線をドラッグで動かせます。離すと確認が出ます。'), _('<b>✏ 線を引く</b>：水平線とトレンドラインを引けます。'), _('チャートを長押し（パソコンは右クリック）すると、その値段への注文を出せます。')])}`],
@@ -4689,6 +4722,7 @@ const GUIDE = (() => {
       ['g8', _('よくある質問'), `
         <h3>${_('「余力が足りません」と出る')}</h3><p>${_('使える余力より、必要な証拠金が大きいときに出ます。数量を減らすか、レバレッジを上げてください。反対向きの注文は、持っているポジションの分は証拠金が要りません。')}</p>
         <h3>${_('「入金されていません」と出る')}</h3><p>${_('つないだウォレットのアドレスが、まだ Hyperliquid に入金されていません。そのウォレットから、先に Hyperliquid へ USDC を入金してください。別のウォレットで入金したときは、そのウォレットをつなぎ直してください。右上のアドレスが、入金したアドレスと同じか確かめてください。')}</p>
+        <h3>${_('証拠金だけを減らして、資金に戻したい')}</h3><p>${_('ポジションの「証拠金」ボタンから行います。分離（この建玉だけで担保）のポジションなら、証拠金を足す・減らすができます。クロス（口座全体で担保）のポジションには、ポジションごとの証拠金がなく、口座全体の残高が担保なので、ボタンを押すと仕組みと使える余力が出ます。出金は、Hyperliquid の公式サイトで行います。')}</p>
         <h3>${_('現物が買えない')}</h3><p>${_('現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。')}</p>
         <h3>${_('「鍵が口座に登録されていません」と出る')}</h3><p>${_('鍵の有効期限が切れたか、別の口座の鍵かもしれません。本番の設定から、鍵を作り直してください。')}</p>
         <h3>${_('この画面が使えなくなったとき')}</h3><p>${_('ページが開けない、注文が通らないときは、つないでいたウォレットで Hyperliquid の公式サイト（app.hyperliquid.xyz）につなげば、同じ口座で取引・決済ができます。Phantom など Hyperliquid の取引に対応したウォレットアプリでも、同じウォレットなら取引できます。資金とポジションは取引所のあなたの口座にあり、この画面が使えなくても消えません。')}</p>
