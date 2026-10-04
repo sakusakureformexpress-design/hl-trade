@@ -412,7 +412,7 @@ td.ja{font-family:var(--sans)}
   <div class="kpis">
     <div class="kpi"><small>口座残高</small><b id="kEq">—</b></div>
     <div class="kpi"><small>含み損益</small><b id="kPnl">—</b></div>
-    <div class="kpi"><small>使える余力</small><b id="kAv">—</b></div>
+    <div class="kpi" id="kAvBox" style="cursor:pointer" title="押すと、使える余力の内訳が出ます"><small>使える余力 ⓘ</small><b id="kAv">—</b></div>
     <button class="gear" id="prefsBtn" title="円・ドル、文字の大きさ、約定の音">⚙ 設定</button>
     <div id="prefs">
     <div class="kpi" id="ccyBox" style="align-items:center;gap:2px">
@@ -1014,6 +1014,13 @@ ko: {
   "本番になりました。確認画面のボタンを押すと、実際に注文が出ます。": "실전으로 전환되었습니다. 확인 화면의 버튼을 누르면 실제로 주문이 나갑니다.",
   "確かめられませんでした：{0}": "확인하지 못했습니다: {0}",
   "口座を読めませんでした: ": "계좌를 읽지 못했습니다: ",
+  "口座を読めていません": "계좌를 읽지 못했습니다",
+  "使用中の証拠金（全ポジション）": "사용 중인 증거금 (전체 포지션)",
+  "現物の USDC（合計 / 取引中）": "현물 USDC (합계 / 거래 중)",
+  "上の「使える余力」（口座全体）": "위의 \"사용 가능 여력\" (계좌 전체)",
+  "取引所の数字：{0}（買い / 売り）": "거래소 수치: {0} (매수 / 매도)",
+  "使える余力の内訳": "사용 가능 여력 내역",
+  "上の「使える余力」は、口座全体で新しく建てられる額の目安です（クロスは全銘柄で共通）。取引所は、銘柄ごとに別の数字を返すことがあり、下に並べています。注文を送るときの最終的な判断は、取引所がします。": "위의 \"사용 가능 여력\"은 계좌 전체에서 새로 열 수 있는 금액의 기준입니다 (크로스는 전 종목 공통). 거래소는 종목별로 다른 수치를 돌려줄 수 있으며, 아래에 나열했습니다. 주문을 보낼 때의 최종 판단은 거래소가 합니다.",
   "右上の「口座」からアドレスを入れると、ここにポジションが出ます": "오른쪽 위의 '계좌'에서 주소를 입력하면 여기에 포지션이 표시됩니다",
   "いま持っている先物のポジションはありません": "현재 보유 중인 선물 포지션이 없습니다",
   "向き": "방향",
@@ -1280,6 +1287,7 @@ ko: {
   "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari만으로는 지갑을 찾을 수 없으므로, 지갑 앱 안의 브라우저로 열거나 \"지갑 연결\"에서 WalletConnect를 선택해 스마트폰 지갑 앱에 연결하세요.",
   "銘柄情報を取れませんでした: ": "종목 정보를 가져오지 못했습니다: ",
   "HL トレード画面": "HL 트레이딩",
+  "使える余力 ⓘ": "사용 가능 여력 ⓘ",
   "⚙ 設定": "⚙ 설정",
   "1ドル = —円": "1달러 = —원",
   "文字の大きさ": "글자 크기",
@@ -1334,6 +1342,7 @@ ko: {
   "見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。": "연습 모드이므로 이 주문은 전송되지 않았습니다. 실전 주문을 낼 수 있게 되는 것은 '실전으로 사용'하기로 결정한 다음입니다.",
   "変更する": "변경하기",
   "押すと、本番の注文の設定（鍵・暗証番号・練習／本番の切り替え）を開きます": "누르면 실전 주문 설정 (키·PIN·연습/실전 전환)이 열립니다",
+  "押すと、使える余力の内訳が出ます": "누르면 사용 가능 여력의 내역이 표시됩니다",
   "円・ドル、文字の大きさ、約定の音": "통화, 글자 크기, 체결음",
   "押すと為替レートを自分で入れられます": "누르면 환율을 직접 입력할 수 있습니다",
   "押すとティローンが鳴ります": "누르면 소리가 납니다",
@@ -1803,6 +1812,13 @@ en: {
   "本番になりました。確認画面のボタンを押すと、実際に注文が出ます。": "You're live now. Pressing the button on the confirmation screen sends real orders.",
   "確かめられませんでした：{0}": "Couldn't verify: {0}",
   "口座を読めませんでした: ": "Couldn't load the account: ",
+  "口座を読めていません": "The account could not be read",
+  "使用中の証拠金（全ポジション）": "Margin in use (all positions)",
+  "現物の USDC（合計 / 取引中）": "Spot USDC (total / on hold)",
+  "上の「使える余力」（口座全体）": "\"Available\" shown above (whole account)",
+  "取引所の数字：{0}（買い / 売り）": "Exchange figure: {0} (buy / sell)",
+  "使える余力の内訳": "Breakdown of available funds",
+  "上の「使える余力」は、口座全体で新しく建てられる額の目安です（クロスは全銘柄で共通）。取引所は、銘柄ごとに別の数字を返すことがあり、下に並べています。注文を送るときの最終的な判断は、取引所がします。": "The \"available\" figure above is an estimate of what the whole account can open now (shared across all markets in cross mode). The exchange may return different figures per market; they are listed below. The final decision when an order is sent is made by the exchange.",
   "右上の「口座」からアドレスを入れると、ここにポジションが出ます": "Enter your address under \"Account\" at the top right and your positions will show here",
   "いま持っている先物のポジションはありません": "No open perp positions",
   "向き": "Side",
@@ -2069,6 +2085,7 @@ en: {
   "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari alone cannot find a wallet. Open this page in the browser inside your wallet app, or choose WalletConnect in \"Connect wallet\" to link your phone wallet app.",
   "銘柄情報を取れませんでした: ": "Couldn't load market info: ",
   "HL トレード画面": "HL Trading",
+  "使える余力 ⓘ": "Available ⓘ",
   "⚙ 設定": "⚙ Settings",
   "1ドル = —円": "1 USD = —",
   "文字の大きさ": "Text size",
@@ -2123,6 +2140,7 @@ en: {
   "見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。": "This is practice mode, so this order was not sent. Live orders become possible only after you decide to go live.",
   "変更する": "Confirm",
   "押すと、本番の注文の設定（鍵・暗証番号・練習／本番の切り替え）を開きます": "Opens the live trading setup (key, PIN, practice / live switch)",
+  "押すと、使える余力の内訳が出ます": "Tap to see how the available funds are made up",
   "円・ドル、文字の大きさ、約定の音": "Currency, text size, fill sound",
   "押すと為替レートを自分で入れられます": "Click to enter the exchange rate yourself",
   "押すとティローンが鳴ります": "Plays the sound",
@@ -3543,11 +3561,15 @@ function equity(){
   // 統合口座（現物の USDC がそのまま先物の担保）では、先物側の口座価値は担保を含まないので、USDC＋含み損益で数える
   return hold > 0 && +a.withdrawable === 0 ? tot + upnl : +a.marginSummary.accountValue + (tot - hold);
 }
+// 口座全体の空き証拠金（クロスでは全銘柄で共通）。残高−使用中の証拠金と、取引所の「出金できる額」の大きいほう
+function acctFree(){
+  const a = S.acct; if (!a) return null;
+  return Math.max(0, equity() - (+a.marginSummary.totalMarginUsed || 0), +a.withdrawable || 0);
+}
 function perpAvail(k = curKey(), side = S.side){
   if (!S.acct) return null;
-  const d = S.aad[k];
-  if (d) return Math.max(0, +d.availableToTrade[side > 0 ? 0 : 1]);
-  return Math.max(0, equity() - +S.acct.marginSummary.totalMarginUsed);
+  const d = S.aad[k], v = d ? +d.availableToTrade[side > 0 ? 0 : 1] : NaN;
+  return isFinite(v) ? Math.max(0, v) : acctFree();
 }
 function avail(){
   if (isPerp()) return perpAvail();
@@ -3559,7 +3581,8 @@ function avail(){
 }
 const setPct = pc => {
   if (S.unit === 'risk') S.unit = 'usd';   // 割合で決めるときは金額に戻す
-  const av = avail(); if (av == null){ log(_('口座を読めていないので、割合からの計算はできません')); return; }
+  let av = avail(); if (av == null){ log(_('口座を読めていないので、割合からの計算はできません')); return; }
+  if (isPerp()) av = Math.max(av, acctFree() || 0);
   const lev = isPerp() ? curLev() : 1, usd = av * lev * pc / 100 * 0.98, px = entryPx();
   $('sz').value = S.unit === 'usd' ? Math.floor(usd * 100) / 100 : roundSz(curKey(), usd / px);
   $('szPct').value = pc; schedule();
@@ -3643,8 +3666,8 @@ $('submit').onclick = () => {
   let avWarn = null;
   if (av != null && need > av){
     // 取引所が返す「この銘柄で使える額」が足りなくても、口座全体の空き証拠金が足りているときは、止めずに注意だけ出す（クロスの余力は、全銘柄で共通の財布のため）
-    const acctFree = isPerp() && S.acct ? Math.max(0, equity() - +S.acct.marginSummary.totalMarginUsed) : null;
-    if (acctFree != null && need <= acctFree) avWarn = _('取引所の数字では、この銘柄で使える余力は {0} ですが、口座全体の空き証拠金は {1} あります。注文は送れますが、取引所が断ることがあります（断られても、お金は動きません）。', money(av), money(acctFree));
+    const free = isPerp() ? acctFree() : null;
+    if (free != null && need <= free) avWarn = _('取引所の数字では、この銘柄で使える余力は {0} ですが、口座全体の空き証拠金は {1} あります。注文は送れますが、取引所が断ることがあります（断られても、お金は動きません）。', money(av), money(free));
     else bads.push(_('使える余力（{0}）が、必要な{1}（{2}）より少ないので出せません。', money(av), isPerp() ? _('証拠金') : _('金額'), money(need)));
   }
   const rows = [[_('種類'), alo ? _('指値・メイカー専用（板で待つ。手数料が安い）') : {market:_('成行（すぐ約定）'), limit:_('指値（その値段で待つ）'), stop:_('逆指値（届いたら成行）')}[S.otype]],
@@ -4339,6 +4362,15 @@ async function loadAcct(){
     loadAad(isPerp() ? curKey() : firstPerp());
   } catch (e){ if (Date.now() - (S.acctErrAt || 0) > 60000){ S.acctErrAt = Date.now(); log(_('口座を読めませんでした: ') + e.message); } }
 }
+// 「使える余力」を押したときの内訳（取引所の数字と、この画面の計算を並べて見せる）
+function availBreakdown(){
+  const a = S.acct; if (!a){ toast(_('口座を読めていません')); return; }
+  const usdc = S.spot?.balances?.find(b => b.token === 0);
+  const rows = [[_('口座残高'), money(equity())], [_('使用中の証拠金（全ポジション）'), money(+a.marginSummary.totalMarginUsed)], [_('出金できる額（取引所の表示）'), money(+a.withdrawable)], [_('現物の USDC（合計 / 取引中）'), usdc ? `${money(+usdc.total)} / ${money(+usdc.hold)}` : '—'], [_('上の「使える余力」（口座全体）'), money(acctFree())]];
+  Object.keys(S.aad).forEach(k => { const d = S.aad[k]; rows.push([_('取引所の数字：{0}（買い / 売り）', label(k)), `${money(+d.availableToTrade[0])} / ${money(+d.availableToTrade[1])}`]); });
+  preview(_('使える余力の内訳'), rows, `<p class="note" style="margin-top:8px">${_('上の「使える余力」は、口座全体で新しく建てられる額の目安です（クロスは全銘柄で共通）。取引所は、銘柄ごとに別の数字を返すことがあり、下に並べています。注文を送るときの最終的な判断は、取引所がします。')}</p>`, {info:true});
+}
+$('kAvBox').onclick = availBreakdown;
 function renderKpis(){
   const a = S.acct; if (!a){ ['kEq','kPnl','kAv'].forEach(i => $(i).textContent = '—'); return; }
   const pnl = a.assetPositions.reduce((s,p) => s + +p.position.unrealizedPnl, 0);
@@ -4346,7 +4378,7 @@ function renderKpis(){
   $('kPnl').textContent = moneyS(pnl); $('kPnl').className = cls(pnl);
   // 新しく建てるのに使える証拠金：いまの銘柄でポジションを増やす向き（ポジションがなければどちらでも同じ）
   const k = isPerp() ? curKey() : firstPerp(), pz = posOf(k);
-  $('kAv').textContent = money(perpAvail(k, pz ? Math.sign(+pz.szi) : 1));
+  $('kAv').textContent = money(acctFree());
 }
 function renderAcct(){
   $('aTbl').dataset.t = S.aTab;

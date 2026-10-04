@@ -66,7 +66,12 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     let t = await page.textContent('#modal');
     ok(/口座全体の空き証拠金/.test(t) && await page.isVisible('#mOk'), '口座全体に余力があれば、取引所の数字が小さくても、注意だけで「注文する」が出る', t.slice(-260));
     await page.evaluate(() => closeModal());
-    await page.evaluate(() => { S.acct.marginSummary.totalMarginUsed = '1000000000'; S.acctAt = Date.now(); });
+    // 上の「使える余力」は、銘柄ごとの数字が 0 でも、口座全体の数字を出す。押すと内訳が出る
+    const kv = await page.evaluate(() => $('kAv').textContent); ok(!/^\$?0(\.0+)?$/.test(kv.replace(/[¥$,]/g, '').trim() === '0' ? '0' : 'x') && kv !== '—', '上の「使える余力」は、その銘柄の数字が小さくても、口座全体の数字になる', kv);
+    await page.click('#kAvBox'); await page.waitForSelector('#modal', { state: 'visible' });
+    const bd = await page.textContent('#modal'); ok(/使える余力の内訳/.test(bd) && /出金できる額/.test(bd) && /取引所の数字/.test(bd), '押すと、内訳（口座残高・使用中の証拠金・出金できる額・取引所の数字）が出る', bd.slice(0, 160));
+    await page.evaluate(() => closeModal());
+    await page.evaluate(() => { S.acct.marginSummary.totalMarginUsed = '1000000000'; S.acct.withdrawable = '0'; S.acctAt = Date.now(); });
     await page.evaluate(() => { S.side = 1; $('submit').click(); }); await page.waitForSelector('#modal', { state: 'visible' });
     t = await page.textContent('#modal');
     ok(/余力/.test(t) && !/口座全体の空き証拠金/.test(t) && await page.isHidden('#mOk'), '口座全体も足りないときは、これまでどおり止める', t.slice(-200));
