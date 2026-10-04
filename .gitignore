@@ -3,3 +3,4 @@ preview-wrapped.html
 preview.html
 video/out/
 video/audio/
+video/audio_ext/*.wav
