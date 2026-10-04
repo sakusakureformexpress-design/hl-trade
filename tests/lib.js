@@ -41,7 +41,7 @@ async function launch(){ return chromium.launch({ executablePath: '/opt/pw-brows
 // 1 ページ開く。lang・画面の大きさ・追加の localStorage・手数料の設定を指定できる
 async function open(browser, o = {}){
   const { lang = 'ja', w = 1440, h = 900, ls = {}, fee = null, hash = '', noSeed = false, reject = false, noWallet = false, multi = false, wc = false, noWait = false, hang = false } = o;
-  const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, hasTouch: w < 800, isMobile: w < 800 });
+  const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, hasTouch: w < 800, isMobile: w < 800, ...(o.video ? { recordVideo: { dir: o.video, size: { width: w, height: h } } } : {}) });
   const page = await ctx.newPage();
   const errors = []; page.on('pageerror', e => errors.push('pageerror: ' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|ERR_FAILED|net::/.test(m.text())) errors.push('console.error: ' + m.text()); });
   await page.exposeFunction('__verifySig', verify);
@@ -74,6 +74,13 @@ async function open(browser, o = {}){
   await page.route('**/*', r => { const u = r.request().url(); if (u.startsWith('file://')) return r.continue(); return r.abort(); });
   let file = HTML;
   { let s = fs.readFileSync(HTML, 'utf8'); s = s.replace(/const WC = \{projectId:'[^']*',/, `const WC = {projectId:'${wc ? 'test-project' : ''}',`); if (fee) s = s.replace(/const BUILDER = \{[^}]*\};/, `const BUILDER = {addr:'${fee.addr}', fee:${fee.fee}, required:${fee.required !== false}};`); file = HTML.replace(/index\.html$/, '.test-fee.html'); fs.writeFileSync(file, s); }
+  if (o.stage){   // 解説動画用：外枠のページの中の iframe にアプリを開く（画面の中身はふつうのテストと同じ）
+    await page.goto('file://' + o.stage);
+    await page.evaluate(src => { document.getElementById('app').src = src; }, 'file://' + file + '?demo&lang=' + lang + hash);
+    const frame = await (async () => { for (let i = 0; i < 100; i++){ const f = page.frames().find(x => /index|test-fee/.test(x.url())); if (f) return f; await page.waitForTimeout(100); } throw new Error('frame not found'); })();
+    await frame.waitForFunction(() => window.__HL_MOCK && document.querySelectorAll('#coins button').length > 0 && document.querySelector('#cMark') && document.querySelector('#cMark').textContent.length > 1, null, { timeout: 20000 });
+    return { ctx, page, frame, errors };
+  }
   await page.goto('file://' + file + '?demo&lang=' + lang + hash);
   if (noWait) return { ctx, page, errors };
   await page.waitForFunction(() => window.__HL_MOCK && document.querySelectorAll('#coins button').length > 0 && document.querySelector('#cMark') && document.querySelector('#cMark').textContent.length > 1, null, { timeout: 15000 });
