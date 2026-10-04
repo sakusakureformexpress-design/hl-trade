@@ -69,7 +69,7 @@ async function open(browser, o = {}){
       window.__HL_WC_MOD = { EthereumProvider: { init: async opts => { window.__wcOpts = opts; const p = { session: null, accounts: [], on() {}, removeListener() {}, request: async () => { throw new Error('x'); },
         async connect() { window.__used.push('WC:connect'); p.session = {}; p.accounts = ['0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc']; }, async disconnect() { window.__used.push('WC:disconnect'); p.session = null; p.accounts = []; } }; return p; } } };
     }
-  }, { ls: { addr: WALLET.address, terms: { v: 1, t: 1767225600000, lang: 'ja' }, ...ls }, wallet: WALLET.address, noSeed, reject, noWallet, multi, wc });
+  }, { ls: { addr: WALLET.address, terms: { v: TERMS_V, t: 1767225600000, lang: 'ja' }, ...ls }, wallet: WALLET.address, noSeed, reject, noWallet, multi, wc });
   await page.route('**/*', r => { const u = r.request().url(); if (u.startsWith('file://')) return r.continue(); return r.abort(); });
   let file = HTML;
   { let s = fs.readFileSync(HTML, 'utf8'); s = s.replace(/const WC = \{projectId:'[^']*',/, `const WC = {projectId:'${wc ? 'test-project' : ''}',`); if (fee) s = s.replace(/const BUILDER = \{[^}]*\};/, `const BUILDER = {addr:'${fee.addr}', fee:${fee.fee}, required:${fee.required !== false}};`); file = HTML.replace(/index\.html$/, '.test-fee.html'); fs.writeFileSync(file, s); }
@@ -78,6 +78,7 @@ async function open(browser, o = {}){
   await page.waitForTimeout(600);
   return { ctx, page, errors };
 }
+const TERMS_V = +(/const TERMS = \{v:(\d+)/.exec(fs.readFileSync(HTML, 'utf8')) || [0, 1])[1];
 const norm = t => t.replace(/[+\-−]?[0-9][0-9,.]*/g, '#').replace(/\s+/g, ' ').trim();
 const KANA_KANJI = /[぀-ヿ㐀-鿿ｦ-ﾟ]/;
 module.exports = { launch, open, verify, WALLET, TYPED_LOG, APPROVED_AGENTS, ethers, norm, KANA_KANJI, HTML, DEMO_AGENT };

@@ -4,6 +4,7 @@ const problems = [];
 const text = page => page.evaluate(() => {
   const vis = e => !!(e.offsetWidth || e.offsetHeight || e.getClientRects().length);
   const attrs = [...document.querySelectorAll('[title],[placeholder],[aria-label]')].filter(vis).map(e => [e.title, e.placeholder, e.getAttribute('aria-label')].filter(Boolean).join(' | '));
+  { const sb = document.getElementById('startBar'); if (sb) sb.hidden = true; }   // 「はじめの3ステップ」の帯は、準備の進み具合で変わるので、ここでは比べない（start.js で確かめる）
   return (document.body.innerText + '\n' + attrs.join('\n')).split('\n').map(s => s.trim()).filter(Boolean);
 });
 const ONLY = process.argv[2]; const STATES0 = {

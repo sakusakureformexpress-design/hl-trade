@@ -19,5 +19,6 @@ run indicators node indicators.js
 run flip node flip.js
 run guide node guide.js
 run terms node terms.js
+run start node start.js
 run preview node preview.js
 printf '%s\n' "${res[@]}"

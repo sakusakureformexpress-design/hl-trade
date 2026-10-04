@@ -61,7 +61,7 @@ body.live #submit{box-shadow:0 0 0 2px #b4473f inset}
 .mkt button.sel{color:var(--fg);border-color:var(--accent);background:var(--panel)}
 #coins{display:flex;gap:2px;padding:4px 8px;overflow-x:auto;flex:1;scrollbar-width:thin}
 #coins button{background:none;border:1px solid transparent;border-radius:7px;padding:5px 10px;text-align:left;min-width:100px;flex:0 0 auto}
-#coins button:hover{background:var(--panel)}
+@media (hover:hover){#coins button:hover{background:var(--panel)}}
 #coins button.sel{background:var(--panel);border-color:var(--accent)}
 #coins .n{font-weight:700;display:flex;justify-content:space-between;gap:6px}
 #coins .k{font-size:10px;color:var(--dim);font-weight:400}
@@ -84,6 +84,8 @@ section{border-right:1px solid var(--line);border-bottom:1px solid var(--line);m
 .ivs button.sel{color:#1b1404;background:var(--accent);border-color:var(--accent)}
 .zoom{display:flex;gap:2px}
 .zoom button.sel{color:var(--accent);border-color:var(--accent)}
+#zAuto.sel{color:var(--dim);border-color:var(--line)}
+#zAuto:not(.sel){color:var(--accent);border-color:var(--accent)}
 #chartWrap{flex:1;position:relative;min-height:0;margin:6px 8px 8px 6px;border:1px solid var(--line);border-radius:10px;overflow:hidden}
 /* 全画面：画面いっぱいにチャートだけを出す（横向きにすると横いっぱい） */
 #chartBox.fs{position:fixed;inset:0;z-index:8;height:auto!important;min-height:0!important;background:var(--bg);padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)}
@@ -106,9 +108,11 @@ body.fsOn{overflow:hidden}
 .wm .btns button{border:none;border-radius:6px;padding:10px 14px;font-weight:700;font-size:14px;background:var(--line);color:var(--fg)}
 .wm .btns button.pri{background:var(--accent);color:#1b1404}
 .wp{display:flex;flex-direction:column;gap:10px}
-.terms{max-height:calc(38vh / var(--z,1));overflow:auto;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg);font-size:13px;line-height:1.7}
+.terms{margin-top:6px;max-height:calc(34vh / var(--z,1));overflow:auto;border:1px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg);font-size:13px;line-height:1.7}
 .terms h4{margin:12px 0 4px;font-size:13.5px;color:var(--accent)}.terms h4:first-child{margin-top:0}
 .terms p{margin:4px 0}.terms ul{margin:4px 0;padding-left:20px}
+.tsum{margin:8px 0 10px;padding-left:20px;font-size:13.5px;line-height:1.65}.tsum li{margin:6px 0}
+.tfull{margin:6px 0 10px}.tfull summary{cursor:pointer;color:var(--dim);font-size:12.5px;padding:4px 0}
 .tchk{display:flex;gap:10px;align-items:flex-start;font-size:13px;line-height:1.55;margin:8px 0}
 .tchk input{margin-top:3px;flex:0 0 auto;width:18px;height:18px}
 .tgo{width:100%;padding:12px;border:none;border-radius:8px;background:var(--accent);color:#1b1404;font-weight:700;font-size:15px}
@@ -116,13 +120,27 @@ body.fsOn{overflow:hidden}
 #foot{text-align:center;padding:14px 10px 22px}
 #foot button{background:none;border:none;color:var(--dim);font-size:12px;text-decoration:underline}
 body.helpPg #foot{padding-bottom:30px}
+.qh{flex:0 0 auto;width:20px;height:20px;padding:0;border-radius:50%;border:1px solid var(--line);background:none;color:var(--dim);font-size:12px;font-weight:700;line-height:1}
+@media (hover:hover){.qh:hover{color:var(--accent);border-color:var(--accent)}}
+#startBar{display:flex;align-items:center;gap:8px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;white-space:nowrap;padding:7px 12px;background:var(--panel);border-bottom:1px solid var(--line);font-size:13px}
+#startBar b{color:var(--accent)}
+#startBar .st,#startBar .qh,#startBar b{flex:0 0 auto}
+#startBar .st{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:5px 12px;color:var(--fg);font-size:13px}
+#startBar .st.done{color:var(--dim);text-decoration:line-through;border-style:dashed}
+#startBar .st.next{border-color:var(--accent);color:var(--accent);font-weight:700}
+#startBar .x{margin-left:auto;flex:0 0 auto;background:none;border:none;color:var(--dim);font-size:16px;padding:2px 6px}
 .guide{max-width:880px;margin:0 auto;padding:6px 4px 48px;line-height:1.75;font-size:14px}
 .guide h2{font-size:18px;margin:30px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
 .guide h3{font-size:15px;margin:20px 0 6px;color:var(--accent)}
 .guide p{margin:8px 0}.guide ol,.guide ul{margin:8px 0;padding-left:22px}.guide li{margin:5px 0}
-.guide .gtoc{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0 4px}
-.guide .gtoc button{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:6px 12px;color:var(--fg);font-size:13px}
-.guide .gtoc button:hover{border-color:var(--accent)}
+.guide .gtabs{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:8px 0;position:sticky;top:0;z-index:3;background:var(--bg);border-bottom:1px solid var(--line)}
+.guide .gtabs button{flex:0 0 auto}
+.guide .gtabs button.sel{background:var(--accent);color:#1b1404;border-color:var(--accent);font-weight:700}
+.guide .gnav{display:flex;justify-content:space-between;gap:10px;margin:28px 0 8px}
+.guide .gnav button{flex:1 1 0;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px 10px;color:var(--fg);font-size:13px;line-height:1.4}
+.guide .gnav button.pri{background:var(--accent);color:#1b1404;border-color:var(--accent);font-weight:700}
+.guide .gnav span{flex:1 1 0}
+.guide .gtabs button{background:var(--panel2);border:1px solid var(--line);border-radius:99px;padding:6px 12px;color:var(--fg);font-size:13px}
 .guide figure{margin:12px 0;padding:0}
 .guide figure img{display:block;max-width:100%;height:auto;border:1px solid var(--line);border-radius:10px;background:var(--panel)}
 .guide figcaption{font-size:12px;color:var(--dim);margin-top:4px}
@@ -136,7 +154,7 @@ body.helpPg #foot{padding-bottom:30px}
 .guide code{background:var(--panel2);border-radius:4px;padding:1px 5px;font-family:var(--mono);font-size:12.5px}
 .pbtns{position:absolute;display:flex;gap:3px;z-index:2}
 .pbtns button{width:24px;height:18px;padding:0;font-size:12px;line-height:1;border:1px solid var(--line);background:var(--panel2);color:var(--dim);border-radius:4px}
-.pbtns button:hover{color:var(--fg);border-color:var(--accent)}
+@media (hover:hover){.pbtns button:hover{color:var(--fg);border-color:var(--accent)}}
 .indw{display:flex;flex-direction:column;gap:8px}
 .indrow{display:flex;align-items:center;gap:10px;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:10px 12px;color:var(--fg);font-size:14px}
 .indrow .chk{width:20px;height:20px;border:1px solid var(--line);border-radius:5px;display:flex;align-items:center;justify-content:center;color:var(--accent);flex:0 0 auto}
@@ -145,13 +163,13 @@ body.helpPg #foot{padding-bottom:30px}
 .wi{display:grid;grid-template-columns:36px 1fr;grid-template-rows:auto auto;column-gap:12px;align-items:center;text-align:left;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--fg)}
 .wi img,.wi .wic{grid-row:1/3;width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:20px;background:var(--bg)}
 .wi .wn{font-weight:700;font-size:15px}.wi small{color:var(--dim);font-size:11px}
-.wi:hover{border-color:var(--accent)}
+@media (hover:hover){.wi:hover{border-color:var(--accent)}}
 /* 言語の切り替え・銘柄の検索・お気に入り・デモの帯 */
 #langSel button{padding:4px 9px;font-size:12px}
 .star{background:none;border:none;color:var(--dim);font-size:18px;line-height:1;padding:0 2px}
 .star.on{color:var(--accent)}
 #coinFind{flex:0 0 auto;margin:4px 8px 4px 0;background:none;border:1px dashed var(--line);border-radius:7px;padding:5px 12px;color:var(--dim);white-space:nowrap}
-#coinFind:hover{border-color:var(--accent);color:var(--fg)}
+@media (hover:hover){#coinFind:hover{border-color:var(--accent);color:var(--fg)}}
 #coins button.tmp{border-style:dashed;border-color:var(--line)}
 #picker{position:fixed;inset:0;background:#000a;z-index:9;display:flex;align-items:flex-start;justify-content:center;padding:4vh 12px}
 #picker .pbox{background:var(--panel);border:1px solid var(--line);border-radius:12px;width:min(640px,100%);max-height:calc(92vh / var(--z,1));display:flex;flex-direction:column;gap:8px;padding:12px 14px}
@@ -167,7 +185,7 @@ body.helpPg #foot{padding-bottom:30px}
 .mt th:first-child,.mt td:first-child{text-align:center;width:30px;padding:0}
 .mt td:nth-child(2){font-family:var(--sans);font-weight:700}
 .mt td:nth-child(2) small{font-weight:400;color:var(--dim);font-family:var(--mono);margin-left:6px;font-size:10px}
-.mt tr.go{cursor:pointer} .mt tr.go:hover{background:var(--panel2)} .mt tr.cur td:nth-child(2){color:var(--accent)}
+.mt tr.go{cursor:pointer}@media (hover:hover){.mt tr.go:hover{background:var(--panel2)}} .mt tr.cur td:nth-child(2){color:var(--accent)}
 .mt .star{padding:6px 8px}
 .mq{display:flex;gap:8px;flex-wrap:wrap;align-items:center;padding:0 14px 8px}
 .mq input{flex:1 1 220px;width:auto}
@@ -198,7 +216,7 @@ body.helpPg #foot{padding-bottom:30px}
 .lsT th{font-weight:400;color:var(--dim);font-size:12px;text-align:right;padding:4px 6px}
 .lsT th:first-child,.lsT td:first-child{text-align:left}
 .lsT td{padding:9px 6px;border-top:1px solid var(--line);text-align:right;font-family:var(--mono);white-space:nowrap}
-.lsT tr.go{cursor:pointer} .lsT tr.go:hover{background:var(--panel)}
+.lsT tr.go{cursor:pointer}@media (hover:hover){.lsT tr.go:hover{background:var(--panel)}}
 .lsT td:first-child{font-family:var(--sans);font-weight:700}
 #fsBtn.on{color:#1b1404;background:var(--accent);border-color:var(--accent)}
 .zoom button,.ivs button{white-space:nowrap}
@@ -212,17 +230,17 @@ body.helpPg #foot{padding-bottom:30px}
 #menu{position:absolute;z-index:5;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:4px;display:flex;flex-direction:column;min-width:200px;box-shadow:0 8px 24px #0008}
 #menu .mh{font:12px var(--mono);color:var(--dim);padding:5px 10px 3px}
 #menu button{background:none;border:none;text-align:left;padding:8px 10px;border-radius:5px;font-size:13px}
-#menu button:hover{background:var(--panel)}
+@media (hover:hover){#menu button:hover{background:var(--panel)}}
 
 /* 板 */
 #book{flex:1;overflow:hidden;font-size:12px;display:flex;flex-direction:column}
 .brow{display:grid;grid-template-columns:1.1fr 1fr 1fr;padding:1px 10px;position:relative;cursor:pointer}
-.brow:hover{background:var(--panel2)}
+@media (hover:hover){.brow:hover{background:var(--panel2)}}
 .brow span{position:relative;z-index:1;text-align:right}
 .brow span:first-child{text-align:left}
 .brow i{position:absolute;right:0;top:0;bottom:0;opacity:.16}
 .ask i{background:var(--down)} .bid i{background:var(--up)}
-.bhead{color:var(--dim);font-size:11px;cursor:default} .bhead:hover{background:none}
+.bhead{color:var(--dim);font-size:11px;cursor:default}@media (hover:hover){.bhead:hover{background:none}}
 .spread{padding:4px 10px;border-block:1px solid var(--line);display:flex;justify-content:space-between;align-items:baseline;font-family:var(--mono)}
 .spread b{font-size:15px}
 #asks,#bids{flex:1;display:flex;flex-direction:column;overflow:hidden}
@@ -244,7 +262,7 @@ label.f,.f{display:flex;flex-direction:column;gap:5px;font-size:12px;color:var(-
 .chips{display:flex;gap:4px;flex-wrap:wrap}
 .chips button{border:1px solid var(--line);background:none;border-radius:5px;padding:3px 8px;font-size:11px;color:var(--dim)}
 .chips button.sel{color:var(--accent);border-color:var(--accent)}
-.chips button:hover{color:var(--fg)}
+@media (hover:hover){.chips button:hover{color:var(--fg)}}
 input[type=range]{padding:0;border:none;background:none;accent-color:var(--accent);width:100%}
 .levBtn{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:7px 10px}
 .levBtn b{font:600 15px var(--mono);color:var(--accent)}
@@ -275,7 +293,7 @@ input[type=range]{padding:0;border:none;background:none;accent-color:var(--accen
 #posCard .s{font-size:11px;color:var(--dim);display:flex;gap:10px;flex-wrap:wrap}
 .acts3{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:4px}
 .acts3 button{border:1px solid var(--line);background:var(--bg);border-radius:6px;padding:6px 4px;font-size:12px;white-space:nowrap}
-.acts3 button:hover{border-color:var(--accent)}
+@media (hover:hover){.acts3 button:hover{border-color:var(--accent)}}
 .acts3 .x{border-color:var(--accent);color:var(--accent)}
 
 /* 下：ポジション・注文 */
@@ -295,7 +313,7 @@ td.coin{font-family:var(--sans);font-weight:700;cursor:pointer;text-decoration:u
 }
 #calc span:nth-child(even){white-space:nowrap}
 td button{background:var(--panel);border:1px solid var(--line);border-radius:5px;padding:3px 9px;font:12px var(--sans);margin-left:4px}
-td button:hover{border-color:var(--accent)}
+@media (hover:hover){td button:hover{border-color:var(--accent)}}
 td .lk{background:none;border:none;padding:0;margin:0;font:12px var(--mono);text-decoration:underline dotted}
 .empty{padding:20px;color:var(--dim);text-align:center;font-family:var(--sans)}
 #hTools{display:flex;gap:6px;align-items:center;margin-left:auto;flex-wrap:wrap}
@@ -398,10 +416,11 @@ td.ja{font-family:var(--sans)}
     </div>
   </div>
 </header>
+<div id="startBar" hidden></div>
 <div id="demoBar" hidden>デモ表示：架空のデータです。取引所にはつながっていません（注文も実際には出ません）。</div>
 <div id="acctBar" hidden><span class="dim">口座アドレス（公開情報。秘密鍵ではありません）</span><input id="addr" spellcheck="false" placeholder="0x…"></div>
 
-<nav id="pages"><button data-p="trade">📈 トレード</button><button data-p="multi">▦ 4画面チャート</button><button data-p="list">📊 銘柄一覧</button><button data-p="help">❓ 使い方</button></nav>
+<nav id="pages"><button data-p="trade">📈 トレード</button><button data-p="multi">▦ 4画面チャート</button><button data-p="list">📊 銘柄一覧</button><button data-p="help">❓ 使い方</button><button data-p="terms">📄 規約</button></nav>
 <div id="strip">
   <div class="mkt" id="mkt"><button data-v="perp">先物（レバレッジ）</button><button data-v="spot">現物</button></div>
   <nav id="coins" aria-label="銘柄"></nav>
@@ -417,6 +436,7 @@ td.ja{font-family:var(--sans)}
       <span>24h <span class="num" id="cChg"></span></span>
       <span id="cFundW">資金調達率 <span class="num" id="cFund"></span><span class="dim">/時</span></span>
       <div class="tools">
+        <button class="qh" type="button" data-help="g5" title="使い方を見る">?</button>
         <div class="ivs" id="ivs"></div>
         <div class="zoom">
           <button id="zOut" title="縮小（たくさんの足を表示）">−</button>
@@ -449,7 +469,7 @@ td.ja{font-family:var(--sans)}
   </section>
 
   <section id="ticket">
-    <div class="hd"><b>注文</b><span id="tCoin"></span></div>
+    <div class="hd"><b>注文</b><span id="tCoin"></span><button class="qh" type="button" data-help="g4" title="使い方を見る" style="margin-left:auto">?</button></div>
     <div class="op">
       <div id="posCard" hidden></div>
       <div class="side" id="side"><button data-v="1">ロング</button><button data-v="-1">ショート</button></div>
@@ -497,7 +517,7 @@ td.ja{font-family:var(--sans)}
 
 <!-- 4画面チャート -->
 <div id="vMulti" class="view" hidden>
-  <div class="vHead"><b>4画面チャート</b>
+  <div class="vHead"><b>4画面チャート</b><button class="qh" type="button" data-help="g6" title="使い方を見る">?</button>
     <span class="dim">銘柄と足は各チャートの上で変えられます</span>
     <div class="seg" id="mcCols" style="margin-left:auto"><button data-c="1">1列</button><button data-c="2">2列</button></div>
     <button class="gear" id="mcSync" title="4つとも同じ銘柄にする">全部同じ銘柄に</button>
@@ -506,7 +526,7 @@ td.ja{font-family:var(--sans)}
 </div>
 <!-- 銘柄一覧 -->
 <div id="vList" class="view" hidden>
-  <div class="vHead"><b>銘柄一覧</b><span class="dim" id="lsUpd"></span></div>
+  <div class="vHead"><b>銘柄一覧</b><button class="qh" type="button" data-help="g6" title="使い方を見る">?</button><span class="dim" id="lsUpd"></span></div>
   <div class="mq"><div class="seg" id="lTabs"><button data-v="perp">先物（レバレッジ）</button><button data-v="spot">現物</button></div><input id="lQ" placeholder="銘柄を検索（例: BTC）" autocomplete="off" spellcheck="false"><div class="chips" id="lSort"></div></div>
   <div id="lsBody"></div>
 </div>
@@ -1036,6 +1056,7 @@ ko: {
   "このブラウザにあります": "이 브라우저에 있음",
   "ウォレットを選ぶ": "지갑 선택",
   "つなぐウォレットを選んでください。": "연결할 지갑을 선택해 주세요.",
+  "使い方を見る": "사용법 보기",
   "ウォレットをつなぎました（{0}）": "지갑을 연결했습니다 ({0})",
   "つないでいる口座のアドレス": "연결된 계좌 주소",
   "つないでいるウォレット：{0}": "연결된 지갑: {0}",
@@ -1051,33 +1072,46 @@ ko: {
   "デモの暗証番号は {0} です。": "데모용 PIN은 {0}입니다.",
   "アプリの手数料：{0}（約定額に対する割合。この画面の運営者が受け取ります）。": "앱 수수료: {0} (체결 금액에 대한 비율. 이 화면의 운영자가 받습니다).",
   "アプリの手数料：いまはかかりません。": "앱 수수료: 현재는 없습니다.",
-  "1. リスクについて": "1. 위험에 대하여",
+  "1. この画面は「ツール」の提供だけです": "1. 이 화면은 \"도구\"를 제공할 뿐입니다",
+  "この画面は、あなたのウォレットから Hyperliquid につなぐための道具（ツール）を提供するだけです。取引の仲介・媒介・代理は行いません。資産やお金も、預かりません。": "이 화면은 내 지갑을 Hyperliquid에 연결하기 위한 도구(툴)를 제공할 뿐입니다. 거래의 중개·매개·대리는 하지 않습니다. 자산이나 돈도 맡아 두지 않습니다.",
+  "2. 保証・責任・問い合わせ": "2. 보증·책임·문의",
+  "通信エラー・不具合・表示の遅れや誤り・Hyperliquid の障害やメンテナンスなどで、取引できない、遅れる、意図と違う結果になる、画面が使えなくなる、などが起きても、運営者は一切の保証も責任も負いません。問い合わせにも対応しません。": "통신 오류·결함·표시 지연이나 오류·Hyperliquid의 장애나 점검 등으로 거래할 수 없거나, 늦어지거나, 의도와 다른 결과가 되거나, 화면을 사용할 수 없게 되더라도 운영자는 어떠한 보증도 책임도 지지 않습니다. 문의에도 응하지 않습니다.",
+  "3. この画面が使えないとき": "3. 이 화면을 사용할 수 없을 때",
+  "この画面が使えなくなっても、資金とポジションは、つないだウォレットの Hyperliquid の口座にあります。同じウォレットで Hyperliquid の公式サイトにつなげば、同じ口座で取引・決済ができます。Phantom など Hyperliquid の取引に対応したウォレットアプリでも、同じウォレットなら取引できます。": "이 화면을 사용할 수 없게 되어도 자금과 포지션은 연결한 지갑의 Hyperliquid 계좌에 있습니다. 같은 지갑으로 Hyperliquid 공식 사이트에 연결하면 같은 계좌로 거래·청산할 수 있습니다. Phantom 등 Hyperliquid 거래를 지원하는 지갑 앱에서도 같은 지갑이라면 거래할 수 있습니다.",
+  "4. リスクについて": "4. 위험에 대하여",
   "この画面は投資の助言ではありません。利益は保証されません。暗号資産の価格は大きく動き、レバレッジをかけると、口座に入れたお金をすべて失うことがあります。取引は、自分の判断と責任で行ってください。": "이 화면은 투자 조언이 아닙니다. 수익은 보장되지 않습니다. 암호자산 가격은 크게 움직이며, 레버리지를 사용하면 계좌에 넣은 돈을 모두 잃을 수 있습니다. 거래는 본인의 판단과 책임으로 하세요.",
-  "2. お金と鍵の管理": "2. 자금과 키 관리",
-  "お金は取引所（Hyperliquid）のあなたの口座にあり、この画面は預かりません。ウォレットの秘密鍵と注文用の鍵は、あなたが管理します。端末の紛失・盗難・ウイルスなどで鍵が漏れて生じた損失について、運営者は責任を負いません。": "자금은 거래소(Hyperliquid)의 내 계좌에 있으며, 이 화면은 자금을 맡아 두지 않습니다. 지갑의 비밀 키와 주문용 키는 본인이 관리합니다. 기기 분실·도난·바이러스 등으로 키가 유출되어 생긴 손실에 대해 운영자는 책임지지 않습니다.",
-  "3. 手数料": "3. 수수료",
+  "5. お金と鍵の管理": "5. 자금과 키 관리",
+  "ウォレットの秘密鍵と注文用の鍵は、あなたが管理します。端末の紛失・盗難・ウイルスなどで鍵が漏れて生じた損失について、運営者は責任を負いません。": "지갑의 비밀 키와 주문용 키는 본인이 관리합니다. 기기 분실·도난·바이러스 등으로 키가 유출되어 생긴 손실에 대해 운영자는 책임지지 않습니다.",
+  "6. 手数料": "6. 수수료",
   "Hyperliquid の取引手数料：取引所が決めます。約定のたびにかかります。": "Hyperliquid 거래 수수료: 거래소가 정합니다. 체결될 때마다 부과됩니다.",
   "アプリの手数料は、最初にウォレットの署名で承認します。承認は、いつでも取り消せます。": "앱 수수료는 처음에 지갑 서명으로 승인합니다. 승인은 언제든 취소할 수 있습니다.",
   "ネットワークの利用料や、入出金のときの費用は、別にかかることがあります。": "네트워크 이용료나 입출금 시 비용은 별도로 발생할 수 있습니다.",
-  "4. サービスについて": "4. 서비스에 대하여",
-  "この画面は、現状のまま、保証なしで提供します。バグ・表示の遅れや誤り・取引所の障害・通信の途切れなどで、注文が出ない、遅れる、意図と違う結果になることがあります。法令で認められる範囲で、これらによる損害について運営者は責任を負いません。": "이 화면은 현재 상태 그대로, 보증 없이 제공됩니다. 버그·표시 지연이나 오류·거래소 장애·통신 끊김 등으로 주문이 나가지 않거나 늦어지거나 의도와 다른 결과가 될 수 있습니다. 법령이 허용하는 범위에서 이로 인한 손해에 대해 운영자는 책임지지 않습니다.",
-  "5. 使える人と地域": "5. 이용 가능한 사람과 지역",
+  "7. 使える人と地域": "7. 이용 가능한 사람과 지역",
   "お住まいの国・地域の法令で、この画面や暗号資産のデリバティブ取引が禁止・制限されている場合は、使えません。取引所が利用を制限している地域の方や、制裁の対象になっている方も使えません。税金の申告は、自分で行ってください。": "거주하는 국가·지역의 법령으로 이 화면이나 암호자산 파생상품 거래가 금지·제한되어 있다면 사용할 수 없습니다. 거래소가 이용을 제한한 지역의 분이나 제재 대상인 분도 사용할 수 없습니다. 세금 신고는 본인이 하세요.",
-  "6. 個人情報と保存するもの": "6. 개인정보와 저장되는 것",
-  "この画面には、利用者の情報を集めるサーバーはありません。設定、暗証番号をかけた鍵、同意した記録は、この端末の中にだけ保存されます。画面は、取引所の API、為替レートの API、フォントの配信元などに接続します。WalletConnect を使うときは、その接続先にも接続します。": "이 화면에는 이용자 정보를 수집하는 서버가 없습니다. 설정, 비밀번호를 건 키, 동의 기록은 이 기기 안에만 저장됩니다. 화면은 거래소 API, 환율 API, 글꼴 제공처 등에 접속합니다. WalletConnect를 사용할 때는 그 접속처에도 접속합니다.",
-  "7. 規約の変更": "7. 약관 변경",
-  "この規約は変更することがあります。変更したときは、もう一度同意をお願いします。": "이 약관은 변경될 수 있습니다. 변경되면 다시 동의를 요청드립니다.",
+  "8. 個人情報と保存するもの": "8. 개인정보와 저장되는 것",
+  "この画面には、利用者の情報を集めるサーバーはありません。設定、暗証番号をかけた鍵、確認した記録は、この端末の中にだけ保存されます。画面は、取引所の API、為替レートの API、フォントの配信元などに接続します。WalletConnect を使うときは、その接続先にも接続します。": "이 화면에는 이용자 정보를 수집하는 서버가 없습니다. 설정, 비밀번호를 건 키, 확인 기록은 이 기기 안에만 저장됩니다. 화면은 거래소 API, 환율 API, 글꼴 제공처 등에 접속합니다. WalletConnect를 사용할 때는 그 접속처에도 접속합니다.",
+  "9. 規約の変更": "9. 약관 변경",
+  "この規約は変更することがあります。変更したときは、もう一度確認をお願いします。": "이 약관은 변경될 수 있습니다. 변경되면 다시 확인을 요청드립니다.",
   "運営者：{0}": "운영자: {0}",
   "連絡先：{0}": "연락처: {0}",
   "アプリの手数料 {0}": "앱 수수료 {0}",
-  "アプリの手数料（いまはなし）": "앱 수수료(현재는 없음)",
+  "アプリの手数料は、いまはなし": "앱 수수료는 현재 없음",
+  "この画面は、Hyperliquid につなぐための<b>ツールの提供だけ</b>です。取引の仲介や、資産の預かりはしません。": "이 화면은 Hyperliquid에 연결하기 위한 <b>도구를 제공할 뿐</b>입니다. 거래 중개나 자산 보관은 하지 않습니다.",
+  "通信エラー・不具合・Hyperliquid の障害などで使えなくなっても、運営者は<b>一切の保証も責任も負わず、問い合わせにも対応しません</b>。": "통신 오류·결함·Hyperliquid 장애 등으로 사용할 수 없게 되더라도 운영자는 <b>어떠한 보증도 책임도 지지 않으며, 문의에도 응하지 않습니다</b>.",
+  "この画面が使えないときも、資金とポジションは、つないだウォレットの Hyperliquid の口座にあります。<b>同じウォレットで</b> Hyperliquid の公式サイトなどにつなげば、取引・決済できます。": "이 화면을 사용할 수 없을 때도 자금과 포지션은 연결한 지갑의 Hyperliquid 계좌에 있습니다. <b>같은 지갑으로</b> Hyperliquid 공식 사이트 등에 연결하면 거래·청산할 수 있습니다.",
+  "ツールの提供だけで、障害や通信エラーなどで使えなくなっても、運営者は一切の責任を負わず、問い合わせにも答えないことを確認しました。": "도구를 제공할 뿐이며, 장애나 통신 오류 등으로 사용할 수 없게 되더라도 운영자는 어떠한 책임도 지지 않고 문의에도 답하지 않는다는 것을 확인했습니다.",
   "取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。": "거래에는 돈을 모두 잃을 수 있는 큰 위험이 있으며 자기 책임으로 한다는 것을 이해했습니다.",
   "上の手数料（取引所の手数料と、{0}）を確認し、同意します。": "위의 수수료(거래소 수수료와 {0})를 확인했으며 동의합니다.",
-  "利用規約を読み、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "이용약관을 읽었으며, 거주하는 국가·지역의 법령으로 이 화면의 이용이 금지·제한되어 있지 않음을 확인했습니다.",
-  "同意して続ける": "동의하고 계속",
-  "同意ずみ：{0}": "동의 완료: {0}",
-  "使う前に、次の内容を確認してください。同意しないと、ウォレットの接続や本番の注文はできません（画面を見るだけなら、同意なしで使えます）。": "사용하기 전에 아래 내용을 확인해 주세요. 동의하지 않으면 지갑 연결이나 실전 주문을 할 수 없습니다(화면을 보기만 하는 것은 동의 없이 가능합니다).",
+  "利用規約の内容（下の「全文」で読めます）を確認し、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "이용약관의 내용(아래 \"전문\"에서 읽을 수 있습니다)을 확인했으며, 거주하는 국가·지역의 법령으로 이 화면의 이용이 금지·제한되어 있지 않음을 확인했습니다.",
+  "確認しました": "확인했습니다",
+  "確認ずみ：{0}": "확인 완료: {0}",
+  "使う前に、次の内容を確認してください。確認しないと、画面は使えません。確認しない場合は、このページを閉じてください。": "사용하기 전에 아래 내용을 확인해 주세요. 확인하지 않으면 화면을 사용할 수 없습니다. 확인하지 않는 경우에는 이 페이지를 닫아 주세요.",
   "利用規約・リスク・手数料": "이용약관·위험·수수료",
+  "利用規約の全文を読む（読まなくても先へ進めます）": "이용약관 전문 읽기 (읽지 않아도 진행할 수 있습니다)",
+  "ウォレットをつなぐ": "지갑 연결하기",
+  "注文用の鍵を作る": "주문용 키 만들기",
+  "小さい金額で試す": "소액으로 시험하기",
+  "はじめの3ステップ": "시작 3단계",
   "はじめに（画面の見方）": "시작하기 (화면 보는 법)",
   "この画面は、取引所 Hyperliquid に、あなたのウォレットからつないで取引するための画面です。お金は取引所のあなたの口座にあり、この画面は預かりません。": "이 화면은 내 지갑을 거래소 Hyperliquid에 연결해 거래하기 위한 화면입니다. 자금은 거래소의 내 계좌에 있으며, 이 화면은 자금을 맡아 두지 않습니다.",
   "最初は「練習モード」です。ボタンを押しても注文の中身を確認する画面が出るだけで、取引所には何も送られません。本番にする方法は「注文用の鍵」の項目を見てください。": "처음에는 \"연습 모드\"입니다. 버튼을 눌러도 주문 내용을 확인하는 화면만 나오고 거래소에는 아무것도 전송되지 않습니다. 실전으로 바꾸는 방법은 \"주문용 키\" 항목을 보세요.",
@@ -1088,7 +1122,6 @@ ko: {
   "<b>④</b> 板：いま出ている売り注文（赤）と買い注文（緑）です。値段の行を押すと、その値段で指値の注文になります。": "<b>④</b> 호가창: 현재 나와 있는 매도 주문(빨강)과 매수 주문(초록)입니다. 가격 줄을 누르면 그 가격의 지정가 주문이 됩니다.",
   "<b>⑤</b> 注文の欄：ロング・ショートや数量を決めて注文します。": "<b>⑤</b> 주문란: 롱·숏과 수량을 정해 주문합니다.",
   "<b>⑥</b> 下の表：ポジション・待ち注文・約定履歴などです。決済もここからできます。": "<b>⑥</b> 아래 표: 포지션·대기 주문·체결 내역 등입니다. 청산도 여기서 할 수 있습니다.",
-  "ウォレットをつなぐ": "지갑 연결하기",
   "右上の「ウォレット接続」を押します。": "오른쪽 위 \"지갑 연결\"을 누릅니다.",
   "つなぐウォレットを選びます。パソコンに入っている MetaMask・Rabby・Phantom などが一覧に出ます。入っていないとき（スマホなど）は「WalletConnect」を選び、QR をスマホのウォレットで読み取ります。": "연결할 지갑을 선택합니다. 컴퓨터에 설치된 MetaMask·Rabby·Phantom 등이 목록에 나옵니다. 없을 때(스마트폰 등)는 \"WalletConnect\"를 선택하고 QR을 스마트폰 지갑으로 읽습니다.",
   "ウォレットの画面で、接続を許可します。": "지갑 화면에서 연결을 허용합니다.",
@@ -1158,9 +1191,10 @@ ko: {
   "現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。": "현물은 현물 계좌의 USDC로 매수합니다. 선물 계좌에 있는 돈은 거래소 화면에서 현물 계좌로 옮기세요.",
   "「鍵が口座に登録されていません」と出る": "\"키가 계좌에 등록되어 있지 않습니다\"라고 나온다",
   "鍵の有効期限が切れたか、別の口座の鍵かもしれません。本番の設定から、鍵を作り直してください。": "키의 유효 기간이 지났거나 다른 계좌의 키일 수 있습니다. 실전 설정에서 키를 다시 만드세요.",
+  "この画面が使えなくなったとき": "이 화면을 사용할 수 없게 되었을 때",
+  "ページが開けない、注文が通らないときは、つないでいたウォレットで Hyperliquid の公式サイト（app.hyperliquid.xyz）につなげば、同じ口座で取引・決済ができます。Phantom など Hyperliquid の取引に対応したウォレットアプリでも、同じウォレットなら取引できます。資金とポジションは取引所のあなたの口座にあり、この画面が使えなくても消えません。": "페이지가 열리지 않거나 주문이 들어가지 않을 때는, 연결했던 지갑으로 Hyperliquid 공식 사이트(app.hyperliquid.xyz)에 연결하면 같은 계좌로 거래·청산할 수 있습니다. Phantom 등 Hyperliquid 거래를 지원하는 지갑 앱에서도 같은 지갑이라면 거래할 수 있습니다. 자금과 포지션은 거래소의 내 계좌에 있으며, 이 화면을 사용할 수 없어도 사라지지 않습니다.",
   "スマホで使いたい": "스마트폰에서 사용하고 싶다",
   "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari만으로는 지갑을 찾을 수 없으므로, 지갑 앱 안의 브라우저로 열거나 \"지갑 연결\"에서 WalletConnect를 선택해 스마트폰 지갑 앱에 연결하세요.",
-  "使い方ガイド": "사용 가이드",
   "銘柄情報を取れませんでした: ": "종목 정보를 가져오지 못했습니다: ",
   "HL トレード画面": "HL 트레이딩",
   "口座残高": "계좌 잔고",
@@ -1180,6 +1214,7 @@ ko: {
   "▦ 4画面チャート": "▦ 4분할 차트",
   "📊 銘柄一覧": "📊 종목 목록",
   "❓ 使い方": "❓ 사용법",
+  "📄 規約": "📄 약관",
   "先物（レバレッジ）": "선물 (레버리지)",
   "現物": "현물",
   "🔍 すべての銘柄": "🔍 모든 종목",
@@ -1735,6 +1770,7 @@ en: {
   "このブラウザにあります": "Installed in this browser",
   "ウォレットを選ぶ": "Choose a wallet",
   "つなぐウォレットを選んでください。": "Choose the wallet to connect.",
+  "使い方を見る": "See the guide",
   "ウォレットをつなぎました（{0}）": "Wallet connected ({0})",
   "つないでいる口座のアドレス": "Connected account address",
   "つないでいるウォレット：{0}": "Connected wallet: {0}",
@@ -1750,33 +1786,46 @@ en: {
   "デモの暗証番号は {0} です。": "The demo PIN is {0}.",
   "アプリの手数料：{0}（約定額に対する割合。この画面の運営者が受け取ります）。": "App fee: {0} (a percentage of the traded amount, received by the operator of this screen).",
   "アプリの手数料：いまはかかりません。": "App fee: none at the moment.",
-  "1. リスクについて": "1. Risks",
+  "1. この画面は「ツール」の提供だけです": "1. This screen is only a tool",
+  "この画面は、あなたのウォレットから Hyperliquid につなぐための道具（ツール）を提供するだけです。取引の仲介・媒介・代理は行いません。資産やお金も、預かりません。": "This screen only provides a tool for connecting your wallet to Hyperliquid. It does not broker, mediate, or act as an agent for trades, and it does not hold your assets or money.",
+  "2. 保証・責任・問い合わせ": "2. No warranty, no liability, no support",
+  "通信エラー・不具合・表示の遅れや誤り・Hyperliquid の障害やメンテナンスなどで、取引できない、遅れる、意図と違う結果になる、画面が使えなくなる、などが起きても、運営者は一切の保証も責任も負いません。問い合わせにも対応しません。": "If communication errors, bugs, delayed or wrong displays, or Hyperliquid outages or maintenance prevent you from trading, delay your orders, give unintended results, or make this screen unusable, the operator gives no warranty and accepts no liability whatsoever. The operator also does not respond to inquiries.",
+  "3. この画面が使えないとき": "3. If this screen is unavailable",
+  "この画面が使えなくなっても、資金とポジションは、つないだウォレットの Hyperliquid の口座にあります。同じウォレットで Hyperliquid の公式サイトにつなげば、同じ口座で取引・決済ができます。Phantom など Hyperliquid の取引に対応したウォレットアプリでも、同じウォレットなら取引できます。": "Even if this screen becomes unavailable, your funds and positions remain in the Hyperliquid account of the wallet you connected. Connect the same wallet to the official Hyperliquid site to trade and close positions on the same account. Wallet apps that support Hyperliquid trading, such as Phantom, also work if it is the same wallet.",
+  "4. リスクについて": "4. Risks",
   "この画面は投資の助言ではありません。利益は保証されません。暗号資産の価格は大きく動き、レバレッジをかけると、口座に入れたお金をすべて失うことがあります。取引は、自分の判断と責任で行ってください。": "This screen is not investment advice. Profit is not guaranteed. Crypto prices move sharply, and with leverage you can lose all the money in your account. Trade on your own judgment and at your own risk.",
-  "2. お金と鍵の管理": "2. Funds and key management",
-  "お金は取引所（Hyperliquid）のあなたの口座にあり、この画面は預かりません。ウォレットの秘密鍵と注文用の鍵は、あなたが管理します。端末の紛失・盗難・ウイルスなどで鍵が漏れて生じた損失について、運営者は責任を負いません。": "Your funds are in your account on the exchange (Hyperliquid); this screen never holds them. You manage your wallet's private key and the order key yourself. The operator is not responsible for losses caused by a key leaking through a lost or stolen device, malware, and the like.",
-  "3. 手数料": "3. Fees",
+  "5. お金と鍵の管理": "5. Funds and key management",
+  "ウォレットの秘密鍵と注文用の鍵は、あなたが管理します。端末の紛失・盗難・ウイルスなどで鍵が漏れて生じた損失について、運営者は責任を負いません。": "You manage your wallet's private key and the order key yourself. The operator is not responsible for losses caused by a key leaking through a lost or stolen device, malware, and the like.",
+  "6. 手数料": "6. Fees",
   "Hyperliquid の取引手数料：取引所が決めます。約定のたびにかかります。": "Hyperliquid trading fee: set by the exchange and charged on every fill.",
   "アプリの手数料は、最初にウォレットの署名で承認します。承認は、いつでも取り消せます。": "You approve the app fee once with a wallet signature. You can revoke the approval at any time.",
   "ネットワークの利用料や、入出金のときの費用は、別にかかることがあります。": "Network fees and deposit or withdrawal costs may apply separately.",
-  "4. サービスについて": "4. About the service",
-  "この画面は、現状のまま、保証なしで提供します。バグ・表示の遅れや誤り・取引所の障害・通信の途切れなどで、注文が出ない、遅れる、意図と違う結果になることがあります。法令で認められる範囲で、これらによる損害について運営者は責任を負いません。": "This screen is provided as is, without warranty. Bugs, delayed or wrong displays, exchange outages, or lost connections can cause orders not to go through, to be late, or to give unintended results. To the extent permitted by law, the operator is not liable for resulting losses.",
-  "5. 使える人と地域": "5. Who and where",
+  "7. 使える人と地域": "7. Who and where",
   "お住まいの国・地域の法令で、この画面や暗号資産のデリバティブ取引が禁止・制限されている場合は、使えません。取引所が利用を制限している地域の方や、制裁の対象になっている方も使えません。税金の申告は、自分で行ってください。": "You may not use this screen if the law where you live prohibits or restricts it or crypto derivatives trading. It is also off limits to people in regions the exchange restricts and to anyone subject to sanctions. You are responsible for your own tax filing.",
-  "6. 個人情報と保存するもの": "6. Personal data and what is stored",
-  "この画面には、利用者の情報を集めるサーバーはありません。設定、暗証番号をかけた鍵、同意した記録は、この端末の中にだけ保存されます。画面は、取引所の API、為替レートの API、フォントの配信元などに接続します。WalletConnect を使うときは、その接続先にも接続します。": "This screen has no server that collects user data. Settings, the PIN-locked key, and your consent record are stored only on this device. The screen connects to the exchange API, exchange-rate APIs, font hosts, and similar services. When you use WalletConnect, it also connects to its servers.",
-  "7. 規約の変更": "7. Changes to these terms",
-  "この規約は変更することがあります。変更したときは、もう一度同意をお願いします。": "These terms may change. If they do, you will be asked to agree again.",
+  "8. 個人情報と保存するもの": "8. Personal data and what is stored",
+  "この画面には、利用者の情報を集めるサーバーはありません。設定、暗証番号をかけた鍵、確認した記録は、この端末の中にだけ保存されます。画面は、取引所の API、為替レートの API、フォントの配信元などに接続します。WalletConnect を使うときは、その接続先にも接続します。": "This screen has no server that collects user data. Settings, the PIN-locked key, and your confirmation record are stored only on this device. The screen connects to the exchange API, exchange-rate APIs, font hosts, and similar services. When you use WalletConnect, it also connects to its servers.",
+  "9. 規約の変更": "9. Changes to these terms",
+  "この規約は変更することがあります。変更したときは、もう一度確認をお願いします。": "These terms may change. If they do, you will be asked to confirm again.",
   "運営者：{0}": "Operator: {0}",
   "連絡先：{0}": "Contact: {0}",
   "アプリの手数料 {0}": "the app fee of {0}",
-  "アプリの手数料（いまはなし）": "the app fee (none at the moment)",
+  "アプリの手数料は、いまはなし": "no app fee at the moment",
+  "この画面は、Hyperliquid につなぐための<b>ツールの提供だけ</b>です。取引の仲介や、資産の預かりはしません。": "This screen is <b>only a tool</b> for connecting to Hyperliquid. It does not broker trades or hold assets.",
+  "通信エラー・不具合・Hyperliquid の障害などで使えなくなっても、運営者は<b>一切の保証も責任も負わず、問い合わせにも対応しません</b>。": "If it stops working because of communication errors, bugs, Hyperliquid outages, or the like, the operator <b>gives no warranty, accepts no liability, and does not answer inquiries</b>.",
+  "この画面が使えないときも、資金とポジションは、つないだウォレットの Hyperliquid の口座にあります。<b>同じウォレットで</b> Hyperliquid の公式サイトなどにつなげば、取引・決済できます。": "Even when this screen is unavailable, your funds and positions stay in the Hyperliquid account of the wallet you connected. <b>Connect the same wallet</b> to the official Hyperliquid site or similar to trade and close positions.",
+  "ツールの提供だけで、障害や通信エラーなどで使えなくなっても、運営者は一切の責任を負わず、問い合わせにも答えないことを確認しました。": "I confirm that this is only a tool, and that even if it becomes unusable because of outages, communication errors, or the like, the operator accepts no liability and does not answer inquiries.",
   "取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。": "I understand that trading carries large risks, including losing all my money, and that I do it at my own risk.",
   "上の手数料（取引所の手数料と、{0}）を確認し、同意します。": "I have read the fees above (the exchange fee and {0}) and agree to them.",
-  "利用規約を読み、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "I have read the terms and confirmed that using this screen is not prohibited or restricted by the laws where I live.",
-  "同意して続ける": "Agree and continue",
-  "同意ずみ：{0}": "Agreed on: {0}",
-  "使う前に、次の内容を確認してください。同意しないと、ウォレットの接続や本番の注文はできません（画面を見るだけなら、同意なしで使えます）。": "Please read the following before you use this. Without agreeing, you cannot connect a wallet or place live orders (just viewing the screen works without agreeing).",
+  "利用規約の内容（下の「全文」で読めます）を確認し、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "I have checked the contents of the terms (the full text is below) and confirmed that using this screen is not prohibited or restricted by the laws where I live.",
+  "確認しました": "I confirm",
+  "確認ずみ：{0}": "Confirmed on: {0}",
+  "使う前に、次の内容を確認してください。確認しないと、画面は使えません。確認しない場合は、このページを閉じてください。": "Please check the following before you use this. Without confirming, the screen cannot be used. If you do not confirm, please close this page.",
   "利用規約・リスク・手数料": "Terms, risks & fees",
+  "利用規約の全文を読む（読まなくても先へ進めます）": "Read the full terms (you can continue without reading)",
+  "ウォレットをつなぐ": "Connect a wallet",
+  "注文用の鍵を作る": "Create the order key",
+  "小さい金額で試す": "Try a small amount",
+  "はじめの3ステップ": "Getting started: 3 steps",
   "はじめに（画面の見方）": "Getting started (reading the screen)",
   "この画面は、取引所 Hyperliquid に、あなたのウォレットからつないで取引するための画面です。お金は取引所のあなたの口座にあり、この画面は預かりません。": "This screen lets you connect your own wallet to the Hyperliquid exchange and trade. Your funds stay in your account on the exchange; this screen never holds them.",
   "最初は「練習モード」です。ボタンを押しても注文の中身を確認する画面が出るだけで、取引所には何も送られません。本番にする方法は「注文用の鍵」の項目を見てください。": "You start in \"Practice mode\". Pressing a button only shows a screen to check the order; nothing is sent to the exchange. See \"Order key\" below to switch to live trading.",
@@ -1787,7 +1836,6 @@ en: {
   "<b>④</b> 板：いま出ている売り注文（赤）と買い注文（緑）です。値段の行を押すと、その値段で指値の注文になります。": "<b>④</b> Order book: current sell orders (red) and buy orders (green). Tap a price row to set a limit order at that price.",
   "<b>⑤</b> 注文の欄：ロング・ショートや数量を決めて注文します。": "<b>⑤</b> Order panel: choose long or short and the size, then place the order.",
   "<b>⑥</b> 下の表：ポジション・待ち注文・約定履歴などです。決済もここからできます。": "<b>⑥</b> Table below: positions, open orders, trade history, and more. You can close positions here too.",
-  "ウォレットをつなぐ": "Connect a wallet",
   "右上の「ウォレット接続」を押します。": "Press \"Connect wallet\" at the top right.",
   "つなぐウォレットを選びます。パソコンに入っている MetaMask・Rabby・Phantom などが一覧に出ます。入っていないとき（スマホなど）は「WalletConnect」を選び、QR をスマホのウォレットで読み取ります。": "Choose the wallet to connect. MetaMask, Rabby, Phantom, etc. installed on your computer appear in the list. If none is installed (for example on a phone), choose \"WalletConnect\" and scan the QR with your phone wallet.",
   "ウォレットの画面で、接続を許可します。": "Approve the connection in your wallet.",
@@ -1857,9 +1905,10 @@ en: {
   "現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。": "Spot is bought with the USDC in your spot account. Move money from your perpetuals account to your spot account on the exchange.",
   "「鍵が口座に登録されていません」と出る": "\"The key is not registered to the account\" appears",
   "鍵の有効期限が切れたか、別の口座の鍵かもしれません。本番の設定から、鍵を作り直してください。": "The key may have expired or belong to a different account. Create a new key from the live setup.",
+  "この画面が使えなくなったとき": "If this screen becomes unavailable",
+  "ページが開けない、注文が通らないときは、つないでいたウォレットで Hyperliquid の公式サイト（app.hyperliquid.xyz）につなげば、同じ口座で取引・決済ができます。Phantom など Hyperliquid の取引に対応したウォレットアプリでも、同じウォレットなら取引できます。資金とポジションは取引所のあなたの口座にあり、この画面が使えなくても消えません。": "If the page will not open or orders do not go through, connect the wallet you used to the official Hyperliquid site (app.hyperliquid.xyz) to trade and close positions on the same account. Wallet apps that support Hyperliquid trading, such as Phantom, also work if it is the same wallet. Your funds and positions are in your account on the exchange and do not disappear when this screen is unavailable.",
   "スマホで使いたい": "I want to use it on my phone",
   "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari alone cannot find a wallet. Open this page in the browser inside your wallet app, or choose WalletConnect in \"Connect wallet\" to link your phone wallet app.",
-  "使い方ガイド": "User guide",
   "銘柄情報を取れませんでした: ": "Couldn't load market info: ",
   "HL トレード画面": "HL Trading",
   "口座残高": "Account value",
@@ -1879,6 +1928,7 @@ en: {
   "▦ 4画面チャート": "▦ 4-chart view",
   "📊 銘柄一覧": "📊 Markets",
   "❓ 使い方": "❓ Guide",
+  "📄 規約": "📄 Terms",
   "先物（レバレッジ）": "Perps (leverage)",
   "現物": "Spot",
   "🔍 すべての銘柄": "🔍 All markets",
@@ -2387,7 +2437,7 @@ function setPage(pg){
   if (pg === 'help'){ GUIDE.render(); scrollTo(0, 0); }
   if (trade) setTimeout(() => chart.resize(), 30);
 }
-$('pages').onclick = e => { const b = e.target.closest('button'); if (b) setPage(b.dataset.p); };
+$('pages').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.p === 'terms'){ openTerms(); return; } setPage(b.dataset.p); };
 
 // ===== 4画面チャート：銘柄と足を選べる小さいチャートを4つ並べる =====
 // 同じ購読（銘柄と足）をほかで使っていたら外さない
@@ -3076,7 +3126,7 @@ const chart = (() => {
     else if (act.type === 'pan'){
       if (Math.hypot(p.x - act.x0, p.y - act.y0) > 6){ act.moved = true; clearTimeout(lpTimer); }
       off = Math.max(-60, Math.min(S.candles.length - 10, act.off + (p.x - act.x0) / bw));
-      if (vman){ const dp = (p.y - act.y0) / geo.priceH * (act.hi - act.lo); vman = {lo: act.lo + dp, hi: act.hi + dp}; }
+      if (vman){ const dp = (p.y - act.y0) / geo.priceH * (act.hi - act.lo); vman = {lo: act.lo + dp, hi: act.hi + dp}; $('zAuto').classList.remove('sel'); }
     }
     draw();
   });
@@ -3486,6 +3536,7 @@ $('mOk').onclick = async () => {
   let steps; try { steps = run(); } catch (e){ preview(_('{0}：送りませんでした', t), [[_('理由'), esc(e.message)]], '', {info:true}); return; }
   $('mOk').disabled = $('mClose').disabled = true; $('mOk').textContent = _('送っています…');
   const r = await LIVE.runSteps(steps);
+  if (r.ok && S.live){ store.set('firstLive', true); renderStart(); }
   $('mOk').disabled = $('mClose').disabled = false; SND.play(r.ok ? 'ok' : 'err');
   preview(_('{0}：{1}', t, r.ok ? _('完了') : _('うまくいきませんでした')), r.rows, r.ok ? '' : `<div class="danger">${_('途中で止めました。ポジションと注文の欄で、いまの状態を確かめてください。')}</div>`, {info:true});
   log(_('{0} 本番: {1} → {2}', new Date().toLocaleTimeString(LOCALE()), t, r.ok ? _('完了') : _('失敗')));
@@ -3499,7 +3550,8 @@ function preview(title, rows, extraHtml, opts){
   $('mBody').hidden = !rows.length;
   $('modal').hidden = false; $('mClose').focus();
 }
-function closeModal(){ $('modal').hidden = true; }
+let termsForce = false;   // 最初の同意の画面は、同意するまで閉じられない
+function closeModal(){ if (termsForce) return; $('modal').hidden = true; }
 $('mClose').onclick = closeModal;
 $('modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
 function modifyPreview(o, kind, from, to){
@@ -3683,7 +3735,7 @@ const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で
 //   required が true のあいだは、手数料を承認していない人の「新規の注文」は出せません。
 //   決済・取り消し・倍率変更は、承認がなくてもいつでもできます（ポジションから出られなくならないように）。
 // 利用規約の版。中身を変えたら数字を上げると、全員にもう一度同意してもらいます。operator / contact を入れると、規約に出ます
-const TERMS = {v:1, operator:'', contact:''};
+const TERMS = {v:2, operator:'', contact:''};
 const BUILDER = {addr:'', fee:25, required:true};   // fee は 0.01% の10分の1の単位（25 = 0.025%）。addr が空のあいだは手数料なし
 // WalletConnect（QR で携帯のウォレットとつなぐ）。Reown のプロジェクト ID（公開されても問題ない識別子）。空にすると、ウォレットの選択画面に出なくなります
 const WC = {projectId:'e4abdb60f0f9bea9c07d9195c3094691', url:'https://esm.sh/@walletconnect/ethereum-provider@2'};
@@ -3930,6 +3982,7 @@ function explainRes(res){
   return {ok, lines};
 }
 function renderMode(){
+  if (typeof renderStart === 'function') renderStart();
   const b = $('modeBtn'), on = S.live, rdy = LIVE.ready();
   b.textContent = on ? (rdy ? _('本番（注文が出ます）') : _('本番・鍵が閉じています')) : _('練習モード（注文は送られません）');
   b.classList.toggle('live', on && rdy); b.classList.toggle('locked', on && !rdy);
@@ -4208,6 +4261,7 @@ function setUser(a){ S.user = String(a || '').trim(); store.set('addr', S.user);
 const shortAddr = a => a.slice(0, 6) + '…' + a.slice(-4);
 const hasUser = () => /^0x[0-9a-fA-F]{40}$/.test(S.user);
 function renderWallet(){
+  if (typeof renderStart === 'function') renderStart();
   const b = $('walletBtn'), on = hasUser();
   b.classList.toggle('on', on); b.textContent = on ? '● ' + shortAddr(S.user) : _('ウォレット接続'); b.title = on ? S.user : '';
 }
@@ -4217,7 +4271,7 @@ function openWalletPicker(fresh){
   const draw = () => {
     const l = WALLET.list();
     const rows = l.map(w => `<button class="wi" type="button" data-id="${esc(w.id)}">${w.icon ? `<img src="${esc(w.icon)}" alt="" width="32" height="32">` : `<span class="wic">${w.wc ? '▦' : '👛'}</span>`}<span class="wn">${esc(w.name)}</span><small>${w.wc ? _('QR・スマホのウォレット') : _('このブラウザにあります')}</small></button>`).join('');
-    preview(_('ウォレットを選ぶ'), [], `<div class="wp"><p class="note">${_('つなぐウォレットを選んでください。')}</p><div class="wl" id="wpList">${rows}</div>${l.length ? '' : `<p class="note bad">${_('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。')}</p>`}</div>`, {info:true});
+    preview(_('ウォレットを選ぶ'), [], `<div class="wp"><p class="note">${_('つなぐウォレットを選んでください。')} <button class="qh" type="button" data-help="g2" title="${_('使い方を見る')}">?</button></p><div class="wl" id="wpList">${rows}</div>${l.length ? '' : `<p class="note bad">${_('ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。')}</p>`}</div>`, {info:true});
     document.querySelectorAll('#wpList .wi').forEach(btn => btn.onclick = () => pickWallet(btn.dataset.id, fresh));
     return l.length;
   };
@@ -4309,34 +4363,56 @@ const consent = () => store.get('terms', null);
 const needConsent = () => { const c = consent(); return !(c && c.v === TERMS.v); };
 function termsBody(){
   const fee = BUILD.on() ? _('アプリの手数料：{0}（約定額に対する割合。この画面の運営者が受け取ります）。', BUILD.rate(BUILDER.fee) + '%') : _('アプリの手数料：いまはかかりません。');
-  return `<h4>${_('1. リスクについて')}</h4><p>${_('この画面は投資の助言ではありません。利益は保証されません。暗号資産の価格は大きく動き、レバレッジをかけると、口座に入れたお金をすべて失うことがあります。取引は、自分の判断と責任で行ってください。')}</p>
-    <h4>${_('2. お金と鍵の管理')}</h4><p>${_('お金は取引所（Hyperliquid）のあなたの口座にあり、この画面は預かりません。ウォレットの秘密鍵と注文用の鍵は、あなたが管理します。端末の紛失・盗難・ウイルスなどで鍵が漏れて生じた損失について、運営者は責任を負いません。')}</p>
-    <h4>${_('3. 手数料')}</h4><ul><li>${_('Hyperliquid の取引手数料：取引所が決めます。約定のたびにかかります。')}</li><li>${fee}</li><li>${_('アプリの手数料は、最初にウォレットの署名で承認します。承認は、いつでも取り消せます。')}</li><li>${_('ネットワークの利用料や、入出金のときの費用は、別にかかることがあります。')}</li></ul>
-    <h4>${_('4. サービスについて')}</h4><p>${_('この画面は、現状のまま、保証なしで提供します。バグ・表示の遅れや誤り・取引所の障害・通信の途切れなどで、注文が出ない、遅れる、意図と違う結果になることがあります。法令で認められる範囲で、これらによる損害について運営者は責任を負いません。')}</p>
-    <h4>${_('5. 使える人と地域')}</h4><p>${_('お住まいの国・地域の法令で、この画面や暗号資産のデリバティブ取引が禁止・制限されている場合は、使えません。取引所が利用を制限している地域の方や、制裁の対象になっている方も使えません。税金の申告は、自分で行ってください。')}</p>
-    <h4>${_('6. 個人情報と保存するもの')}</h4><p>${_('この画面には、利用者の情報を集めるサーバーはありません。設定、暗証番号をかけた鍵、同意した記録は、この端末の中にだけ保存されます。画面は、取引所の API、為替レートの API、フォントの配信元などに接続します。WalletConnect を使うときは、その接続先にも接続します。')}</p>
-    <h4>${_('7. 規約の変更')}</h4><p>${_('この規約は変更することがあります。変更したときは、もう一度同意をお願いします。')}</p>
+  return `<h4>${_('1. この画面は「ツール」の提供だけです')}</h4><p>${_('この画面は、あなたのウォレットから Hyperliquid につなぐための道具（ツール）を提供するだけです。取引の仲介・媒介・代理は行いません。資産やお金も、預かりません。')}</p>
+    <h4>${_('2. 保証・責任・問い合わせ')}</h4><p>${_('通信エラー・不具合・表示の遅れや誤り・Hyperliquid の障害やメンテナンスなどで、取引できない、遅れる、意図と違う結果になる、画面が使えなくなる、などが起きても、運営者は一切の保証も責任も負いません。問い合わせにも対応しません。')}</p>
+    <h4>${_('3. この画面が使えないとき')}</h4><p>${_('この画面が使えなくなっても、資金とポジションは、つないだウォレットの Hyperliquid の口座にあります。同じウォレットで Hyperliquid の公式サイトにつなげば、同じ口座で取引・決済ができます。Phantom など Hyperliquid の取引に対応したウォレットアプリでも、同じウォレットなら取引できます。')}</p>
+    <h4>${_('4. リスクについて')}</h4><p>${_('この画面は投資の助言ではありません。利益は保証されません。暗号資産の価格は大きく動き、レバレッジをかけると、口座に入れたお金をすべて失うことがあります。取引は、自分の判断と責任で行ってください。')}</p>
+    <h4>${_('5. お金と鍵の管理')}</h4><p>${_('ウォレットの秘密鍵と注文用の鍵は、あなたが管理します。端末の紛失・盗難・ウイルスなどで鍵が漏れて生じた損失について、運営者は責任を負いません。')}</p>
+    <h4>${_('6. 手数料')}</h4><ul><li>${_('Hyperliquid の取引手数料：取引所が決めます。約定のたびにかかります。')}</li><li>${fee}</li><li>${_('アプリの手数料は、最初にウォレットの署名で承認します。承認は、いつでも取り消せます。')}</li><li>${_('ネットワークの利用料や、入出金のときの費用は、別にかかることがあります。')}</li></ul>
+    <h4>${_('7. 使える人と地域')}</h4><p>${_('お住まいの国・地域の法令で、この画面や暗号資産のデリバティブ取引が禁止・制限されている場合は、使えません。取引所が利用を制限している地域の方や、制裁の対象になっている方も使えません。税金の申告は、自分で行ってください。')}</p>
+    <h4>${_('8. 個人情報と保存するもの')}</h4><p>${_('この画面には、利用者の情報を集めるサーバーはありません。設定、暗証番号をかけた鍵、確認した記録は、この端末の中にだけ保存されます。画面は、取引所の API、為替レートの API、フォントの配信元などに接続します。WalletConnect を使うときは、その接続先にも接続します。')}</p>
+    <h4>${_('9. 規約の変更')}</h4><p>${_('この規約は変更することがあります。変更したときは、もう一度確認をお願いします。')}</p>
     ${TERMS.operator ? `<p>${_('運営者：{0}', esc(TERMS.operator))}</p>` : ''}${TERMS.contact ? `<p>${_('連絡先：{0}', esc(TERMS.contact))}</p>` : ''}`;
 }
-// 同意の画面。next があれば、同意したあとに続けて実行する。同意ずみのときは、読むだけ（next なし）
-function openTerms(next){
+// 確認の画面。next があれば、確認したあとに続けて実行する。確認ずみのときは、読むだけ（next なし）。全文は読まなくても、チェックして「確認しました」を押せば先へ進める
+function openTerms(next, force){
   const c = consent(), done = c && c.v === TERMS.v;
-  const feeTxt = BUILD.on() ? _('アプリの手数料 {0}', BUILD.rate(BUILDER.fee) + '%') : _('アプリの手数料（いまはなし）');
-  const checks = done ? '' : `<label class="tchk"><input type="checkbox" class="tc"><span>${_('取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。')}</span></label>
+  termsForce = !!force && !done; $('mClose').hidden = termsForce;
+  const feeTxt = BUILD.on() ? _('アプリの手数料 {0}', BUILD.rate(BUILDER.fee) + '%') : _('アプリの手数料は、いまはなし');
+  const sum = `<ul class="tsum"><li>${_('この画面は、Hyperliquid につなぐための<b>ツールの提供だけ</b>です。取引の仲介や、資産の預かりはしません。')}</li>
+    <li>${_('通信エラー・不具合・Hyperliquid の障害などで使えなくなっても、運営者は<b>一切の保証も責任も負わず、問い合わせにも対応しません</b>。')}</li>
+    <li>${_('この画面が使えないときも、資金とポジションは、つないだウォレットの Hyperliquid の口座にあります。<b>同じウォレットで</b> Hyperliquid の公式サイトなどにつなげば、取引・決済できます。')}</li></ul>`;
+  const checks = done ? '' : `<label class="tchk"><input type="checkbox" class="tc"><span>${_('ツールの提供だけで、障害や通信エラーなどで使えなくなっても、運営者は一切の責任を負わず、問い合わせにも答えないことを確認しました。')}</span></label>
+    <label class="tchk"><input type="checkbox" class="tc"><span>${_('取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。')}</span></label>
     <label class="tchk"><input type="checkbox" class="tc"><span>${_('上の手数料（取引所の手数料と、{0}）を確認し、同意します。', feeTxt)}</span></label>
-    <label class="tchk"><input type="checkbox" class="tc"><span>${_('利用規約を読み、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。')}</span></label>
-    <button type="button" class="tgo" id="tGo" disabled>${_('同意して続ける')}</button>`;
-  const head = done ? `<p class="note">${_('同意ずみ：{0}', new Date(c.t).toLocaleString(LOCALE()))}</p>` : `<p class="note">${_('使う前に、次の内容を確認してください。同意しないと、ウォレットの接続や本番の注文はできません（画面を見るだけなら、同意なしで使えます）。')}</p>`;
-  preview(_('利用規約・リスク・手数料'), [], `${head}<div class="terms">${termsBody()}</div>${checks}`, {info:true});
+    <label class="tchk"><input type="checkbox" class="tc"><span>${_('利用規約の内容（下の「全文」で読めます）を確認し、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。')}</span></label>
+    <button type="button" class="tgo" id="tGo" disabled>${_('確認しました')}</button>`;
+  const head = done ? `<p class="note">${_('確認ずみ：{0}', new Date(c.t).toLocaleString(LOCALE()))}</p>` : `<p class="note">${_('使う前に、次の内容を確認してください。確認しないと、画面は使えません。確認しない場合は、このページを閉じてください。')}</p>`;
+  $('mClose').hidden = false; preview(_('利用規約・リスク・手数料'), [], `${head}${sum}<details class="tfull"${done ? ' open' : ''}><summary>${_('利用規約の全文を読む（読まなくても先へ進めます）')}</summary><div class="terms">${termsBody()}</div></details>${checks}`, {info:true});
   if (done) return;
+  $('mClose').hidden = termsForce;
   const boxes = [...document.querySelectorAll('#mExtra .tc')];
   boxes.forEach(b => b.onchange = () => { $('tGo').disabled = !boxes.every(x => x.checked); });
-  $('tGo').onclick = () => { store.set('terms', {v:TERMS.v, t:Date.now(), lang:LANG}); closeModal(); if (next) next(); };
+  $('tGo').onclick = () => { store.set('terms', {v:TERMS.v, t:Date.now(), lang:LANG}); termsForce = false; $('mClose').hidden = false; closeModal(); renderStart(); if (next) next(); };
 }
 // 同意ずみならそのまま、まだなら同意の画面を出して、同意したあとに続ける
 const gate = fn => needConsent() ? openTerms(fn) : fn();
 $('termsLink').onclick = () => openTerms();
 
+// 「？」を押すと、使い方の該当ページを開く
+document.addEventListener('click', e => { const b = e.target.closest('[data-help]'); if (!b) return; if (termsForce) return; closeModal(); store.set('guideTab', b.dataset.help); setPage('help'); });
+// ===== はじめの3ステップの帯（ウォレット → 注文用の鍵 → 小さい金額で試す）=====
+var appReady = false;   // 起動のしたくが終わるまでは、はじめの3ステップの帯を描かない
+function renderStart(){
+  const el = $('startBar'); if (!appReady || !el) return;
+  const steps = [[hasUser(), _('ウォレットをつなぐ'), connectWallet], [!!LIVE.saved(), _('注文用の鍵を作る'), openLiveSetup], [!!store.get('firstLive', false), _('小さい金額で試す'), () => { store.set('guideTab', 'g4'); setPage('help'); }]];
+  const all = steps.every(x => x[0]);
+  el.hidden = needConsent() || store.get('startOff', false) || all;
+  if (el.hidden) return;
+  const nx = steps.findIndex(x => !x[0]);
+  el.innerHTML = `<b>${_('はじめの3ステップ')}</b>${steps.map(([d, t], i) => `<button type="button" class="st ${d ? 'done' : i === nx ? 'next' : ''}" data-s="${i}">${d ? '✔ ' : (i + 1) + '. '}${t}</button>`).join('')}<button type="button" class="qh" data-help="g1" title="${_('使い方を見る')}">?</button><button type="button" class="x" id="startX" title="${_('閉じる')}">×</button>`;
+  el.onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.id === 'startX'){ store.set('startOff', true); renderStart(); return; } if (b.dataset.s != null) steps[+b.dataset.s][2](); };
+}
 // ===== 使い方ガイド（画面の見方・ウォレット・鍵・注文・チャート）=====
 const GUIDE = (() => {
   const fig = (n, cap) => `<figure><img src="${esc((window.__GUIDE_IMGS && window.__GUIDE_IMGS[LANG] && window.__GUIDE_IMGS[LANG][n]) || `guide/${LANG}/${n}.jpg`)}" alt="${esc(cap)}" loading="lazy"><figcaption>${esc(cap)}</figcaption></figure>`;
@@ -4383,28 +4459,35 @@ const GUIDE = (() => {
         <h3>${_('「余力が足りません」と出る')}</h3><p>${_('使える余力より、必要な証拠金が大きいときに出ます。数量を減らすか、レバレッジを上げてください。反対向きの注文は、持っているポジションの分は証拠金が要りません。')}</p>
         <h3>${_('現物が買えない')}</h3><p>${_('現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。')}</p>
         <h3>${_('「鍵が口座に登録されていません」と出る')}</h3><p>${_('鍵の有効期限が切れたか、別の口座の鍵かもしれません。本番の設定から、鍵を作り直してください。')}</p>
+        <h3>${_('この画面が使えなくなったとき')}</h3><p>${_('ページが開けない、注文が通らないときは、つないでいたウォレットで Hyperliquid の公式サイト（app.hyperliquid.xyz）につなげば、同じ口座で取引・決済ができます。Phantom など Hyperliquid の取引に対応したウォレットアプリでも、同じウォレットなら取引できます。資金とポジションは取引所のあなたの口座にあり、この画面が使えなくても消えません。')}</p>
         <h3>${_('スマホで使いたい')}</h3><p>${_('Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。')}</p>`]
     ];
     return {S1};
   }
   function render(){
     const {S1} = html(), el = $('vHelp');
-    el.innerHTML = `<div class="guide"><h2 style="margin-top:6px;border:0">${_('使い方ガイド')}</h2>
-      <div class="gtoc">${S1.map(([id, t]) => `<button type="button" data-g="${id}">${t}</button>`).join('')}</div>
-      ${S1.map(([id, t, h]) => `<h2 id="${id}">${t}</h2>${h}`).join('')}</div>`;
-    el.querySelector('.gtoc').onclick = e => { const b = e.target.closest('button'); if (b) document.getElementById(b.dataset.g).scrollIntoView({behavior:'smooth', block:'start'}); };
+    let i = S1.findIndex(x => x[0] === store.get('guideTab', 'g1')); if (i < 0) i = 0;
+    const [id, t, h] = S1[i], prev = S1[i - 1], next = S1[i + 1];
+    el.innerHTML = `<div class="guide"><div class="gtabs" role="tablist">${S1.map(([k, tt], j) => `<button type="button" role="tab" data-g="${k}" class="${j === i ? 'sel' : ''}">${j + 1}. ${tt}</button>`).join('')}</div>
+      <h2 id="${id}">${t}</h2>${h}
+      <div class="gnav">${prev ? `<button type="button" data-g="${prev[0]}">← ${prev[1]}</button>` : '<span></span>'}${next ? `<button type="button" class="pri" data-g="${next[0]}">${next[1]} →</button>` : '<span></span>'}</div></div>`;
+    const go = e => { const b = e.target.closest('button[data-g]'); if (!b) return; store.set('guideTab', b.dataset.g); render(); scrollTo(0, 0); };
+    el.querySelectorAll('.gtabs, .gnav').forEach(x => x.onclick = go);
+    const on = el.querySelector('.gtabs .sel'); if (on) on.scrollIntoView({block: 'nearest', inline: 'center'});
   }
   return {render};
 })();
 
 // ===== 起動 =====
 (async () => {
+  appReady = true;
   collectStatic(document.documentElement); applyStatic(); renderDemoBar();
   applyZoom(store.get('zoom', matchMedia('(max-width:720px)').matches ? 1.2 : 1));   // スマホは最初から大きめ
   loadFxState(); renderLangSel(); renderCcy(); renderWallet(); connect(); subscribe({type:'allMids'}); watchFills(); loadFx();
   try { await loadMeta(); } catch (e){ log(_('銘柄情報を取れませんでした: ') + e.message); }
   buildCoins(); buildOType(); setOType('market'); selectCoin(curKey()); loadAcct(); setPage(S.page);
-  setInterval(loadAcct, 3000);
+  if (needConsent()) openTerms(null, true);   // はじめて来た人（規約が変わったときも）には、まず規約を出す
+  setInterval(() => { loadAcct(); renderStart(); }, 3000);
   setInterval(() => loadMeta().then(schedule).catch(() => {}), 30000);
   setInterval(loadFx, 3600e3);
 })();
