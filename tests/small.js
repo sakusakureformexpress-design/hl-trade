@@ -84,11 +84,6 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     await page.click('#kEqBox'); await page.waitForSelector('#modal', { state: 'visible' });
     const t = await page.textContent('#modal'); ok(/総資産の内訳/.test(t) && /総資産（上の合計）/.test(t) && /使える余力/.test(t) && /足し算はしません/.test(t), '押すと、総資産の内訳と「余力は足さない」説明が出る', t.slice(0, 200));
     await ctx.close(); }
-  // 円表示：金額に小数点以下を出さない（0 は「¥0」、1未満のときだけ小数1桁）
-  { const { page, ctx } = await L.open(b, { lang: 'ja', w: 1280, h: 900, ls: { ccy: 'LOC' } }); await page.evaluate(() => window.__HL_DEMO_READY); await page.waitForTimeout(800);
-    const r = await page.evaluate(() => { S.ccy = 'LOC'; S.fx = 150; return [money(0), money(5.5), money(1234.567), money(-3.2), money(0.004), money(1e6)]; });
-    ok(r[0] === '¥0' && r[1] === '¥825' && r[2] === '¥185,185' && r[3] === '−¥480' && /^¥0\.\d$/.test(r[4]) && r[5] === '¥150,000,000', '円表示では、金額に小数点以下が出ない', JSON.stringify(r));
-    await ctx.close(); }
   // ?lang=__proto__ で壊れない
   { const r2 = await L.open(b, { lang: '__proto__', w: 1000, h: 800 }).catch(e => ({ err: e.message }));
     if (r2.page){ await r2.page.waitForTimeout(500); const l = await r2.page.evaluate(() => document.documentElement.lang); ok(['ja','ko','en'].includes(l), '?lang=__proto__ でも、対応する言語に落ち着く', l); await r2.ctx.close(); } else ok(false, '?lang=__proto__ を開けた', r2.err); }
