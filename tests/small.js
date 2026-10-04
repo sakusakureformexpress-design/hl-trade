@@ -76,6 +76,14 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     t = await page.textContent('#modal');
     ok(/余力/.test(t) && !/口座全体の空き証拠金/.test(t) && await page.isHidden('#mOk'), '口座全体も足りないときは、これまでどおり止める', t.slice(-200));
     await ctx.close(); }
+  // 総資産：先物の口座の価値＋現物の全通貨。押すと内訳が出る
+  { const { page, ctx } = await L.open(b, { lang: 'ja', w: 1280, h: 900 }); await page.evaluate(() => window.__HL_DEMO_READY); await page.waitForTimeout(800);
+    const r = await page.evaluate(() => { const so = spotOther().v, ta = totalAssets(), a = S.acct, usdc = S.spot.balances.find(b => b.token === 0), unified = (+usdc.hold > 0 && +a.withdrawable === 0);
+      const exp = (unified ? +usdc.total + a.assetPositions.reduce((s, p) => s + +p.position.unrealizedPnl, 0) : +a.marginSummary.accountValue + +usdc.total) + so; return { ta, exp, so, label: document.querySelector('#kEqBox small').textContent, shown: $('kEq').textContent, unified }; });
+    ok(Math.abs(r.ta - r.exp) < 1e-6 && /総資産/.test(r.label), '総資産＝先物の口座の価値（または USDC＋含み損益）＋現物の全通貨', JSON.stringify(r));
+    await page.click('#kEqBox'); await page.waitForSelector('#modal', { state: 'visible' });
+    const t = await page.textContent('#modal'); ok(/総資産の内訳/.test(t) && /総資産（上の合計）/.test(t) && /使える余力/.test(t) && /足し算はしません/.test(t), '押すと、総資産の内訳と「余力は足さない」説明が出る', t.slice(0, 200));
+    await ctx.close(); }
   // ?lang=__proto__ で壊れない
   { const r2 = await L.open(b, { lang: '__proto__', w: 1000, h: 800 }).catch(e => ({ err: e.message }));
     if (r2.page){ await r2.page.waitForTimeout(500); const l = await r2.page.evaluate(() => document.documentElement.lang); ok(['ja','ko','en'].includes(l), '?lang=__proto__ でも、対応する言語に落ち着く', l); await r2.ctx.close(); } else ok(false, '?lang=__proto__ を開けた', r2.err); }

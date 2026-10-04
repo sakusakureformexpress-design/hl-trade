@@ -410,7 +410,7 @@ td.ja{font-family:var(--sans)}
   <button class="mode" id="modeBtn" title="押すと、本番の注文の設定（鍵・暗証番号・練習／本番の切り替え）を開きます">練習モード（注文は送られません）</button>
   <span class="conn"><span class="dot" id="dot"></span><span id="connTxt">接続中…</span></span>
   <div class="kpis">
-    <div class="kpi"><small>口座残高</small><b id="kEq">—</b></div>
+    <div class="kpi" id="kEqBox" style="cursor:pointer" title="押すと、総資産の内訳が出ます"><small>総資産 ⓘ</small><b id="kEq">—</b></div>
     <div class="kpi"><small>含み損益</small><b id="kPnl">—</b></div>
     <div class="kpi" id="kAvBox" style="cursor:pointer" title="押すと、使える余力の内訳が出ます"><small>使える余力 ⓘ</small><b id="kAv">—</b></div>
     <button class="gear" id="prefsBtn" title="円・ドル、文字の大きさ、約定の音">⚙ 設定</button>
@@ -1015,6 +1015,17 @@ ko: {
   "確かめられませんでした：{0}": "확인하지 못했습니다: {0}",
   "口座を読めませんでした: ": "계좌를 읽지 못했습니다: ",
   "口座を読めていません": "계좌를 읽지 못했습니다",
+  "現物の USDC（先物の担保を含む）": "현물 USDC (선물 담보 포함)",
+  "含み損益": "미실현 손익",
+  "先物の口座の価値（証拠金＋含み損益）": "선물 계좌의 가치 (증거금 + 평가손익)",
+  "現物の USDC": "현물 USDC",
+  "現物のその他の通貨（評価額）": "현물의 기타 통화 (평가액)",
+  "総資産（上の合計）": "총자산 (위의 합계)",
+  "うち、使用中の証拠金": "이 중 사용 중인 증거금",
+  "うち、使える余力": "이 중 사용 가능 여력",
+  "総資産の内訳": "총자산 내역",
+  "総資産は、先物の口座（含み損益を含む）と、現物の全通貨を合わせた、あなたの資産ぜんぶです。「使える余力」は、その一部（新しい注文に使える分）なので、足し算はしません。使用中の証拠金と使える余力を合わせたものが、先物の口座の価値のおおよそです。": "총자산은 선물 계좌(평가손익 포함)와 현물의 모든 통화를 합친, 내 자산 전부입니다. \"사용 가능 여력\"은 그 일부(새 주문에 쓸 수 있는 몫)이므로 더하지 않습니다. 사용 중인 증거금과 사용 가능 여력을 합치면 선물 계좌 가치와 대략 같아집니다.",
+  "値段が取れない現物の通貨が {0} 種類あり、合計に入っていません。": "가격을 가져올 수 없는 현물 통화가 {0}종 있어 합계에 포함되지 않았습니다.",
   "使用中の証拠金（全ポジション）": "사용 중인 증거금 (전체 포지션)",
   "現物の USDC（合計 / 取引中）": "현물 USDC (합계 / 거래 중)",
   "上の「使える余力」（口座全体）": "위의 \"사용 가능 여력\" (계좌 전체)",
@@ -1024,7 +1035,6 @@ ko: {
   "右上の「口座」からアドレスを入れると、ここにポジションが出ます": "오른쪽 위의 '계좌'에서 주소를 입력하면 여기에 포지션이 표시됩니다",
   "いま持っている先物のポジションはありません": "현재 보유 중인 선물 포지션이 없습니다",
   "向き": "방향",
-  "含み損益": "미실현 손익",
   "清算": "청산가",
   "利確 / 損切り": "익절 / 손절",
   "半分": "절반",
@@ -1277,6 +1287,8 @@ ko: {
   "つないだウォレットのアドレスが、まだ Hyperliquid に入金されていません。そのウォレットから、先に Hyperliquid へ USDC を入金してください。別のウォレットで入金したときは、そのウォレットをつなぎ直してください。右上のアドレスが、入金したアドレスと同じか確かめてください。": "연결한 지갑 주소가 아직 Hyperliquid에 입금되어 있지 않습니다. 그 지갑에서 먼저 Hyperliquid로 USDC를 입금하세요. 다른 지갑으로 입금했다면 그 지갑을 다시 연결하세요. 오른쪽 위의 주소가 입금한 주소와 같은지 확인하세요.",
   "証拠金だけを減らして、資金に戻したい": "증거금만 줄여서 자금으로 되돌리고 싶어요",
   "ポジションの「証拠金」ボタンから行います。分離（この建玉だけで担保）のポジションなら、証拠金を足す・減らすができます。クロス（口座全体で担保）のポジションには、ポジションごとの証拠金がなく、口座全体の残高が担保なので、ボタンを押すと仕組みと使える余力が出ます。出金は、Hyperliquid の公式サイトで行います。": "포지션의 \"증거금\" 버튼에서 합니다. 분리(이 포지션만 담보) 포지션이라면 증거금을 늘리거나 줄일 수 있습니다. 크로스(계좌 전체 담보) 포지션에는 포지션별 증거금이 없고 계좌 전체 잔고가 담보이므로, 버튼을 누르면 구조와 사용 가능 여력이 표시됩니다. 출금은 Hyperliquid 공식 사이트에서 합니다.",
+  "「総資産」「口座残高」「使える余力」のちがい": "\"총자산\" \"계좌 잔고\" \"사용 가능 여력\"의 차이",
+  "総資産は、先物の口座（含み損益を含む）と、現物の全通貨を合わせた、資産ぜんぶです。口座残高は、そのうち先物の口座の価値で、使用中の証拠金と、使える余力が入っています。使える余力は、新しい注文に使える分だけです。つまり、総資産に使える余力を足してはいけません。上の「総資産」を押すと内訳が出ます。": "총자산은 선물 계좌(평가손익 포함)와 현물의 모든 통화를 합친 자산 전부입니다. 계좌 잔고는 그 중 선물 계좌의 가치이며, 사용 중인 증거금과 사용 가능 여력이 들어 있습니다. 사용 가능 여력은 새 주문에 쓸 수 있는 몫뿐입니다. 즉, 총자산에 사용 가능 여력을 더하면 안 됩니다. 위의 \"총자산\"을 누르면 내역이 나옵니다.",
   "現物が買えない": "현물을 살 수 없다",
   "現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。": "현물은 현물 계좌의 USDC로 매수합니다. 선물 계좌에 있는 돈은 거래소 화면에서 현물 계좌로 옮기세요.",
   "「鍵が口座に登録されていません」と出る": "\"키가 계좌에 등록되어 있지 않습니다\"라고 나온다",
@@ -1287,6 +1299,7 @@ ko: {
   "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari만으로는 지갑을 찾을 수 없으므로, 지갑 앱 안의 브라우저로 열거나 \"지갑 연결\"에서 WalletConnect를 선택해 스마트폰 지갑 앱에 연결하세요.",
   "銘柄情報を取れませんでした: ": "종목 정보를 가져오지 못했습니다: ",
   "HL トレード画面": "HL 트레이딩",
+  "総資産 ⓘ": "총자산 ⓘ",
   "使える余力 ⓘ": "사용 가능 여력 ⓘ",
   "⚙ 設定": "⚙ 설정",
   "1ドル = —円": "1달러 = —원",
@@ -1342,6 +1355,7 @@ ko: {
   "見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。": "연습 모드이므로 이 주문은 전송되지 않았습니다. 실전 주문을 낼 수 있게 되는 것은 '실전으로 사용'하기로 결정한 다음입니다.",
   "変更する": "변경하기",
   "押すと、本番の注文の設定（鍵・暗証番号・練習／本番の切り替え）を開きます": "누르면 실전 주문 설정 (키·PIN·연습/실전 전환)이 열립니다",
+  "押すと、総資産の内訳が出ます": "누르면 총자산 내역이 표시됩니다",
   "押すと、使える余力の内訳が出ます": "누르면 사용 가능 여력의 내역이 표시됩니다",
   "円・ドル、文字の大きさ、約定の音": "통화, 글자 크기, 체결음",
   "押すと為替レートを自分で入れられます": "누르면 환율을 직접 입력할 수 있습니다",
@@ -1813,6 +1827,17 @@ en: {
   "確かめられませんでした：{0}": "Couldn't verify: {0}",
   "口座を読めませんでした: ": "Couldn't load the account: ",
   "口座を読めていません": "The account could not be read",
+  "現物の USDC（先物の担保を含む）": "Spot USDC (including collateral for futures)",
+  "含み損益": "Unrealized P&L",
+  "先物の口座の価値（証拠金＋含み損益）": "Futures account value (margin + unrealized P&L)",
+  "現物の USDC": "Spot USDC",
+  "現物のその他の通貨（評価額）": "Other spot assets (valued)",
+  "総資産（上の合計）": "Total assets (sum of the above)",
+  "うち、使用中の証拠金": "of which margin in use",
+  "うち、使える余力": "of which available to trade",
+  "総資産の内訳": "Breakdown of total assets",
+  "総資産は、先物の口座（含み損益を含む）と、現物の全通貨を合わせた、あなたの資産ぜんぶです。「使える余力」は、その一部（新しい注文に使える分）なので、足し算はしません。使用中の証拠金と使える余力を合わせたものが、先物の口座の価値のおおよそです。": "Total assets is everything you own: the futures account (including unrealized P&L) plus all spot assets. \"Available\" is only a part of it (what can be used for new orders), so do not add it on. Margin in use plus available is roughly the value of the futures account.",
+  "値段が取れない現物の通貨が {0} 種類あり、合計に入っていません。": "There are {0} spot assets without a price; they are not included in the total.",
   "使用中の証拠金（全ポジション）": "Margin in use (all positions)",
   "現物の USDC（合計 / 取引中）": "Spot USDC (total / on hold)",
   "上の「使える余力」（口座全体）": "\"Available\" shown above (whole account)",
@@ -1822,7 +1847,6 @@ en: {
   "右上の「口座」からアドレスを入れると、ここにポジションが出ます": "Enter your address under \"Account\" at the top right and your positions will show here",
   "いま持っている先物のポジションはありません": "No open perp positions",
   "向き": "Side",
-  "含み損益": "Unrealized P&L",
   "清算": "Liq.",
   "利確 / 損切り": "TP / SL",
   "半分": "Half",
@@ -2075,6 +2099,8 @@ en: {
   "つないだウォレットのアドレスが、まだ Hyperliquid に入金されていません。そのウォレットから、先に Hyperliquid へ USDC を入金してください。別のウォレットで入金したときは、そのウォレットをつなぎ直してください。右上のアドレスが、入金したアドレスと同じか確かめてください。": "The address of the wallet you connected has not deposited into Hyperliquid yet. Deposit USDC into Hyperliquid from that wallet first. If you deposited with a different wallet, reconnect that one. Check that the address at the top right matches the one you deposited with.",
   "証拠金だけを減らして、資金に戻したい": "I want to reduce only the margin and return it to free funds",
   "ポジションの「証拠金」ボタンから行います。分離（この建玉だけで担保）のポジションなら、証拠金を足す・減らすができます。クロス（口座全体で担保）のポジションには、ポジションごとの証拠金がなく、口座全体の残高が担保なので、ボタンを押すと仕組みと使える余力が出ます。出金は、Hyperliquid の公式サイトで行います。": "Use the \"Margin\" button on the position. For an isolated position (collateral for that position only) you can add or reduce margin. A cross position (the whole account is the collateral) has no per-position margin, so the button shows how it works and your available funds. Withdrawals are done on the official Hyperliquid site.",
+  "「総資産」「口座残高」「使える余力」のちがい": "Difference between \"Total assets\", \"Account balance\" and \"Available\"",
+  "総資産は、先物の口座（含み損益を含む）と、現物の全通貨を合わせた、資産ぜんぶです。口座残高は、そのうち先物の口座の価値で、使用中の証拠金と、使える余力が入っています。使える余力は、新しい注文に使える分だけです。つまり、総資産に使える余力を足してはいけません。上の「総資産」を押すと内訳が出ます。": "Total assets is everything you own: the futures account (including unrealized P&L) plus all spot assets. Account balance is the futures account part, which contains margin in use and available funds. Available is only what can be used for new orders. So never add Available to Total assets. Tap \"Total assets\" above to see the breakdown.",
   "現物が買えない": "I can't buy spot",
   "現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。": "Spot is bought with the USDC in your spot account. Move money from your perpetuals account to your spot account on the exchange.",
   "「鍵が口座に登録されていません」と出る": "\"The key is not registered to the account\" appears",
@@ -2085,6 +2111,7 @@ en: {
   "Safari だけではウォレットが見つからないので、ウォレットアプリの中のブラウザで開くか、「ウォレット接続」で WalletConnect を選んでスマホのウォレットアプリにつないでください。": "Safari alone cannot find a wallet. Open this page in the browser inside your wallet app, or choose WalletConnect in \"Connect wallet\" to link your phone wallet app.",
   "銘柄情報を取れませんでした: ": "Couldn't load market info: ",
   "HL トレード画面": "HL Trading",
+  "総資産 ⓘ": "Total assets ⓘ",
   "使える余力 ⓘ": "Available ⓘ",
   "⚙ 設定": "⚙ Settings",
   "1ドル = —円": "1 USD = —",
@@ -2140,6 +2167,7 @@ en: {
   "見本モードなので、この注文は送られていません。本番の注文を出せるようにするのは、あなたが「本番で使う」と決めてからです。": "This is practice mode, so this order was not sent. Live orders become possible only after you decide to go live.",
   "変更する": "Confirm",
   "押すと、本番の注文の設定（鍵・暗証番号・練習／本番の切り替え）を開きます": "Opens the live trading setup (key, PIN, practice / live switch)",
+  "押すと、総資産の内訳が出ます": "Tap to see how total assets are made up",
   "押すと、使える余力の内訳が出ます": "Tap to see how the available funds are made up",
   "円・ドル、文字の大きさ、約定の音": "Currency, text size, fill sound",
   "押すと為替レートを自分で入れられます": "Click to enter the exchange rate yourself",
@@ -4362,6 +4390,31 @@ async function loadAcct(){
     loadAad(isPerp() ? curKey() : firstPerp());
   } catch (e){ if (Date.now() - (S.acctErrAt || 0) > 60000){ S.acctErrAt = Date.now(); log(_('口座を読めませんでした: ') + e.message); } }
 }
+// 総資産＝先物の口座の価値（証拠金＋含み損益）＋現物の全通貨の評価額。現物のUSDC以外は、板の値段で評価（値段が取れない通貨は数えない）
+function spotOther(){
+  let v = 0, skipped = 0;
+  for (const b of S.spot?.balances || []){
+    if (b.token === 0 || !(+b.total > 0)) continue;
+    const key = SPOT_KEYS.find(k => M[k].base === b.token), px = key ? priceOf(key) : 0;
+    if (px > 0) v += +b.total * px; else skipped++;
+  }
+  return {v, skipped};
+}
+function totalAssets(){
+  const a = S.acct; if (!a) return null;
+  const usdc = S.spot?.balances?.find(b => b.token === 0), tot = usdc ? +usdc.total : 0, hold = usdc ? +usdc.hold : 0;
+  const upnl = a.assetPositions.reduce((s, p) => s + +p.position.unrealizedPnl, 0), unified = hold > 0 && +a.withdrawable === 0;
+  return (unified ? tot + upnl : +a.marginSummary.accountValue + tot) + spotOther().v;
+}
+function totalBreakdown(){
+  const a = S.acct; if (!a){ toast(_('口座を読めていません')); return; }
+  const usdc = S.spot?.balances?.find(b => b.token === 0), tot = usdc ? +usdc.total : 0, hold = usdc ? +usdc.hold : 0;
+  const upnl = a.assetPositions.reduce((s, p) => s + +p.position.unrealizedPnl, 0), unified = hold > 0 && +a.withdrawable === 0, so = spotOther();
+  const rows = unified ? [[_('現物の USDC（先物の担保を含む）'), money(tot)], [_('含み損益'), moneyS(upnl)]] : [[_('先物の口座の価値（証拠金＋含み損益）'), money(+a.marginSummary.accountValue)], [_('現物の USDC'), money(tot)]];
+  rows.push([_('現物のその他の通貨（評価額）'), money(so.v)], [_('総資産（上の合計）'), money(totalAssets())], [_('うち、使用中の証拠金'), money(+a.marginSummary.totalMarginUsed)], [_('うち、使える余力'), money(acctFree())]);
+  preview(_('総資産の内訳'), rows, `<p class="note" style="margin-top:8px">${_('総資産は、先物の口座（含み損益を含む）と、現物の全通貨を合わせた、あなたの資産ぜんぶです。「使える余力」は、その一部（新しい注文に使える分）なので、足し算はしません。使用中の証拠金と使える余力を合わせたものが、先物の口座の価値のおおよそです。')}</p>${so.skipped ? `<p class="note">${_('値段が取れない現物の通貨が {0} 種類あり、合計に入っていません。', so.skipped)}</p>` : ''}`, {info:true});
+}
+$('kEqBox').onclick = totalBreakdown;
 // 「使える余力」を押したときの内訳（取引所の数字と、この画面の計算を並べて見せる）
 function availBreakdown(){
   const a = S.acct; if (!a){ toast(_('口座を読めていません')); return; }
@@ -4374,7 +4427,7 @@ $('kAvBox').onclick = availBreakdown;
 function renderKpis(){
   const a = S.acct; if (!a){ ['kEq','kPnl','kAv'].forEach(i => $(i).textContent = '—'); return; }
   const pnl = a.assetPositions.reduce((s,p) => s + +p.position.unrealizedPnl, 0);
-  $('kEq').textContent = money(equity());
+  $('kEq').textContent = money(totalAssets());
   $('kPnl').textContent = moneyS(pnl); $('kPnl').className = cls(pnl);
   // 新しく建てるのに使える証拠金：いまの銘柄でポジションを増やす向き（ポジションがなければどちらでも同じ）
   const k = isPerp() ? curKey() : firstPerp(), pz = posOf(k);
@@ -4777,6 +4830,7 @@ const GUIDE = (() => {
         <h3>${_('「余力が足りません」と出る')}</h3><p>${_('使える余力より、必要な証拠金が大きいときに出ます。数量を減らすか、レバレッジを上げてください。反対向きの注文は、持っているポジションの分は証拠金が要りません。')}</p>
         <h3>${_('「入金されていません」と出る')}</h3><p>${_('つないだウォレットのアドレスが、まだ Hyperliquid に入金されていません。そのウォレットから、先に Hyperliquid へ USDC を入金してください。別のウォレットで入金したときは、そのウォレットをつなぎ直してください。右上のアドレスが、入金したアドレスと同じか確かめてください。')}</p>
         <h3>${_('証拠金だけを減らして、資金に戻したい')}</h3><p>${_('ポジションの「証拠金」ボタンから行います。分離（この建玉だけで担保）のポジションなら、証拠金を足す・減らすができます。クロス（口座全体で担保）のポジションには、ポジションごとの証拠金がなく、口座全体の残高が担保なので、ボタンを押すと仕組みと使える余力が出ます。出金は、Hyperliquid の公式サイトで行います。')}</p>
+        <h3>${_('「総資産」「口座残高」「使える余力」のちがい')}</h3><p>${_('総資産は、先物の口座（含み損益を含む）と、現物の全通貨を合わせた、資産ぜんぶです。口座残高は、そのうち先物の口座の価値で、使用中の証拠金と、使える余力が入っています。使える余力は、新しい注文に使える分だけです。つまり、総資産に使える余力を足してはいけません。上の「総資産」を押すと内訳が出ます。')}</p>
         <h3>${_('現物が買えない')}</h3><p>${_('現物は現物口座の USDC で買います。先物の口座にあるお金は、取引所の画面で現物の口座に移してください。')}</p>
         <h3>${_('「鍵が口座に登録されていません」と出る')}</h3><p>${_('鍵の有効期限が切れたか、別の口座の鍵かもしれません。本番の設定から、鍵を作り直してください。')}</p>
         <h3>${_('この画面が使えなくなったとき')}</h3><p>${_('ページが開けない、注文が通らないときは、つないでいたウォレットで Hyperliquid の公式サイト（app.hyperliquid.xyz）につなげば、同じ口座で取引・決済ができます。Phantom など Hyperliquid の取引に対応したウォレットアプリでも、同じウォレットなら取引できます。資金とポジションは取引所のあなたの口座にあり、この画面が使えなくても消えません。')}</p>
