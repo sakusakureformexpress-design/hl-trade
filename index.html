@@ -1189,6 +1189,7 @@ ko: {
   "現物を買うときは、入金したお金を、Hyperliquid の画面で現物の口座に移します。": "현물을 살 때는 입금한 돈을 Hyperliquid 화면에서 현물 계좌로 옮깁니다.",
   "別のウォレットで入金したときは、そのウォレットをつないでください。アドレスが違うと、入金は見えません。": "다른 지갑으로 입금했다면 그 지갑을 연결하세요. 주소가 다르면 입금이 보이지 않습니다.",
   "Phantom など、ウォレットアプリの中から Hyperliquid に入金できるものもあります。": "Phantom 등 지갑 앱 안에서 Hyperliquid로 입금할 수 있는 것도 있습니다.",
+  "公式サイトの「Deposit」を押すと出る画面（公式サイトの画面は英語です）": "공식 사이트에서 \"Deposit\"을 누르면 나오는 화면 (공식 사이트 화면은 영어입니다)",
   "入金は、この画面ではできません。お金は、あなたのウォレットから Hyperliquid へ直接入ります。": "입금은 이 화면에서는 할 수 없습니다. 돈은 내 지갑에서 Hyperliquid로 직접 들어갑니다.",
   "注文用の鍵（API ウォレット）": "주문용 키 (API 지갑)",
   "取引所に注文を出すには署名が要ります。毎回ウォレットで署名する代わりに、<b>注文だけができる「鍵」</b>をこの端末の中に作っておきます。この鍵では、出金や送金はできません。": "거래소에 주문을 내려면 서명이 필요합니다. 매번 지갑으로 서명하는 대신 <b>주문만 할 수 있는 \"키\"</b>를 이 기기 안에 만들어 둡니다. 이 키로는 출금이나 송금을 할 수 없습니다.",
@@ -1208,6 +1209,7 @@ ko: {
   "すでに作った鍵があるとき、または自分で作りたいときの方法です。": "이미 만든 키가 있거나 직접 만들고 싶을 때의 방법입니다.",
   "先に、そのウォレットのアドレスが Hyperliquid に入金ずみである必要があります（「入金のしかた」のタブを見てください）。": "먼저 그 지갑 주소가 Hyperliquid에 입금되어 있어야 합니다(\"입금 방법\" 탭을 보세요).",
   "API の画面（鍵を作るところ）": "API 화면 (키를 만드는 곳)",
+  "公式サイトの API の画面（鍵の名前・アドレスなどは黒塗りしています）": "공식 사이트의 API 화면 (키 이름·주소 등은 검게 가렸습니다)",
   "<code>app.hyperliquid.xyz</code> を開き、同じウォレットをつなぎます。": "<code>app.hyperliquid.xyz</code>를 열고 같은 지갑을 연결합니다.",
   "メニューの「More」から「API」を開きます。": "메뉴의 \"More\"에서 \"API\"를 엽니다.",
   "鍵の名前を入れて「Generate」を押します。": "키 이름을 입력하고 \"Generate\"를 누릅니다.",
@@ -1972,6 +1974,7 @@ en: {
   "現物を買うときは、入金したお金を、Hyperliquid の画面で現物の口座に移します。": "To buy spot, move the deposited money to your spot account on the Hyperliquid site.",
   "別のウォレットで入金したときは、そのウォレットをつないでください。アドレスが違うと、入金は見えません。": "If you deposited with a different wallet, connect that one. If the address differs, the deposit will not show.",
   "Phantom など、ウォレットアプリの中から Hyperliquid に入金できるものもあります。": "Some wallet apps, such as Phantom, let you deposit into Hyperliquid from inside the app.",
+  "公式サイトの「Deposit」を押すと出る画面（公式サイトの画面は英語です）": "The screen that appears when you press \"Deposit\" on the official site",
   "入金は、この画面ではできません。お金は、あなたのウォレットから Hyperliquid へ直接入ります。": "You cannot deposit on this screen. The money goes directly from your wallet into Hyperliquid.",
   "注文用の鍵（API ウォレット）": "Order key (API wallet)",
   "取引所に注文を出すには署名が要ります。毎回ウォレットで署名する代わりに、<b>注文だけができる「鍵」</b>をこの端末の中に作っておきます。この鍵では、出金や送金はできません。": "Placing orders requires a signature. Instead of signing in your wallet every time, you create an <b>\"key\" that can only place orders</b> and keep it on this device. This key cannot withdraw or transfer funds.",
@@ -1991,6 +1994,7 @@ en: {
   "すでに作った鍵があるとき、または自分で作りたいときの方法です。": "Use this if you already have a key or want to create one yourself.",
   "先に、そのウォレットのアドレスが Hyperliquid に入金ずみである必要があります（「入金のしかた」のタブを見てください）。": "That wallet address must already have deposited into Hyperliquid (see the \"How to deposit\" tab).",
   "API の画面（鍵を作るところ）": "API page (where you create the key)",
+  "公式サイトの API の画面（鍵の名前・アドレスなどは黒塗りしています）": "The API page on the official site (key names, addresses, etc. are blacked out)",
   "<code>app.hyperliquid.xyz</code> を開き、同じウォレットをつなぎます。": "Open <code>app.hyperliquid.xyz</code> and connect the same wallet.",
   "メニューの「More」から「API」を開きます。": "Open \"API\" from the \"More\" menu.",
   "鍵の名前を入れて「Generate」を押します。": "Enter a name for the key and press \"Generate\".",
@@ -4680,6 +4684,7 @@ const GUIDE = (() => {
         <p>${_('Hyperliquid の口座は、あなたのウォレットのアドレスそのものです。ただし、<b>そのアドレスから一度入金するまで、口座は使えません</b>。入金がないと、注文用の鍵も登録できません（「入金されていません」と出ます）。')}</p>
         ${ol([_('<code>app.hyperliquid.xyz</code> を開き、この画面と同じウォレットをつなぎます。'), _('「Deposit（入金）」を押し、USDC を入金します。Arbitrum というネットワークの USDC を使います。'), _('入金には、手数料用に少額の ETH（Arbitrum）が必要になることがあります。'), _('入金が反映されると、この画面の「口座残高」に出ます。0 でないことを確かめてから、次に進んでください。')])}
         ${ul([_('最低の入金額は、公式の案内で確認してください（5 USDC 以上とされています）。それより少ないと、戻ってこないことがあります。'), _('現物を買うときは、入金したお金を、Hyperliquid の画面で現物の口座に移します。'), _('別のウォレットで入金したときは、そのウォレットをつないでください。アドレスが違うと、入金は見えません。'), _('Phantom など、ウォレットアプリの中から Hyperliquid に入金できるものもあります。')])}
+        ${fig('deposit', _('公式サイトの「Deposit」を押すと出る画面（公式サイトの画面は英語です）'))}
         ${urls([['Hyperliquid', 'https://app.hyperliquid.xyz']])}
         <div class="gwarn">${_('入金は、この画面ではできません。お金は、あなたのウォレットから Hyperliquid へ直接入ります。')}</div>`],
       ['g3', _('注文用の鍵（API ウォレット）'), `
@@ -4695,6 +4700,7 @@ const GUIDE = (() => {
         <p>${_('すでに作った鍵があるとき、または自分で作りたいときの方法です。')}</p>
         <div class="gwarn">${_('先に、そのウォレットのアドレスが Hyperliquid に入金ずみである必要があります（「入金のしかた」のタブを見てください）。')}</div>
         ${urls([['Hyperliquid', 'https://app.hyperliquid.xyz'], [_('API の画面（鍵を作るところ）'), 'https://app.hyperliquid.xyz/API']])}
+        ${fig('api', _('公式サイトの API の画面（鍵の名前・アドレスなどは黒塗りしています）'))}
         ${ol([_('<code>app.hyperliquid.xyz</code> を開き、同じウォレットをつなぎます。'), _('メニューの「More」から「API」を開きます。'), _('鍵の名前を入れて「Generate」を押します。'), _('「Authorize API Wallet」を押し、ウォレットで署名します。'), _('表示される秘密鍵（0x で始まる長い文字）を、その場でコピーします。この鍵は、あとからは見られません。'), _('この画面の本番の設定にある「すでに作った鍵を使う」を開き、貼り付けて暗証番号をかけて保存します。')])}
         <div class="gmock"><div class="t">${_('イメージ図（実際の画面とは少し違うことがあります）')}</div><div>Hyperliquid › More › API</div>
           <div class="r"><b>③</b><span>Name</span><span class="in">my-key</span><span class="bt">Generate</span></div>

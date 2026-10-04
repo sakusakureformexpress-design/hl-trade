@@ -19,7 +19,7 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
       heights.push(info.h); seen.push(...info.imgs);
       if (info.id !== IDS[i] || info.sel !== info.id) ok(false, `タブ ${i + 1} の中身が切り替わる`, JSON.stringify(info));
     }
-    ok(seen.length === 7 && seen.every(x => x[1]), '画像が7枚ぜんぶ読み込める（タブをめぐって）', JSON.stringify(seen.filter(x => !x[1])));
+    ok(seen.length === 9 && seen.every(x => x[1]), '画像が9枚ぜんぶ読み込める（タブをめぐって）', JSON.stringify(seen.filter(x => !x[1])));
     ok(seen.every(x => x[0].includes(`guide/${lang}/`)), '画像が、いまの言語のものになっている');
     ok(Math.max(...heights) < (w < 800 ? 4200 : 3200), '1つの項目は、そんなに長くない', String(Math.max(...heights)));
     await page.locator('#vHelp .gtabs button').nth(0).click(); await page.waitForTimeout(200);

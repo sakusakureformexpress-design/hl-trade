@@ -16,6 +16,11 @@ const C = {
   bye: `<h1>おつかれさまでした</h1><p class="sub">まずは、ごく少額から試してください</p><p class="sub" style="margin-top:30px;font-size:24px;line-height:1.7">この画面が使えないときも、同じウォレットで<br>Hyperliquid の公式サイトにつなげば、取引も決済もできます。</p>`,
 };
 const TAG = 'イメージ図（実際の画面とは少し違うことがあります）';
+const TAG_REAL = 'Hyperliquid 公式サイトの実際の画面（個人情報は黒塗りしています）';
+// 実際の画面の写真。rb は強調の枠（元の画像の座標 x1,y1,x2,y2 を割合にして重ねる）
+const shot = (src, w, h, wpx, rbs) => `<div class="shot" style="width:${wpx}px"><img src="real/${src}" style="width:${wpx}px">${rbs.map(([id, x1, y1, x2, y2]) => `<div class="rb" data-id="${id}" style="left:${x1 / w * 100}%;top:${y1 / h * 100}%;width:${(x2 - x1) / w * 100}%;height:${(y2 - y1) / h * 100}%"></div>`).join('')}</div>`;
+C.depositShot = shot('deposit.png', 1054, 755, 960, [['d1', 255, 358, 752, 508], ['d2', 325, 322, 684, 348], ['d3', 255, 525, 752, 572]]);
+C.apiShot = shot('api.png', 1919, 903, 1500, [['a1', 312, 198, 882, 240], ['a2', 1370, 202, 1448, 236], ['a3', 1452, 198, 1608, 240], ['a4', 306, 266, 1616, 374]]);
 const B = [];
 const beat = (say, act, cap) => B.push({ say, act, cap: cap || say });
 
@@ -27,11 +32,15 @@ beat('はじめに、用意するものは三つです。ひとつ目は、ウ�
   'はじめに、用意するものは三つです。ひとつ目はウォレット。ふたつ目は、Hyperliquid の口座に入れておく USDC。三つ目が、この画面です。');
 beat('この画面は、取引画面を提供するだけのツールです。お金を預かることはなく、資金は、いつもあなたの口座にあります。', async S => {});
 // --- 2. 入金 ---
-beat('まず、入金です。ハイパーリキッドの公式サイトを開き、同じウォレットをつないで、ディポジットのボタンから、ユーエスディーシーを入金します。', async S => { await S.card(C.deposit, TAG); },
-  'まず入金です。Hyperliquid の公式サイトを開き、同じウォレットをつないで、Deposit のボタンから USDC を入金します。');
-beat('アービトラムというネットワークのユーエスディーシーを使います。手数料用に、少しだけイーサが必要なこともあります。', async S => {},
-  'Arbitrum というネットワークの USDC を使います。手数料用に、少しだけ ETH が必要なこともあります。');
-beat('入金が済むまでは、口座も、注文用の鍵も使えません。必ず、先に入金を済ませてください。', async S => {});
+beat('まず、入金です。ハイパーリキッドの公式サイトを開き、同じウォレットをつないで、ディポジットのボタンを押します。', async S => { await S.card(C.depositShot, TAG_REAL); },
+  'まず入金です。Hyperliquid の公式サイトを開き、同じウォレットをつないで、Deposit のボタンを押します。');
+beat('こういう画面が出ます。アセットは、ユーエスディーシー。ディポジット チェーンは、アービトラムを選びます。その下の欄に、入金する金額を入れます。', async S => { await S.stage('rb', 'd1'); },
+  'こういう画面が出ます。Asset は USDC、Deposit Chain は Arbitrum を選びます。その下の欄に、入金する金額を入れます。');
+beat('入金すると、ゼロ点二ユーエスディーシーの手数料が、入金した額から引かれます。', async S => { await S.stage('rb', 'd2'); },
+  '入金すると、0.2 USDC の手数料が、入金した額から引かれます。');
+beat('ウォレットが別のネットワークにつながっているときは、このボタンで、アービトラムに切り替えてから、入金します。', async S => { await S.stage('rb', 'd3'); },
+  'ウォレットが別のネットワークにつながっているときは、このボタンで Arbitrum に切り替えてから、入金します。');
+beat('入金が済むまでは、口座も、注文用の鍵も使えません。必ず、先に入金を済ませてください。', async S => { await S.stage('rb', ''); });
 // --- 3. 画面を開く・規約 ---
 beat('入金ができたら、この画面を開きます。最初に、利用規約の確認が出ます。', async S => { await S.card(null); await S.stage('url', 'hl-trade.pbot-relay.workers.dev'); await S.wait(500); await S.hl('#modal', null); },
   '入金ができたら、この画面を開きます。最初に、利用規約の確認が出ます。');
@@ -81,13 +90,17 @@ beat('約定すると、完了の画面が出ます。閉じると、下のポ�
 beat('決済するときは、ポジションの、決済ボタンを押します。半分だけ決済することもできます。', async S => { await S.hlOff(); await S.click('#aTbl [data-act=close]'); await S.frame.waitForSelector('#mOk', { state: 'visible' }); await S.wait(900); });
 beat('確認して、決済すると、ポジションが閉じます。', async S => { await S.click('#mOk'); await S.wait(1500); await S.frame.evaluate(() => { try { closeModal(); } catch (e) {} }); });
 // --- 9. API を自分で作る ---
-beat('ここからは、ハイパーリキッドの、エーピーアイの鍵を、自分で作りたい人向けの説明です。自動で作る方法で困らなければ、飛ばして大丈夫です。', async S => { await S.card(C.apiMock, TAG); },
+beat('ここからは、ハイパーリキッドの、エーピーアイの鍵を、自分で作りたい人向けの説明です。自動で作る方法で困らなければ、飛ばして大丈夫です。', async S => { await S.card(C.apiShot, TAG_REAL); },
   'ここからは、Hyperliquid の API の鍵を自分で作りたい人向けの説明です。自動で作る方法で困らなければ、飛ばして大丈夫です。');
-beat('公式サイトを開いて、同じウォレットをつなぎ、メニューのモアから、エーピーアイを開きます。名前を入れて、ジェネレートを押します。', async S => {},
-  '公式サイトを開いて同じウォレットをつなぎ、メニューの More から API を開きます。名前を入れて、Generate を押します。');
-beat('次に、オーソライズ エーピーアイ ウォレットを押して、ウォレットで署名します。表示される秘密鍵は、その場でコピーしてください。あとからは見られません。', async S => {},
-  '次に、Authorize API Wallet を押して、ウォレットで署名します。表示される秘密鍵は、その場でコピーしてください。あとからは見られません。');
-beat('秘密鍵は、人に見せないでください。メールやチャットにも貼らないでください。', async S => {});
+beat('公式サイトのメニューの、モアから、エーピーアイのページを開きます。上の欄に、鍵の名前を入れます。', async S => { await S.stage('rb', 'a1'); },
+  '公式サイトのメニューの More から、API のページを開きます。上の欄に、鍵の名前を入れます。');
+beat('右の、ジェネレートを押すと、新しい鍵のアドレスが作られます。', async S => { await S.stage('rb', 'a2'); },
+  '右の Generate を押すと、新しい鍵のアドレスが作られます。');
+beat('続いて、オーソライズ エーピーアイ ウォレットを押して、ウォレットで署名します。これで、鍵が口座に登録されます。', async S => { await S.stage('rb', 'a3'); },
+  '続いて、Authorize API Wallet を押して、ウォレットで署名します。これで、鍵が口座に登録されます。');
+beat('登録した鍵は、下の表に並びます。有効期限も出ていて、リムーブで、いつでも取り消せます。', async S => { await S.stage('rb', 'a4'); },
+  '登録した鍵は、下の表に並びます。有効期限も出ていて、Remove で、いつでも取り消せます。');
+beat('生成された秘密鍵は、その場でコピーしてください。あとからは見られません。人に見せたり、メールやチャットに貼ったりしないでください。', async S => { await S.stage('rb', ''); });
 beat('作った鍵は、この画面の、本番の設定にある、すでに作った鍵を使う、に貼り付けて、暗証番号をかけて保存します。', async S => { await S.card(null); await S.frame.evaluate(() => { store.set('guideTab', 'gk'); setPage('help'); }); await S.wait(900); await S.hl('#vHelp .gtabs', null, 'below'); },
   '作った鍵は、この画面の本番の設定にある「すでに作った鍵を使う」に貼り付けて、暗証番号をかけて保存します。');
 beat('この手順は、画面の、使い方のページにも、写真つきで載っています。いつでも見返せます。', async S => { await S.hlOff(); await S.wait(300); await S.frame.evaluate(() => scrollTo(0, 420)); },

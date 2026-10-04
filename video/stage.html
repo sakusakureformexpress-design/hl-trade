@@ -40,7 +40,10 @@ iframe{border:0;width:1760px;height:768px;display:block;background:#0b0e14}
 #card .tag{position:absolute;right:30px;top:24px;background:#ffd43b;color:#111;font-weight:800;font-size:20px;padding:6px 14px;border-radius:8px}
 #card ol{text-align:left;font-size:30px;line-height:1.9;margin:0;padding-left:44px}
 #card code{background:#0a1630;border:1px solid #2d4a82;border-radius:8px;padding:2px 12px;color:#ffd43b;font-size:28px}
-#card img{max-width:1300px;max-height:640px;border-radius:12px}
+#card img{display:block;border-radius:10px;box-shadow:0 8px 40px rgba(0,0,0,.6)}
+.shot{position:relative;display:inline-block}
+.shot .rb{position:absolute;border:5px solid #ffd43b;border-radius:10px;box-shadow:0 0 0 9999px rgba(0,0,0,.55);opacity:0;transition:opacity .3s}
+.shot .rb.on{opacity:1}
 </style></head><body>
 <div id="win">
   <div id="tabs"><div class="tab"><i></i><span id="ttl">HL トレード画面</span></div><div class="wc"><b>—</b><b>▢</b><b>✕</b></div></div>
@@ -62,6 +65,7 @@ window.stage={
     const p=8;h.style.left=r.x-p+'px';h.style.top=r.y-p+'px';h.style.width=r.w+2*p+'px';h.style.height=r.h+2*p+'px';h.classList.add('on');
     if(label){t.textContent=label;t.style.left=Math.max(10,r.x-p)+'px';t.style.top=(pos==='below'?r.y+r.h+p+8:r.y-p-40)+'px';t.classList.add('on')}else t.classList.remove('on')},
   note(txt,x,y){const n=$('note');if(!txt){n.classList.remove('on');return}n.textContent=txt;n.style.left=x+'px';n.style.top=y+'px';n.classList.add('on')},
+  rb(id){document.querySelectorAll('#card .rb').forEach(e=>e.classList.toggle('on',e.dataset.id===id))},
   moveTo(x,y,ms){return new Promise(res=>{const c=$('cur'),x0=parseFloat(c.style.left||800),y0=parseFloat(c.style.top||500),t0=performance.now();
     const f=n=>{let k=Math.min(1,(n-t0)/ms);k=k<.5?2*k*k:1-Math.pow(-2*k+2,2)/2;c.style.left=x0+(x-x0)*k+'px';c.style.top=y0+(y-y0)*k+'px';k<1?requestAnimationFrame(f):res()};requestAnimationFrame(f)})},
   ripple(x,y){const r=document.createElement('div');r.className='rip';r.style.left=x+'px';r.style.top=y+'px';document.body.appendChild(r);setTimeout(()=>r.remove(),700)},
