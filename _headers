@@ -1,0 +1,12 @@
+# Cloudflare Pages 用の設定（GitHub Pages では使われません）
+/*
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  X-Frame-Options: DENY
+  Permissions-Policy: camera=(), microphone=(), geolocation=()
+
+/index.html
+  Cache-Control: no-cache
+
+/guide/*
+  Cache-Control: public, max-age=86400

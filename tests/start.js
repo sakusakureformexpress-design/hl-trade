@@ -7,17 +7,28 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     console.log(`=== ${lang} ${w}x${h} ===`);
     // まだ何もしていない人
     { const { page, errors, ctx } = await L.open(b, { lang, w, h, ls: { addr: '', startOff: false, firstLive: false }, noSeed: true });
-      ok(await page.isVisible('#startBar'), 'はじめの3ステップの帯が出る');
-      ok((await page.locator('#startBar .st').count()) === 3 && (await page.locator('#startBar .st.done').count()) === 0, '3つとも、まだ終わっていない');
+      ok(await page.isVisible('#startBar'), 'はじめの4ステップの帯が出る');
+      ok((await page.locator('#startBar .st').count()) === 4 && (await page.locator('#startBar .st.done').count()) === 0, '4つとも、まだ終わっていない');
       ok(await page.evaluate(() => document.querySelector('#startBar .st').classList.contains('next')), '最初のステップが「次にやること」になる');
       const t = await page.textContent('#startBar'); if (lang !== 'ja') ok(!L.KANA_KANJI.test(t), '日本語が残っていない', t);
       await page.click('#startBar .st >> nth=0'); await page.waitForSelector('#wpList .wi'); ok(true, '1つ目を押すと、ウォレット選択が開く');
       await page.click('#wpList .wi'); await page.waitForTimeout(500);
-      ok(await page.evaluate(() => document.querySelectorAll('#startBar .st.done').length) === 1, 'ウォレットをつなぐと、1つ目に ✔ が付く');
-      ok(await page.evaluate(() => document.querySelectorAll('#startBar .st')[1].classList.contains('next')), '次は2つ目が「次にやること」');
-      await page.click('#startBar .st >> nth=1'); await page.waitForSelector('#wlGo'); ok(true, '2つ目を押すと、鍵を作る画面が開く'); await page.evaluate(() => closeModal());
+      await page.waitForFunction(() => document.querySelectorAll('#startBar .st.done').length === 2, null, { timeout: 8000 }).catch(() => {});
+      ok(await page.evaluate(() => document.querySelectorAll('#startBar .st.done').length) === 2, 'ウォレットをつなぎ、残高が見えると、1つ目と2つ目（入金）に ✔ が付く');
+      ok(await page.evaluate(() => document.querySelectorAll('#startBar .st')[2].classList.contains('next')), '次は3つ目（鍵）が「次にやること」');
+      await page.click('#startBar .st >> nth=2'); await page.waitForSelector('#wlGo'); ok(true, '3つ目を押すと、鍵を作る画面が開く');
+      ok(/Hyperliquid/.test(await page.textContent('#modal .lv')) && await page.isVisible('#modal .lv .qh'), '鍵を作る画面に、先に入金が必要という説明と「？」がある'); await page.evaluate(() => closeModal());
+      await page.click('#startBar .st >> nth=1').catch(() => {});
       await page.click('#startX'); ok(await page.isHidden('#startBar'), '×で消える');
       await page.evaluate(() => renderStart()); ok(await page.isHidden('#startBar'), '消したあとは、また出てこない');
+      ok(errors.length === 0, 'JSエラーなし', errors.join(' | ')); await ctx.close(); }
+    // 入金のないウォレット：残高が見当たらない警告が出て、2つ目は終わらない
+    { const { page, errors, ctx } = await L.open(b, { lang, w, h, ls: { addr: '0x15e1508a251eed364273b578df1234567890abcd', startOff: false, firstLive: false }, noSeed: true });
+      await page.evaluate(() => { S.acct = {assetPositions: [], marginSummary: {accountValue: '0', totalMarginUsed: '0'}, withdrawable: '0'}; S.spot = {balances: []}; renderStart(); });
+      ok(await page.evaluate(() => hasUser() && !((equity() || 0) > 0)), '入金のないウォレット（残高0）');
+      ok(await page.evaluate(() => !document.querySelectorAll('#startBar .st')[1].classList.contains('done')), '「入金する」は、終わっていない扱い');
+      await page.evaluate(() => openLiveSetup()); await page.waitForSelector('#wlGo');
+      ok(await page.isVisible('#modal .lv .note.bad'), '鍵を作る画面に、残高が見当たらない警告が出る');
       ok(errors.length === 0, 'JSエラーなし', errors.join(' | ')); await ctx.close(); }
     // ぜんぶ終わった人（デモは、鍵が入っている）
     { const { page, errors, ctx } = await L.open(b, { lang, w, h, ls: { startOff: false, firstLive: true } });

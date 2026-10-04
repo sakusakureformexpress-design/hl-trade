@@ -8,15 +8,16 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     const { page, errors, ctx } = await L.open(b, { lang, w, h, noSeed: true });
     ok(await page.isVisible('#pages button[data-p=help]'), '「使い方」のボタンが見える');
     await page.click('#pages button[data-p=help]'); await page.waitForSelector('#vHelp .guide'); await page.waitForTimeout(600);
-    ok((await page.locator('#vHelp .gtabs button').count()) === 8, 'タブが8つある');
+    ok((await page.locator('#vHelp .gtabs button').count()) === 9, 'タブが9つある');
     ok((await page.locator('#vHelp h2[id]').count()) === 1, '一度に出る項目は1つだけ（スクロールが長くならない）');
     const heights = []; const seen = [];
-    for (let i = 0; i < 8; i++) {
+    const IDS = ['g1', 'g2', 'gd', 'g3', 'g4', 'g5', 'g6', 'g7', 'g8'];
+    for (let i = 0; i < 9; i++) {
       await page.locator('#vHelp .gtabs button').nth(i).click(); await page.waitForTimeout(250);
       await page.evaluate(() => document.querySelectorAll('#vHelp img').forEach(im => { im.loading = 'eager'; })); await page.waitForTimeout(500);
       const info = await page.evaluate(() => ({ id: document.querySelector('#vHelp h2[id]').id, h: document.getElementById('vHelp').scrollHeight, imgs: [...document.querySelectorAll('#vHelp img')].map(im => [im.getAttribute('src'), im.complete && im.naturalWidth > 0]), sel: document.querySelector('#vHelp .gtabs .sel').dataset.g }));
       heights.push(info.h); seen.push(...info.imgs);
-      if (info.id !== 'g' + (i + 1) || info.sel !== info.id) ok(false, `タブ ${i + 1} の中身が切り替わる`, JSON.stringify(info));
+      if (info.id !== IDS[i] || info.sel !== info.id) ok(false, `タブ ${i + 1} の中身が切り替わる`, JSON.stringify(info));
     }
     ok(seen.length === 7 && seen.every(x => x[1]), '画像が7枚ぜんぶ読み込める（タブをめぐって）', JSON.stringify(seen.filter(x => !x[1])));
     ok(seen.every(x => x[0].includes(`guide/${lang}/`)), '画像が、いまの言語のものになっている');
@@ -31,7 +32,7 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     const ov = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
     ok(ov <= 1, '横にはみ出さない', String(ov));
     await page.locator('#vHelp .gtabs button').nth(4).click(); await page.waitForTimeout(300);
-    ok(await page.evaluate(() => store.get('guideTab') === 'g5'), '開いたタブを覚えている');
+    ok(await page.evaluate(() => store.get('guideTab') === 'g4'), '開いたタブを覚えている');
     // 言語を切り替えても、そのまま使い方ページ
     const other = lang === 'en' ? 'ko' : 'en';
     await page.evaluate(l => setLang(l), other); await page.waitForTimeout(500);
