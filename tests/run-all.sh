@@ -20,5 +20,6 @@ run flip node flip.js
 run guide node guide.js
 run terms node terms.js
 run start node start.js
+run errors node errors.js
 run preview node preview.js
 printf '%s\n' "${res[@]}"
