@@ -1,0 +1,6 @@
+{
+  // Cloudflare Workers（静的ファイルの公開）用の設定。ビルドは要らず、このフォルダのファイルをそのまま公開する
+  "name": "hl-trade",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "." }
+}

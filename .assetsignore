@@ -1,0 +1,14 @@
+# 公開しないもの（Cloudflare に上げない）
+.git
+.github
+.gitignore
+.nojekyll
+node_modules
+tests
+tools
+README.md
+wrangler.jsonc
+.assetsignore
+.test-fee.html
+preview.html
+preview-wrapped.html
