@@ -100,7 +100,7 @@ async function run(lang, w = 1440, h = 900){
     ok(await page.evaluate(() => window.__wcOpts.projectId === 'test-project' && window.__wcOpts.chains[0] === 42161), 'WalletConnect にプロジェクト ID と Arbitrum を渡す');
     await page.click('#walletBtn'); await page.waitForSelector('#wmOff'); await page.click('#wmOff'); await page.waitForTimeout(400);
     ok((await page.evaluate(() => S.user)) === '' && (await page.evaluate(() => __used)).includes('WC:disconnect'), '接続を外すと WalletConnect も切れる');
-    ok((await page.evaluate(() => localStorage.getItem('hlts.wallet'))) === '""', '外したあとは自動でつながない');
+    ok((await page.evaluate(() => localStorage.getItem('hlts-demo.wallet'))) === '""', '外したあとは自動でつながない');
     ok(errors.length === 0, 'JSエラーなし', errors.join(' | ')); await ctx.close(); }
   // --- F) WalletConnect を設定していないときは、出さない ---
   { const { page, errors, ctx } = await L.open(b, { lang, w, h, ls: { addr: '' }, noSeed: true });

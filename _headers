@@ -4,6 +4,8 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: camera=(), microphone=(), geolocation=()
+  # 通信先や外部スクリプトは絞らない（ウォレット接続の各社の通信先を実機で確かめきれていないため）。外から埋め込む・<base>で乗っ取る・プラグインを動かす道だけ閉じる
+  Content-Security-Policy: frame-ancestors 'none'; base-uri 'none'; object-src 'none'; form-action 'none'
 
 /index.html
   Cache-Control: no-cache

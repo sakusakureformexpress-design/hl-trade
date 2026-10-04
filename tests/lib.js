@@ -40,16 +40,17 @@ const verify = body => ['approveBuilderFee', 'approveAgent'].includes(body.actio
 async function launch(){ return chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--no-sandbox'] }); }
 // 1 ページ開く。lang・画面の大きさ・追加の localStorage・手数料の設定を指定できる
 async function open(browser, o = {}){
-  const { lang = 'ja', w = 1440, h = 900, ls = {}, fee = null, hash = '', noSeed = false, reject = false, noWallet = false, multi = false, wc = false } = o;
+  const { lang = 'ja', w = 1440, h = 900, ls = {}, fee = null, hash = '', noSeed = false, reject = false, noWallet = false, multi = false, wc = false, noWait = false, hang = false } = o;
   const ctx = await browser.newContext({ viewport: { width: w, height: h }, deviceScaleFactor: 1, hasTouch: w < 800, isMobile: w < 800 });
   const page = await ctx.newPage();
   const errors = []; page.on('pageerror', e => errors.push('pageerror: ' + e.message)); page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|ERR_FAILED|net::/.test(m.text())) errors.push('console.error: ' + m.text()); });
   await page.exposeFunction('__verifySig', verify);
   await page.exposeFunction('__signTyped', async json => { TYPED_LOG.push(json); const t = JSON.parse(json); const { EIP712Domain, ...types } = t.types; return WALLET.signTypedData(t.domain, types, t.message); });
-  await page.addInitScript(({ ls, wallet, noSeed, reject, noWallet, multi, wc }) => {
-    for (const [k, v] of Object.entries(ls)) localStorage.setItem('hlts.' + k, JSON.stringify(v));
+  await page.addInitScript(({ ls, wallet, noSeed, reject, noWallet, multi, wc, hang }) => {
+    for (const [k, v] of Object.entries(ls)) localStorage.setItem('hlts-demo.' + k, JSON.stringify(v));
     if (noSeed) window.__HL_NO_SEED_KEY = true;
     if (noWallet) window.__HL_NO_WALLET = true;
+    if (hang) window.__HL_HANG_META = true;
     if (!noWallet) window.ethereum = { request: async ({ method, params }) => {
       if (method === 'eth_requestAccounts' || method === 'eth_accounts') return [wallet.toLowerCase()];
       if (method === 'wallet_switchEthereumChain' || method === 'wallet_requestPermissions') return null;
@@ -69,11 +70,12 @@ async function open(browser, o = {}){
       window.__HL_WC_MOD = { EthereumProvider: { init: async opts => { window.__wcOpts = opts; const p = { session: null, accounts: [], on() {}, removeListener() {}, request: async () => { throw new Error('x'); },
         async connect() { window.__used.push('WC:connect'); p.session = {}; p.accounts = ['0x3c44cdddb6a900fa2b585dd299e03d12fa4293bc']; }, async disconnect() { window.__used.push('WC:disconnect'); p.session = null; p.accounts = []; } }; return p; } } };
     }
-  }, { ls: { addr: WALLET.address, terms: { v: TERMS_V, t: 1767225600000, lang: 'ja' }, ...ls }, wallet: WALLET.address, noSeed, reject, noWallet, multi, wc });
+  }, { ls: { addr: WALLET.address, terms: { v: TERMS_V, t: 1767225600000, lang: 'ja' }, ...ls }, wallet: WALLET.address, noSeed, reject, noWallet, multi, wc, hang });
   await page.route('**/*', r => { const u = r.request().url(); if (u.startsWith('file://')) return r.continue(); return r.abort(); });
   let file = HTML;
   { let s = fs.readFileSync(HTML, 'utf8'); s = s.replace(/const WC = \{projectId:'[^']*',/, `const WC = {projectId:'${wc ? 'test-project' : ''}',`); if (fee) s = s.replace(/const BUILDER = \{[^}]*\};/, `const BUILDER = {addr:'${fee.addr}', fee:${fee.fee}, required:${fee.required !== false}};`); file = HTML.replace(/index\.html$/, '.test-fee.html'); fs.writeFileSync(file, s); }
   await page.goto('file://' + file + '?demo&lang=' + lang + hash);
+  if (noWait) return { ctx, page, errors };
   await page.waitForFunction(() => window.__HL_MOCK && document.querySelectorAll('#coins button').length > 0 && document.querySelector('#cMark') && document.querySelector('#cMark').textContent.length > 1, null, { timeout: 15000 });
   await page.waitForTimeout(600);
   return { ctx, page, errors };

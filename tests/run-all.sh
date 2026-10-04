@@ -21,5 +21,10 @@ run guide node guide.js
 run terms node terms.js
 run start node start.js
 run errors node errors.js
+run account-guard node account_guard.js
+run xss node xss.js
+run layout node layout.js
+run network node network.js
+run small node small.js
 run preview node preview.js
 printf '%s\n' "${res[@]}"

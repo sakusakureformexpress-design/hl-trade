@@ -213,6 +213,7 @@
   function info(b){
     switch (b.type){
       case 'meta': case 'metaAndAssetCtxs': {
+        if (window.__HL_HANG_META) return new Promise(() => {});   // テスト用：取引所が応答しない状況
         const meta = {universe: perps.map(p => ({name: p.name, szDecimals: p.szD, maxLeverage: p.lev, onlyIsolated: p.iso, ...(p.delisted ? {isDelisted: true} : {}), ...(p.iso ? {marginMode: 'strictIsolated'} : {})}))};
         if (b.type === 'meta') return meta;
         return [meta, perps.map(p => { const m = mark(p.name), pv = prev(p.name); return {funding: (0.00001 + 0.00003 * noise(p.name + 'f', Date.now() / 36e5)).toFixed(8), openInterest: (p.vol * 0.9 / m).toFixed(2), prevDayPx: fmtPx(p.name, pv), dayNtlVlm: p.vol.toFixed(2), premium: '0.0001', oraclePx: fmtPx(p.name, m), markPx: fmtPx(p.name, m), midPx: fmtPx(p.name, m), impactPxs: [fmtPx(p.name, m), fmtPx(p.name, m)], dayBaseVlm: (p.vol / m).toFixed(2)}; })];
@@ -273,20 +274,21 @@
     const k = await crypto.subtle.deriveKey({name: 'PBKDF2', salt, iterations: 310000, hash: 'SHA-256'}, base, {name: 'AES-GCM', length: 256}, false, ['encrypt']);
     const ct = new Uint8Array(await crypto.subtle.encrypt({name: 'AES-GCM', iv}, k, enc.encode(AGENT_KEY)));
     const b64 = u => btoa(String.fromCharCode(...u));
-    return {addr: AGENT_ADDR, salt: b64(salt), iv: b64(iv), ct: b64(ct)};
+    let o = USER; try { o = JSON.parse(localStorage.getItem('hlts-demo.addr')) || USER; } catch {}
+    return {v: 2, owner: String(o).toLowerCase(), addr: AGENT_ADDR, salt: b64(salt), iv: b64(iv), ct: b64(ct)};
   }
   // 画面のコードより先に、口座アドレスと鍵を入れておく（すでに自分で入れたものがあれば触らない）
   try {
-    const set = (k, v) => { if (localStorage.getItem('hlts.' + k) == null) localStorage.setItem('hlts.' + k, JSON.stringify(v)); };
+    const set = (k, v) => { if (localStorage.getItem('hlts-demo.' + k) == null) localStorage.setItem('hlts-demo.' + k, JSON.stringify(v)); };
     set('addr', USER);
-    if (localStorage.getItem('hlts.agentKey') == null && window.crypto && crypto.subtle && !window.__HL_NO_SEED_KEY){
-      window.__HL_DEMO_READY = seedKey().then(v => { localStorage.setItem('hlts.agentKey', JSON.stringify(v)); });
+    if (localStorage.getItem('hlts-demo.agentKey') == null && window.crypto && crypto.subtle && !window.__HL_NO_SEED_KEY){
+      window.__HL_DEMO_READY = seedKey().then(v => { localStorage.setItem('hlts-demo.agentKey', JSON.stringify(v)); });
     }
   } catch {}
   // 画面から使う「ウォレット」の代わり（手数料の承認の署名を試せるように。本物の署名ではない）
   const __own = !window.ethereum && !window.__HL_NO_WALLET;
   const demoReq = {request: async ({method}) => {
-    if (method === 'eth_requestAccounts' || method === 'eth_accounts') { let u = USER; try { u = JSON.parse(localStorage.getItem('hlts.addr')) || USER; } catch {} return [u]; }
+    if (method === 'eth_requestAccounts' || method === 'eth_accounts') { let u = USER; try { u = JSON.parse(localStorage.getItem('hlts-demo.addr')) || USER; } catch {} return [u]; }
     if (method === 'wallet_switchEthereumChain' || method === 'wallet_requestPermissions') return null;
     if (method === 'eth_signTypedData_v4') return '0x' + 'ab'.repeat(32) + 'cd'.repeat(32) + '1b';
     throw new Error('unsupported in demo: ' + method);

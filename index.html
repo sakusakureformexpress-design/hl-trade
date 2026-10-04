@@ -19,8 +19,9 @@
 }
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{height:100%;margin:0}
-body{background:var(--bg);color:var(--fg);font:13px/1.4 var(--sans);display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+html{height:100%}
+body{min-height:100%;background:var(--bg);color:var(--fg);font:13px/1.4 var(--sans);display:flex;flex-direction:column;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit;cursor:pointer;touch-action:manipulation}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:7px 9px;min-width:0}
@@ -69,7 +70,7 @@ body.live #submit{box-shadow:0 0 0 2px #b4473f inset}
 #coins .p{font-family:var(--mono);font-size:12px}
 #coins .c{font-family:var(--mono);font-size:11px}
 
-main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 230px 330px;grid-template-rows:minmax(0,1fr) 250px;min-height:0}
+main{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 230px 330px;grid-template-rows:minmax(340px,1fr) 250px;min-height:0}   /* チャートの行には最低の高さを持たせる。足りないときは、ページ全体をスクロールさせる */
 section{border-right:1px solid var(--line);border-bottom:1px solid var(--line);min-width:0;min-height:0;display:flex;flex-direction:column}
 .hd{display:flex;align-items:center;gap:10px;padding:6px 10px;border-bottom:1px solid var(--line);font-size:12px;color:var(--dim);flex-wrap:wrap}
 .hd b{color:var(--fg);font-size:14px}
@@ -721,6 +722,8 @@ ko: {
   "利確・損切りの値段が、ロング／ショートの向きと合っていません": "익절·손절 가격이 롱/숏 방향과 맞지 않습니다",
   "この値段だと板にすぐぶつかって約定してしまうので、メイカー専用では取り消されます。買いは ${0} より下にしてください。": "이 가격이면 호가에 바로 체결되어 메이커 전용 주문은 취소됩니다. 매수는 ${0} 아래로 설정하세요.",
   "この値段だと板にすぐぶつかって約定してしまうので、メイカー専用では取り消されます。売りは ${0} より上にしてください。": "이 가격이면 호가에 바로 체결되어 메이커 전용 주문은 취소됩니다. 매도는 ${0} 위로 설정하세요.",
+  "注文の金額が小さすぎます（取引所の最小は約 $10。いまは {0}）。注文額を増やしてください。": "주문 금액이 너무 작습니다 (거래소 최소 약 $10, 현재 {0}). 주문 금액을 늘려 주세요.",
+  "口座の情報を読めていない（または古い）ので、本番の注文は出せません。通信を確かめてください。": "계좌 정보를 읽지 못했거나 오래되어 실전 주문을 낼 수 없습니다. 통신을 확인해 주세요.",
   "逆指値の値段が向きと逆です。買いの逆指値は、いまの値段（${0}）より上にしてください。このままだと出した瞬間に成行で約定します。": "스톱 가격의 방향이 반대입니다. 매수 스톱은 현재가(${0})보다 위로 설정하세요. 이대로면 주문 즉시 시장가로 체결됩니다.",
   "逆指値の値段が向きと逆です。売りの逆指値は、いまの値段（${0}）より下にしてください。このままだと出した瞬間に成行で約定します。": "스톱 가격의 방향이 반대입니다. 매도 스톱은 현재가(${0})보다 아래로 설정하세요. 이대로면 주문 즉시 시장가로 체결됩니다.",
   "指値がいまの値段（${0}）より高いので、すぐ成行と同じように約定します。逆指値のつもりなら「逆指値」を選んでください。": "지정가가 현재가(${0})보다 높아서 시장가처럼 바로 체결됩니다. 스톱 주문을 의도했다면 '스톱'을 선택하세요.",
@@ -760,6 +763,7 @@ ko: {
   "利確損切": "익절/손절",
   "線を動かす": "선 움직이기",
   "線を動かせます（30秒）": "선을 움직일 수 있습니다 (30초)",
+  "注文する口座": "주문하는 계좌",
   "この内容で変更する": "이 내용으로 변경",
   "{0} 練習: {1}（送っていません）": "{0} 연습: {1} (전송하지 않았습니다)",
   "この操作は本番の送信につながっていません。何も送っていません。": "이 작업은 실전 전송과 연결되어 있지 않습니다. 아무것도 전송하지 않았습니다.",
@@ -767,6 +771,10 @@ ko: {
   "{0}：送りませんでした": "{0}: 전송하지 않았습니다",
   "理由": "이유",
   "確認画面を開いてから1分以上たったので、値段が変わっているかもしれません。もう一度やり直してください。": "확인 화면을 연 지 1분이 넘어서 가격이 변했을 수 있습니다. 처음부터 다시 해 주세요.",
+  "口座の情報を読めていない（または古い）ので、送りませんでした。通信を確かめて、もう一度やり直してください。": "계좌 정보를 읽지 못했거나 오래되어 전송하지 않았습니다. 통신을 확인하고 다시 시도해 주세요.",
+  "最新の値段を取れなかったので、送りませんでした。通信を確かめて、もう一度やり直してください。": "최신 가격을 가져오지 못해 전송하지 않았습니다. 통신을 확인하고 다시 시도해 주세요.",
+  "口座が変わったので、送りませんでした。もう一度やり直してください。": "계좌가 바뀌어 전송하지 않았습니다. 다시 시도해 주세요.",
+  "確認画面を開いたあとで、ポジションか注文が変わりました（約定・決済・別の端末での操作など）。内容が合わなくなるので、送りませんでした。もう一度やり直してください。": "확인 화면을 연 뒤에 포지션이나 주문이 바뀌었습니다(체결·청산·다른 기기에서의 조작 등). 내용이 맞지 않게 되어 전송하지 않았습니다. 다시 시도해 주세요.",
   "送っています…": "전송 중…",
   "完了": "완료",
   "うまくいきませんでした": "실패했습니다",
@@ -872,10 +880,12 @@ ko: {
   "ブラウザのウォレット": "브라우저 지갑",
   "先に右上の「ウォレット接続」で、ウォレットを選んでください。": "먼저 오른쪽 위의 \"지갑 연결\"에서 지갑을 선택해 주세요.",
   "ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。": "지갑을 찾을 수 없습니다. PC의 MetaMask 등이나 지갑 앱 안의 브라우저로 열어 주세요.",
+  "先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。": "먼저 이용약관에 동의해 주세요 (화면 아래의 \"이용약관·위험·수수료\").",
   "WalletConnect を読み込めませんでした。ネットワークを確認してください。": "WalletConnect를 불러오지 못했습니다. 네트워크를 확인해 주세요.",
   "ウォレットの接続が取り消されました。": "지갑 연결이 취소되었습니다.",
   "ウォレットのアカウントが取れませんでした。": "지갑 계정을 가져오지 못했습니다.",
   "ウォレットの署名が取り消されました。": "지갑 서명이 취소되었습니다.",
+  "取引所から返事がありません（時間切れ）。注文が届いたかどうか分かりません。ポジションと注文の欄で、いまの状態を確かめてから、操作してください。": "거래소에서 응답이 없습니다(시간 초과). 주문이 도착했는지 알 수 없습니다. 포지션과 주문 란에서 현재 상태를 확인한 뒤 조작해 주세요.",
   "つないだウォレットが、設定した口座のアドレスと違います。": "연결한 지갑이 설정한 계좌 주소와 다릅니다.",
   "承認できませんでした：": "승인하지 못했습니다: ",
   "銘柄の番号がわかりません。ページを開き直してください": "종목 번호를 알 수 없습니다. 페이지를 다시 열어 주세요",
@@ -883,20 +893,26 @@ ko: {
   "数量がゼロです": "수량이 0입니다",
   "いまの値段が取れていません": "현재가를 가져오지 못했습니다",
   "金額がゼロです": "금액이 0입니다",
+  "先に、口座のアドレスを入れるか、ウォレットをつないでください。": "먼저 계좌 주소를 입력하거나 지갑을 연결해 주세요.",
+  "この鍵は、いまの口座（{0}）の注文用の鍵として登録されていません。口座を確かめるか、「ウォレットをつないで鍵を作る」を使ってください。": "이 키는 현재 계좌({0})의 주문용 키로 등록되어 있지 않습니다. 계좌를 확인하거나 \"지갑을 연결하고 키 만들기\"를 사용해 주세요.",
   "鍵の欄が空です。コピーした鍵を貼り付けてください。": "키 입력란이 비어 있습니다. 복사한 키를 붙여넣으세요.",
   "貼り付けたのは「アドレス」（英数字40文字）のようです。必要なのは、作ったときに一度だけ出た「秘密鍵」（英数字64文字）です。": "붙여넣은 것은 '주소'(영숫자 40자)인 것 같습니다. 필요한 것은 만들 때 한 번만 표시된 '비밀키'(영숫자 64자)입니다.",
   "鍵の形が違います。0x のあとに英数字64文字のはずですが、いまは {0} 文字です。": "키 형식이 다릅니다. 0x 뒤에 영숫자 64자여야 하는데 현재 {0}자입니다.",
   "暗証番号は数字6〜12桁にしてください（いまは {0} 文字）。": "PIN은 숫자 6~12자리로 입력하세요 (현재 {0}자).",
+  "このブラウザでは、鍵を保存できませんでした（保存の容量やプライベートモードを確かめてください）。": "이 브라우저에서는 키를 저장하지 못했습니다(저장 용량이나 프라이빗 모드를 확인해 주세요).",
+  "鍵を保存できたか確かめられませんでした。もう一度やり直してください。": "키가 저장되었는지 확인하지 못했습니다. 다시 시도해 주세요.",
   "このブラウザでは鍵を安全にしまえません。Safari か Chrome で開いてください。": "이 브라우저에서는 키를 안전하게 저장할 수 없습니다. Safari 또는 Chrome으로 열어 주세요.",
   "このブラウザでは、鍵を保存できません（プライベートモードなどで保存が禁止されていませんか）。": "이 브라우저에서는 키를 저장할 수 없습니다 (프라이빗 모드 등으로 저장이 금지되어 있지 않나요?).",
   "登録できませんでした：": "등록하지 못했습니다: ",
   "鍵が保存されていません": "저장된 키가 없습니다",
   "暗証番号が違います": "PIN이 올바르지 않습니다",
+  "保存されている鍵のデータが壊れています。鍵を消して、作り直してください。": "저장된 키 데이터가 손상되었습니다. 키를 삭제하고 다시 만들어 주세요.",
   "口座アドレスか鍵がありません": "계좌 주소 또는 키가 없습니다",
+  "この鍵は別の口座（{0}）用です": "이 키는 다른 계좌({0})용입니다",
   "この鍵は、いまの口座の注文用の鍵として登録されていません": "이 키는 현재 계좌의 주문용 키로 등록되어 있지 않습니다",
   "この鍵は期限切れです。作り直してください": "이 키는 만료되었습니다. 다시 만들어 주세요",
-  "先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。": "먼저 이용약관에 동의해 주세요 (화면 아래의 \"이용약관·위험·수수료\").",
   "鍵が閉じています": "키가 잠겨 있습니다",
+  "画面の口座（{0}）と、鍵の口座（{1}）が違うので、送りません。": "화면의 계좌({0})와 키의 계좌({1})가 달라서 전송하지 않습니다.",
   "アプリの手数料の承認がまだなので、新しい注文は出せません。「本番の注文の設定」から承認してください（決済・取り消しは承認なしでもできます）。": "앱 수수료 승인이 아직이라 새 주문을 낼 수 없습니다. '실전 주문 설정'에서 승인하세요 (청산·취소는 승인 없이도 가능합니다).",
   "送れませんでした：{0}": "전송하지 못했습니다: {0}",
   "このウォレットのアドレスは、まだ Hyperliquid に入金されていません。先に Hyperliquid へ USDC を入金するか、入金ずみのウォレットをつなぎ直してください": "이 지갑 주소는 아직 Hyperliquid에 입금되어 있지 않습니다. 먼저 Hyperliquid에 USDC를 입금하거나, 입금한 지갑으로 다시 연결해 주세요",
@@ -945,11 +961,13 @@ ko: {
   "注文用の鍵": "주문용 키",
   "0x で始まる英数字": "0x로 시작하는 영숫자",
   "この端末に保存する": "이 기기에 저장",
+  "保存されている鍵は、別の口座（{0}）用です。いまの口座は {1} です。": "저장된 키는 다른 계좌({0})용입니다. 현재 계좌는 {1}입니다.",
+  "その口座に切り替えるか、この鍵を消して、いまの口座で作り直してください。": "그 계좌로 전환하거나, 이 키를 삭제하고 현재 계좌로 다시 만들어 주세요.",
+  "鍵を消す": "키 삭제",
   "鍵は保存されていますが、閉じています。暗証番号を入れて開けてください。": "키가 저장되어 있지만 잠겨 있습니다. PIN을 입력해서 여세요.",
   "暗証番号": "PIN",
   "鍵を開ける": "키 열기",
   "練習モードに戻す": "연습 모드로 돌아가기",
-  "鍵を消す": "키 삭제",
   "鍵は開いています。鍵のアドレス（公開情報）：": "키가 열려 있습니다. 키의 주소(공개 정보):",
   "口座のアドレス：": "계좌 주소:",
   "口座に登録されているか確かめています…": "계좌에 등록되어 있는지 확인하는 중…",
@@ -1068,6 +1086,9 @@ ko: {
   "銘柄ごと": "종목별",
   "手数料": "수수료",
   "取引所から取れた範囲（{0} 以降）の集計です。「アプリの手数料」は Phantom など、注文を通したアプリが上乗せする手数料です。": "거래소에서 가져올 수 있는 범위({0} 이후)의 집계입니다. '앱 수수료'는 Phantom 등 주문을 중개한 앱이 추가로 붙이는 수수료입니다.",
+  "口座のアドレスの形が違います（0x のあとに英数字40文字）": "계좌 주소의 형식이 다릅니다(0x 뒤에 영숫자 40자)",
+  "口座が変わったので、開いていた確認画面を閉じました。": "계좌가 바뀌어 열려 있던 확인 화면을 닫았습니다.",
+  "口座が変わったので、本番を止めて鍵を閉じました（鍵の口座: {0}）。": "계좌가 바뀌어 실전을 중지하고 키를 닫았습니다(키의 계좌: {0}).",
   "ウォレット接続": "지갑 연결",
   "QR・スマホのウォレット": "QR · 모바일 지갑",
   "このブラウザにあります": "이 브라우저에 있음",
@@ -1119,7 +1140,7 @@ ko: {
   "ツールの提供だけで、障害や通信エラーなどで使えなくなっても、運営者は一切の責任を負わず、問い合わせにも答えないことを確認しました。": "도구를 제공할 뿐이며, 장애나 통신 오류 등으로 사용할 수 없게 되더라도 운영자는 어떠한 책임도 지지 않고 문의에도 답하지 않는다는 것을 확인했습니다.",
   "取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。": "거래에는 돈을 모두 잃을 수 있는 큰 위험이 있으며 자기 책임으로 한다는 것을 이해했습니다.",
   "上の手数料（取引所の手数料と、{0}）を確認し、同意します。": "위의 수수료(거래소 수수료와 {0})를 확인했으며 동의합니다.",
-  "利用規約の内容（下の「全文」で読めます）を確認し、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "이용약관의 내용(아래 \"전문\"에서 읽을 수 있습니다)을 확인했으며, 거주하는 국가·지역의 법령으로 이 화면의 이용이 금지·제한되어 있지 않음을 확인했습니다.",
+  "利用規約の内容（下の「利用規約の全文を読む」で読めます）を確認し、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "이용약관의 내용(아래 \"이용약관 전문 읽기\"에서 읽을 수 있습니다)을 확인했으며, 거주하는 국가·지역의 법령으로 이 화면의 이용이 금지·제한되어 있지 않음을 확인했습니다.",
   "確認しました": "확인했습니다",
   "確認ずみ：{0}": "확인 완료: {0}",
   "使う前に、次の内容を確認してください。確認しないと、画面は使えません。確認しない場合は、このページを閉じてください。": "사용하기 전에 아래 내용을 확인해 주세요. 확인하지 않으면 화면을 사용할 수 없습니다. 확인하지 않는 경우에는 이 페이지를 닫아 주세요.",
@@ -1472,6 +1493,8 @@ en: {
   "利確・損切りの値段が、ロング／ショートの向きと合っていません": "Take-profit / stop-loss prices don't match the long/short direction.",
   "この値段だと板にすぐぶつかって約定してしまうので、メイカー専用では取り消されます。買いは ${0} より下にしてください。": "At this price the order would match the book immediately, so a post-only order gets canceled. For a buy, set it below ${0}.",
   "この値段だと板にすぐぶつかって約定してしまうので、メイカー専用では取り消されます。売りは ${0} より上にしてください。": "At this price the order would match the book immediately, so a post-only order gets canceled. For a sell, set it above ${0}.",
+  "注文の金額が小さすぎます（取引所の最小は約 $10。いまは {0}）。注文額を増やしてください。": "The order is too small (the exchange minimum is about $10; this one is {0}). Please increase the amount.",
+  "口座の情報を読めていない（または古い）ので、本番の注文は出せません。通信を確かめてください。": "Account data could not be read (or is outdated), so live orders cannot be placed. Check your connection.",
   "逆指値の値段が向きと逆です。買いの逆指値は、いまの値段（${0}）より上にしてください。このままだと出した瞬間に成行で約定します。": "The stop price is on the wrong side. For a buy stop, set it above the current price (${0}). As it is, it would fill at market the moment it's placed.",
   "逆指値の値段が向きと逆です。売りの逆指値は、いまの値段（${0}）より下にしてください。このままだと出した瞬間に成行で約定します。": "The stop price is on the wrong side. For a sell stop, set it below the current price (${0}). As it is, it would fill at market the moment it's placed.",
   "指値がいまの値段（${0}）より高いので、すぐ成行と同じように約定します。逆指値のつもりなら「逆指値」を選んでください。": "The limit price is higher than the current price (${0}), so it would fill right away like a market order. If you meant a stop order, choose \"Stop\".",
@@ -1511,6 +1534,7 @@ en: {
   "利確損切": "TP/SL",
   "線を動かす": "Move lines",
   "線を動かせます（30秒）": "Lines can be moved (30 s)",
+  "注文する口座": "Ordering account",
   "この内容で変更する": "Confirm change",
   "{0} 練習: {1}（送っていません）": "{0} Practice: {1} (nothing was sent)",
   "この操作は本番の送信につながっていません。何も送っていません。": "This action isn't wired to live sending. Nothing was sent.",
@@ -1518,6 +1542,10 @@ en: {
   "{0}：送りませんでした": "{0}: not sent",
   "理由": "Reason",
   "確認画面を開いてから1分以上たったので、値段が変わっているかもしれません。もう一度やり直してください。": "The confirmation screen has been open for over a minute, so the price may have moved. Please start again.",
+  "口座の情報を読めていない（または古い）ので、送りませんでした。通信を確かめて、もう一度やり直してください。": "Account data could not be read (or is outdated), so nothing was sent. Check your connection and try again.",
+  "最新の値段を取れなかったので、送りませんでした。通信を確かめて、もう一度やり直してください。": "Could not get the latest price, so nothing was sent. Check your connection and try again.",
+  "口座が変わったので、送りませんでした。もう一度やり直してください。": "The account changed, so nothing was sent. Please try again.",
+  "確認画面を開いたあとで、ポジションか注文が変わりました（約定・決済・別の端末での操作など）。内容が合わなくなるので、送りませんでした。もう一度やり直してください。": "The position or orders changed after you opened this confirmation (a fill, a close, an action on another device, etc.). The details no longer match, so nothing was sent. Please try again.",
   "送っています…": "Sending…",
   "完了": "Done",
   "うまくいきませんでした": "Failed",
@@ -1623,10 +1651,12 @@ en: {
   "ブラウザのウォレット": "Browser wallet",
   "先に右上の「ウォレット接続」で、ウォレットを選んでください。": "First choose a wallet with \"Connect wallet\" at the top right.",
   "ウォレットが見つかりません。パソコンの MetaMask などか、ウォレットアプリの中のブラウザで開いてください。": "No wallet found. Open this page on a desktop with MetaMask (or similar), or in a wallet app's built-in browser.",
+  "先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。": "Please agree to the terms first (see \"Terms, risks & fees\" at the bottom of the screen).",
   "WalletConnect を読み込めませんでした。ネットワークを確認してください。": "Couldn't load WalletConnect. Check your network.",
   "ウォレットの接続が取り消されました。": "The wallet connection was canceled.",
   "ウォレットのアカウントが取れませんでした。": "Couldn't get an account from the wallet.",
   "ウォレットの署名が取り消されました。": "The wallet signature was canceled.",
+  "取引所から返事がありません（時間切れ）。注文が届いたかどうか分かりません。ポジションと注文の欄で、いまの状態を確かめてから、操作してください。": "No response from the exchange (timed out). It is unknown whether the order arrived. Check the current state in the positions and orders tables before doing anything else.",
   "つないだウォレットが、設定した口座のアドレスと違います。": "The connected wallet doesn't match the account address you set.",
   "承認できませんでした：": "Couldn't approve: ",
   "銘柄の番号がわかりません。ページを開き直してください": "Unknown market id. Please reload the page.",
@@ -1634,20 +1664,26 @@ en: {
   "数量がゼロです": "Size is zero",
   "いまの値段が取れていません": "Couldn't get the current price",
   "金額がゼロです": "Amount is zero",
+  "先に、口座のアドレスを入れるか、ウォレットをつないでください。": "First enter an account address or connect a wallet.",
+  "この鍵は、いまの口座（{0}）の注文用の鍵として登録されていません。口座を確かめるか、「ウォレットをつないで鍵を作る」を使ってください。": "This key is not registered as an order key for the current account ({0}). Check the account, or use \"Connect wallet & create key\".",
   "鍵の欄が空です。コピーした鍵を貼り付けてください。": "The key field is empty. Paste the key you copied.",
   "貼り付けたのは「アドレス」（英数字40文字）のようです。必要なのは、作ったときに一度だけ出た「秘密鍵」（英数字64文字）です。": "That looks like an address (40 characters). What you need is the private key (64 characters) that was shown only once when you created it.",
   "鍵の形が違います。0x のあとに英数字64文字のはずですが、いまは {0} 文字です。": "The key format is wrong. It should be 0x followed by 64 characters, but it has {0}.",
   "暗証番号は数字6〜12桁にしてください（いまは {0} 文字）。": "The PIN must be 6–12 digits (currently {0}).",
+  "このブラウザでは、鍵を保存できませんでした（保存の容量やプライベートモードを確かめてください）。": "This browser could not save the key (check storage space and private mode).",
+  "鍵を保存できたか確かめられませんでした。もう一度やり直してください。": "Could not confirm that the key was saved. Please try again.",
   "このブラウザでは鍵を安全にしまえません。Safari か Chrome で開いてください。": "This browser can't store the key securely. Please use Safari or Chrome.",
   "このブラウザでは、鍵を保存できません（プライベートモードなどで保存が禁止されていませんか）。": "This browser can't store the key (is private mode or storage blocking on?).",
   "登録できませんでした：": "Couldn't register: ",
   "鍵が保存されていません": "No key is saved",
   "暗証番号が違います": "Wrong PIN",
+  "保存されている鍵のデータが壊れています。鍵を消して、作り直してください。": "The saved key data is corrupted. Delete the key and create a new one.",
   "口座アドレスか鍵がありません": "Missing account address or key",
+  "この鍵は別の口座（{0}）用です": "This key is for a different account ({0})",
   "この鍵は、いまの口座の注文用の鍵として登録されていません": "This key isn't registered as an order key for the current account",
   "この鍵は期限切れです。作り直してください": "This key has expired. Please create a new one",
-  "先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。": "Please agree to the terms first (see \"Terms, risks & fees\" at the bottom of the screen).",
   "鍵が閉じています": "The key is locked",
+  "画面の口座（{0}）と、鍵の口座（{1}）が違うので、送りません。": "The account on screen ({0}) and the key's account ({1}) differ, so nothing is sent.",
   "アプリの手数料の承認がまだなので、新しい注文は出せません。「本番の注文の設定」から承認してください（決済・取り消しは承認なしでもできます）。": "The app fee hasn't been approved yet, so new orders can't be placed. Approve it in \"Live trading setup\" (closing positions and canceling work without approval).",
   "送れませんでした：{0}": "Couldn't send: {0}",
   "このウォレットのアドレスは、まだ Hyperliquid に入金されていません。先に Hyperliquid へ USDC を入金するか、入金ずみのウォレットをつなぎ直してください": "This wallet address has not deposited into Hyperliquid yet. Deposit USDC into Hyperliquid first, or reconnect the wallet you deposited with",
@@ -1696,11 +1732,13 @@ en: {
   "注文用の鍵": "Order key",
   "0x で始まる英数字": "Starts with 0x",
   "この端末に保存する": "Save on this device",
+  "保存されている鍵は、別の口座（{0}）用です。いまの口座は {1} です。": "The saved key is for a different account ({0}). The current account is {1}.",
+  "その口座に切り替えるか、この鍵を消して、いまの口座で作り直してください。": "Switch to that account, or delete this key and create a new one for the current account.",
+  "鍵を消す": "Delete key",
   "鍵は保存されていますが、閉じています。暗証番号を入れて開けてください。": "The key is saved but locked. Enter your PIN to unlock it.",
   "暗証番号": "PIN",
   "鍵を開ける": "Unlock key",
   "練習モードに戻す": "Back to practice mode",
-  "鍵を消す": "Delete key",
   "鍵は開いています。鍵のアドレス（公開情報）：": "The key is unlocked. Key address (public):",
   "口座のアドレス：": "Account address:",
   "口座に登録されているか確かめています…": "Checking that it is registered on the account…",
@@ -1819,6 +1857,9 @@ en: {
   "銘柄ごと": "By market",
   "手数料": "Fees",
   "取引所から取れた範囲（{0} 以降）の集計です。「アプリの手数料」は Phantom など、注文を通したアプリが上乗せする手数料です。": "Totals for the range available from the exchange (since {0}). \"App fee\" is the fee added by the app that routed the order, such as Phantom.",
+  "口座のアドレスの形が違います（0x のあとに英数字40文字）": "The account address format is wrong (0x followed by 40 letters and digits)",
+  "口座が変わったので、開いていた確認画面を閉じました。": "The account changed, so the open confirmation was closed.",
+  "口座が変わったので、本番を止めて鍵を閉じました（鍵の口座: {0}）。": "The account changed, so live trading was stopped and the key was locked (key account: {0}).",
   "ウォレット接続": "Connect wallet",
   "QR・スマホのウォレット": "QR code · mobile wallets",
   "このブラウザにあります": "Installed in this browser",
@@ -1870,7 +1911,7 @@ en: {
   "ツールの提供だけで、障害や通信エラーなどで使えなくなっても、運営者は一切の責任を負わず、問い合わせにも答えないことを確認しました。": "I confirm that this is only a tool, and that even if it becomes unusable because of outages, communication errors, or the like, the operator accepts no liability and does not answer inquiries.",
   "取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。": "I understand that trading carries large risks, including losing all my money, and that I do it at my own risk.",
   "上の手数料（取引所の手数料と、{0}）を確認し、同意します。": "I have read the fees above (the exchange fee and {0}) and agree to them.",
-  "利用規約の内容（下の「全文」で読めます）を確認し、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "I have checked the contents of the terms (the full text is below) and confirmed that using this screen is not prohibited or restricted by the laws where I live.",
+  "利用規約の内容（下の「利用規約の全文を読む」で読めます）を確認し、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。": "I have checked the contents of the terms (you can read them under \"Read the full terms\" below) and confirmed that using this screen is not prohibited or restricted by the laws where I live.",
   "確認しました": "I confirm",
   "確認ずみ：{0}": "Confirmed on: {0}",
   "使う前に、次の内容を確認してください。確認しないと、画面は使えません。確認しない場合は、このページを閉じてください。": "Please check the following before you use this. Without confirming, the screen cannot be used. If you do not confirm, please close this page.",
@@ -2075,10 +2116,11 @@ const LOCALES = {ja:'ja-JP', ko:'ko-KR', en:'en-US'};
 const DICT = window.__DICT || {ko:{}, en:{}};
 const I18N_MISSING = new Set();
 const I18N_DEBUG = /[?&]debug\b/.test(location.search);
+const LSP = window.__HL_DEMO ? 'hlts-demo.' : 'hlts.';   // 端末に保存する名前の頭。デモ（?demo）は本物と混ざらないよう別にする
 function detectLang(){
-  try { const q = new URLSearchParams(location.search).get('lang'); if (LANGS[q]) return q; } catch {}
-  try { const v = JSON.parse(localStorage.getItem('hlts.lang')); if (LANGS[v]) return v; } catch {}
-  for (const l of (navigator.languages || [navigator.language || 'en'])){ const c = String(l).slice(0, 2).toLowerCase(); if (LANGS[c]) return c; }
+  try { const q = new URLSearchParams(location.search).get('lang'); if (Object.hasOwn(LANGS, q)) return q; } catch {}
+  try { const v = JSON.parse(localStorage.getItem(LSP + 'lang')); if (Object.hasOwn(LANGS, v)) return v; } catch {}
+  for (const l of (navigator.languages || [navigator.language || 'en'])){ const c = String(l).slice(0, 2).toLowerCase(); if (Object.hasOwn(LANGS, c)) return c; }
   return 'en';
 }
 let LANG = detectLang();
@@ -2291,9 +2333,10 @@ const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt
 const IV_MS = Object.fromEntries(IVS.map(x => [x[0], x[2]]));
 
 const $ = id => document.getElementById(id);
+const lc = a => String(a || '').trim().toLowerCase();   // アドレスの比べ方（大文字小文字を区別しない）
 const store = {
-  get(k, d){ try { const v = localStorage.getItem('hlts.'+k); return v == null ? d : JSON.parse(v); } catch { return d; } },
-  set(k, v){ try { localStorage.setItem('hlts.'+k, JSON.stringify(v)); } catch {} }
+  get(k, d){ try { const v = localStorage.getItem(LSP + k); return v == null ? d : JSON.parse(v); } catch { return d; } },
+  set(k, v){ try { localStorage.setItem(LSP + k, JSON.stringify(v)); } catch {} }
 };
 
 const M = {};               // 銘柄の情報。キーは先物なら "BTC"、現物なら "@107" のような取引所の呼び名
@@ -2315,9 +2358,11 @@ const cur = () => M[curKey()];
 const isPerp = () => S.mkt === 'perp';
 
 // ===== 数字の表示 =====
+// 全角の数字・カンマ・空白が混ざっていても読めるようにする（読めなければ NaN）
+function pf(x){ if (typeof x === 'number') return x; return parseFloat(String(x ?? '').replace(/[０-９]/g, c => String.fromCharCode(c.charCodeAt(0) - 0xFEE0)).replace(/[．。]/g, '.').replace(/[，,\s]/g, '').replace(/[−ー－]/g, '-')); }
 function maxDec(key){ const m = M[key]; return m ? (m.kind === 'perp' ? 6 : 8) - m.szD : 4; }
 function pxDec(key, p){
-  const a = Math.abs(p), ip = a >= 1 ? Math.floor(Math.log10(a)) + 1 : 0;
+  const a = Math.abs(p), ip = a > 0 ? Math.floor(Math.log10(a)) + 1 : 0;   // 1未満は負の数（0.0123 なら −1）
   let d = Math.max(0, 5 - ip); if (a < 1) d = Math.max(d, 4);
   return Math.min(d, maxDec(key));
 }
@@ -2340,19 +2385,27 @@ const fmtPct = v => v == null || !isFinite(v) ? '—' : (v >= 0 ? '+' : '') + (v
 const cls = v => v > 0 ? 'up' : v < 0 ? 'down' : '';
 // 取引所の決まり：価格は有効数字5桁まで・小数は (先物6/現物8 − 数量の小数桁) まで
 function roundPx(key, p){ if (!isFinite(p) || p <= 0) return NaN; if (p >= 1e5) return Math.round(p); return Number(Number(p.toPrecision(5)).toFixed(maxDec(key))); }   // 整数の値段は桁数に関係なく使える
-function roundSz(key, sz){ const d = M[key] ? M[key].szD : 2, f = 10 ** d; return Math.floor(sz * f + 1e-9) / f; }
-const label = key => M[key]?.label ?? key;
+function roundSz(key, sz){ if (!isFinite(sz) || sz <= 0) return 0; const d = M[key] ? M[key].szD : 2, f = 10 ** d; return Number((Math.floor(sz * f + 1e-9) / f).toFixed(d)); }
+const NAME_OK = /^[A-Za-z0-9@:/._+\- ]{1,40}$/;               // 取引所から来る銘柄の名前に使える文字
+const SAFE = x => String(x ?? '').replace(/[^A-Za-z0-9@:/._+\- ]/g, '').slice(0, 40);   // 使えない文字は取り除く（画面に出す前の最後の砦）
+const label = key => M[key]?.label ?? SAFE(key);
 
 // ===== 通信 =====
+// 時間切れつきの fetch（返事が来ないまま、画面が固まらないように）
+async function fetchT(url, init, ms){
+  const c = new AbortController(), t = setTimeout(() => c.abort(), ms);
+  try { return await fetch(url, Object.assign({}, init, {signal: c.signal})); } finally { clearTimeout(t); }
+}
 async function info(body, tries=3){
   for (let i = 0; i < tries; i++){
     try {
-      const r = await fetch(API, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+      const r = await fetchT(API, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}, 10000);
       if (r.status === 429){ await new Promise(s => setTimeout(s, 600 * (i+1))); continue; }
       if (!r.ok) throw new Error('HTTP ' + r.status);
       return await r.json();
     } catch (e){ if (i === tries-1) throw e; await new Promise(s => setTimeout(s, 500)); }
   }
+  throw new Error('HTTP 429');   // 何度か待っても、取引所が受け付けなかった
 }
 let ws = null, wsTimer = null, wsLast = 0, wsDog = null, wsWasDown = false; const wsSubs = new Map();
 function subscribe(sub){ wsSubs.set(JSON.stringify(sub), sub); if (ws && ws.readyState === 1) ws.send(JSON.stringify({method:'subscribe', subscription:sub})); }
@@ -2373,7 +2426,7 @@ function connect(){
   ws.onmessage = ev => {
     wsLast = Date.now();
     let m; try { m = JSON.parse(ev.data); } catch { return; }
-    if (m.channel === 'allMids'){ const d = m.data.mids; for (const k in M) if (d[k] != null) S.mids[k] = +d[k]; checkAlerts(); schedule(); }
+    if (m.channel === 'allMids'){ const d = m.data.mids; for (const k in M) if (d[k] != null) S.mids[k] = +d[k]; S.midsAt = Date.now(); checkAlerts(); schedule(); }
     else if (m.channel === 'candle') onCandle(m.data);
     else if (m.channel === 'l2Book'){ if (m.data.coin === curKey()){ S.book = m.data; schedule(); } }
     else if (m.channel === 'userFills') onFills(m.data);
@@ -2458,7 +2511,7 @@ function onFills(d){
   for (const f of d.fills.slice(0, 3)){
     const pnl = +f.closedPnl, k = f.coin;
     const what = esc(f.dir || (f.side === 'B' ? _('買い') : _('売り'))).replace('Open Long',_('ロングを建てた')).replace('Open Short',_('ショートを建てた')).replace('Close Long',_('ロングを決済')).replace('Close Short',_('ショートを決済')).replace('Buy',_('買い')).replace('Sell',_('売り'));
-    const msg = _('約定　{0}　{1}　{2} @ {3}', label(k) || k, what, f.sz, M[k] ? fmtPx(k, +f.px) : f.px) + (pnl ? ` <span class="${cls(pnl)}">${moneyS(pnl)}</span>` : '');
+    const msg = _('約定　{0}　{1}　{2} @ {3}', label(k), what, esc(f.sz), M[k] ? fmtPx(k, +f.px) : esc(f.px)) + (pnl ? ` <span class="${cls(pnl)}">${moneyS(pnl)}</span>` : '');
     toast(msg); log(msg.replace(/<[^>]+>/g, ''));
   }
   loadAcct(); loadMyFills(); H.at = 0; if (HIST_TABS.includes(S.aTab)) loadHist();
@@ -2666,6 +2719,8 @@ let dirty = false;
 function schedule(){ if (!dirty){ dirty = true; requestAnimationFrame(() => { dirty = false; renderAll(); }); } }
 function renderAll(){ renderCoins(); renderHead(); renderBook(); renderTicket(); renderKpis(); chart.draw(); }
 const priceOf = key => S.mids[key] ?? M[key]?.mark;
+// 注文を送る直前に、最新の値段を取り直す（切断中・遅れた値段のままで、数量や上限価格を作らないため）
+async function refreshMids(){ const d = await info({type:'allMids'}); if (!d || typeof d !== 'object') throw new Error('allMids'); for (const k in M) if (d[k] != null) S.mids[k] = +d[k]; S.midsAt = Date.now(); }
 
 // ===== 文字の大きさ（画面全体を拡大する）=====
 function applyZoom(z){
@@ -2692,7 +2747,7 @@ function renderCcy(){
 $('ccy').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.v === 'LOC' && !S.fx){ askFx(); if (!S.fx) return; } S.ccy = b.dataset.v; store.set('ccy', S.ccy); renderCcy(); renderAcct(); schedule(); chart.draw(); MC.redraw(); renderMarketViews(); };
 function askFx(){
   const c = locCcy(); if (!c) return;
-  const v = parseFloat(prompt(_(c.code === 'JPY' ? '1ドルは何円ですか？（例 148.5）空のまま OK で自動取得に戻します' : '1ドルは何ウォンですか？（例 1400）空のまま OK で自動取得に戻します'), S.fx || ''));
+  const v = pf(prompt(_(c.code === 'JPY' ? '1ドルは何円ですか？（例 148.5）空のまま OK で自動取得に戻します' : '1ドルは何ウォンですか？（例 1400）空のまま OK で自動取得に戻します'), S.fx || ''));
   if (v > c.lo && v < c.hi){ S.fx = v; S.fxSrc = 'manual'; } else { S.fxSrc = ''; loadFx(); }
   store.set('fx_' + c.code, S.fx); store.set('fxSrc_' + c.code, S.fxSrc); renderCcy(); renderAcct(); schedule(); }
 $('fxBtn').onclick = askFx;
@@ -2819,6 +2874,8 @@ function selectCoin(k){
   S.sel[S.mkt] = k; store.set('sel', S.sel); loadAad(k);
   if (bookSub) unsubscribe(bookSub); bookSub = {type:'l2Book', coin:k}; subscribe(bookSub);
   S.book = null; $('px').value = ''; $('tp').value = ''; $('sl').value = ''; hideMenu();
+  if (S.unit !== 'usd'){ S.unit = 'usd'; $('sz').value = store.get('szUsd', 100); }   // 前の銘柄の「枚数」を別の銘柄の金額として読まない
+  S.margin = 'cross';   // 分離かどうかは、その銘柄のポジション・仕様から syncLev が決める
   if (S.otype !== 'market') $('px').value = roundPx(k, priceOf(k)) || '';
   syncLev(); buildCoins(); loadCandles(); renderAcct(); schedule();
 }
@@ -2884,11 +2941,11 @@ function chartLines(){
   for (const al of (S.alerts[k] || [])) L.push({id:'al' + al.p, p: al.p, col:'--accent', dash:[2,4], txt:'🔔'});
   for (const d of (S.draw[k] || [])) if (d.type === 'h') L.push({id:'d' + d.id, p: d.p, raw: DRAW_COL, dash:[], txt:'', drag:true, free:true, drop: np => { d.p = np; saveDraw(); chart.draw(); }});
   if (isPerp() && !pos){ const c = orderCalc(); if (c.sz > 0 && c.liq > 0) L.push({id:'nliq', p:c.liq, col:'--liq', dash:[2,5], txt:_('新RL'), pnl: x => (x - c.px) * c.sz * S.side, showPnl:true}); }
-  if (S.otype !== 'market'){ const p = parseFloat($('px').value); if (p > 0) L.push({id:'npx', p, col:'--fg', dash:[4,4], drag:true, txt:_('新') + (S.otype === 'stop' ? _('逆指値') : _('指値')), drop: np => { $('px').value = roundPx(k, np); schedule(); }}); }
+  if (S.otype !== 'market'){ const p = pf($('px').value); if (p > 0) L.push({id:'npx', p, col:'--fg', dash:[4,4], drag:true, txt:_('新') + (S.otype === 'stop' ? _('逆指値') : _('指値')), drop: np => { $('px').value = roundPx(k, np); schedule(); }}); }
   if (isPerp() && $('tpslOn').checked){
     const e = entryPx(), sz = orderCalc().sz * S.side;
     for (const [id, col, t] of [['tp','--up',_('新TP')], ['sl','--down',_('新SL')]]){
-      const p = parseFloat($(id).value); if (p > 0) L.push({id:'n' + id, p, col, dash:[4,4], drag:true, txt:t, pnl: x => (x - e) * sz, showPnl:true, drop: np => { $(id).value = roundPx(k, np); schedule(); }});
+      const p = pf($(id).value); if (p > 0) L.push({id:'n' + id, p, col, dash:[4,4], drag:true, txt:t, pnl: x => (x - e) * sz, showPnl:true, drop: np => { $(id).value = roundPx(k, np); schedule(); }});
     }
   }
   return L;
@@ -3331,7 +3388,7 @@ function renderBook(){
   const bids = b.levels[0].slice(0, rows), asks = b.levels[1].slice(0, rows);
   const cum = arr => { let s = 0; return arr.map(l => (s += +l.sz)); };
   const cb = cum(bids), ca = cum(asks), mx = Math.max(cb[cb.length-1] || 0, ca[ca.length-1] || 0) || 1;
-  const row = (l, s, side) => `<div class="brow ${side}" data-px="${l.px}"><i style="width:${s/mx*100}%"></i><span class="num ${side==='ask'?'down':'up'}">${fmtPx(k,+l.px)}</span><span class="num">${(+l.sz).toLocaleString('en-US')}</span><span class="num dim">${s.toLocaleString('en-US',{maximumFractionDigits:2})}</span></div>`;
+  const row = (l, s, side) => `<div class="brow ${side}" data-px="${esc(l.px)}"><i style="width:${s/mx*100}%"></i><span class="num ${side==='ask'?'down':'up'}">${fmtPx(k,+l.px)}</span><span class="num">${(+l.sz).toLocaleString('en-US')}</span><span class="num dim">${s.toLocaleString('en-US',{maximumFractionDigits:2})}</span></div>`;
   $('asks').innerHTML = asks.map((l,i) => row(l, ca[i], 'ask')).reverse().join('');
   $('bids').innerHTML = bids.map((l,i) => row(l, cb[i], 'bid')).join('');
   if (bids[0] && asks[0]){ const bb = +bids[0].px, ba = +asks[0].px, mid = (bb + ba) / 2; $('bMid').textContent = fmtPx(k, mid); $('bSpr').textContent = _('差 {0}bps', ((ba-bb)/mid*1e4).toFixed(2)); }
@@ -3369,7 +3426,7 @@ $('unit').onclick = () => {
   }
   schedule();
 };
-$('sz').addEventListener('change', () => { const v = parseFloat($('sz').value); if (S.unit === 'risk' && v > 0) store.set('riskUsd', v); });
+$('sz').addEventListener('change', () => { const v = pf($('sz').value); if (S.unit === 'risk' && v > 0) store.set('riskUsd', v); });
 function curLev(){
   const max = cur()?.maxLev || 20, pos = isPerp() ? posOf(curKey()) : null;
   if (pos) return +pos.leverage.value;   // 持っているポジションがあれば、取引所のその倍率で計算する（注文もその倍率になる）
@@ -3416,10 +3473,10 @@ function bindPct(id, kind, ctx){
   const mult = () => S.pctMode === 'roe' ? (ctx().lev || 1) : 1;
   const toPct = p => { const c = ctx(); return (p / c.e - 1) * dir() * 100 * mult(); };
   const fromPct = v => { const c = ctx(); return roundPx(c.k, c.e * (1 + dir() * v / 100 / mult())); };
-  qIn.oninput = () => { const v = parseFloat(qIn.value); pIn.value = v > 0 ? fromPct(v) : ''; pIn.dispatchEvent(new Event('input')); };
+  qIn.oninput = () => { const v = pf(qIn.value); pIn.value = v > 0 ? fromPct(v) : ''; pIn.dispatchEvent(new Event('input')); };
   pIn.addEventListener('input', e => { if (e.isTrusted) sync(true); });
   document.querySelector(`[data-pct="${id}"]`).onclick = e => { const b = e.target.closest('button'); if (!b) return; e.preventDefault(); qIn.value = b.dataset.p; qIn.oninput(); };
-  function sync(force){ if (!force && document.activeElement === qIn) return; const v = parseFloat(pIn.value), c = ctx(); qIn.value = v > 0 && c.e > 0 ? +toPct(v).toFixed(2) : ''; }
+  function sync(force){ if (!force && document.activeElement === qIn) return; const v = pf(pIn.value), c = ctx(); qIn.value = v > 0 && c.e > 0 ? +toPct(v).toFixed(2) : ''; }
   const b = {id, sync}; pctBinders = pctBinders.filter(x => x.id !== id && document.body.contains($(x.id))); pctBinders.push(b); return b;
 }
 const ticketCtx = () => ({k: curKey(), e: entryPx(), side: S.side, lev: curLev()});
@@ -3473,12 +3530,12 @@ $('pct').onclick = e => { const b = e.target.closest('button'); if (b) setPct(+b
 $('szPct').oninput = e => setPct(+e.target.value);
 // 注文額（USD）は最後に入れた金額を覚えておき、次に開いたときもその金額から始める
 $('sz').value = store.get('szUsd', 100);
-$('sz').addEventListener('change', () => { const v = parseFloat($('sz').value); if (S.unit === 'usd' && v > 0) store.set('szUsd', v); });
-function entryPx(){ const k = curKey(); return S.otype === 'market' ? priceOf(k) : parseFloat($('px').value); }
+$('sz').addEventListener('change', () => { const v = pf($('sz').value); if (S.unit === 'usd' && v > 0) store.set('szUsd', v); });
+function entryPx(){ const k = curKey(); return S.otype === 'market' ? priceOf(k) : pf($('px').value); }
 function orderCalc(){
   const k = curKey(), m = cur() || {}, lev = isPerp() ? curLev() : 1, mm = 1 / (2 * (m.maxLev || 20));
-  const px = entryPx(), v = parseFloat($('sz').value);
-  const slv = parseFloat($('sl').value), riskOk = isPerp() && $('tpslOn').checked && slv > 0 && (slv - px) * S.side < 0;
+  const px = entryPx(), v = pf($('sz').value);
+  const slv = pf($('sl').value), riskOk = isPerp() && $('tpslOn').checked && slv > 0 && (slv - px) * S.side < 0;
   const feeRT = px * ((S.otype === 'limit' ? FEE.perp.maker : FEE.perp.taker) + FEE.perp.taker);   // 入りと損切り（成行）の手数料
   const sz = px > 0 && v > 0 ? roundSz(k, S.unit === 'usd' ? v / px : S.unit === 'risk' ? (riskOk ? v / (Math.abs(px - slv) + feeRT) : 0) : v) : 0;
   const ntl = sz * px, fees = FEE[isPerp() ? 'perp' : 'spot'], fee = ntl * (S.otype === 'limit' ? fees.maker : fees.taker);
@@ -3491,7 +3548,7 @@ function orderCalc(){
 const flipRows = c => c.closeSz > 0 ? [[_('内訳：いまのポジションを決済'), `${c.closeSz} ${label(c.k)}`], [_('内訳：新しく建てる'), c.openSz > 0 ? `${c.openSz} ${label(c.k)}` : _('なし（決済だけ）')]] : [];
 function tpslCheck(){
   if (!isPerp() || !$('tpslOn').checked) return {ok:true};
-  const k0 = curKey(), e = entryPx(), tp = roundPx(k0, parseFloat($('tp').value)), sl = roundPx(k0, parseFloat($('sl').value)), s = S.side, c = orderCalc();
+  const k0 = curKey(), e = entryPx(), tp = roundPx(k0, pf($('tp').value)), sl = roundPx(k0, pf($('sl').value)), s = S.side, c = orderCalc();
   const tpBad = tp > 0 && (tp - e) * s <= 0, slBad = sl > 0 && (sl - e) * s >= 0;
   $('tpPv').textContent = tp > 0 ? (tpBad ? (s > 0 ? _('入る値段より上にしてください') : _('入る値段より下にしてください')) : _('{0}（値動き {1}・損益率 {2}）', moneyS((tp - e) * c.sz * s), fmtPct((tp/e - 1) * s), fmtPct((tp/e - 1) * s * c.lev))) : '';
   $('slPv').textContent = sl > 0 ? (slBad ? (s > 0 ? _('入る値段より下にしてください') : _('入る値段より上にしてください')) : _('{0}（値動き {1}・損益率 {2}）', moneyS((sl - e) * c.sz * s), fmtPct((sl/e - 1) * s), fmtPct((sl/e - 1) * s * c.lev))) : '';
@@ -3537,6 +3594,8 @@ $('submit').onclick = () => {
   // 止めるべき注文は、確認画面に赤い理由を出して「注文する」を出さない
   const mark = priceOf(k), av = avail(), need = isPerp() ? c.margin : c.ntl, bads = [];
   if (aloBad) bads.push(aloBad);
+  if (c.ntl > 0 && c.ntl < 10) bads.push(_('注文の金額が小さすぎます（取引所の最小は約 $10。いまは {0}）。注文額を増やしてください。', money(c.ntl, 2)));
+  if (S.live && hasUser() && (!S.acct || Date.now() - (S.acctAt || 0) > 30000)) bads.push(_('口座の情報を読めていない（または古い）ので、本番の注文は出せません。通信を確かめてください。'));
   if (S.otype === 'stop' && mark > 0 && (c.px - mark) * S.side <= 0)
     bads.push(S.side > 0 ? _('逆指値の値段が向きと逆です。買いの逆指値は、いまの値段（${0}）より上にしてください。このままだと出した瞬間に成行で約定します。', fmtPx(k, mark)) : _('逆指値の値段が向きと逆です。売りの逆指値は、いまの値段（${0}）より下にしてください。このままだと出した瞬間に成行で約定します。', fmtPx(k, mark)));
   if (S.otype === 'limit' && !alo && mark > 0 && (c.px - mark) * S.side > mark * 0.003)
@@ -3579,7 +3638,7 @@ function renderPosCard(){
   el.innerHTML = `<div class="t"><b class="${s>0?'up':'down'}">${label(k)} ${s>0?_('ロング'):_('ショート')} ${Math.abs(s)}</b><span class="pnl ${cls(u)}">${moneyS(u)}</span></div>
     <div class="s"><span>${_('建値 ${0}', fmtPx(k,+p.entryPx))}</span><span>${_('{0}倍 {1}', p.leverage.value, p.leverage.type==='cross'?_('クロス'):_('分離'))}</span><span>${_('清算 {0}', p.liquidationPx?'$'+fmtPx(k,+p.liquidationPx):'—')}</span>
     <span class="up">${_('利確 {0}', tps.tp?'$'+fmtPx(k,+tps.tp.triggerPx):_('なし'))}</span><span class="down">${_('損切り {0}', tps.sl?'$'+fmtPx(k,+tps.sl.triggerPx):_('なし'))}</span></div>
-    <div class="acts3"><button class="x" data-act="close" data-c="${k}">${_('全部決済')}</button><button data-act="size" data-c="${k}">${_('増減')}</button><button data-act="be" data-c="${k}">${_('建値へ')}</button><button data-act="flip" data-c="${k}">${_('ドテン')}</button><button data-act="tpsl" data-c="${k}">${_('利確損切')}</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${k}">${_('証拠金')}</button>` : ''}</div>`;
+    <div class="acts3"><button class="x" data-act="close" data-c="${esc(k)}">${_('全部決済')}</button><button data-act="size" data-c="${esc(k)}">${_('増減')}</button><button data-act="be" data-c="${esc(k)}">${_('建値へ')}</button><button data-act="flip" data-c="${esc(k)}">${_('ドテン')}</button><button data-act="tpsl" data-c="${esc(k)}">${_('利確損切')}</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${esc(k)}">${_('証拠金')}</button>` : ''}</div>`;
 }
 $('posCard').addEventListener('click', e => { const b = e.target.closest('[data-act]'); if (b) posAction(b.dataset.act, b.dataset.c); });
 
@@ -3602,9 +3661,12 @@ function instantHit(o, p){
 }
 
 // ===== 確認の窓（見本モードでは表示するだけ）=====
-let modalRun = null, modalAt = 0;
+let modalRun = null, modalAt = 0, modalUser = '', modalSnap = '';
+const snapNow = () => JSON.stringify([(S.acct?.assetPositions || []).map(p => [p.position.coin, p.position.szi]).sort(), (S.orders || []).map(o => String(o.oid)).sort()]);   // 全ポジションの数量と、待ち注文の番号
 // run は「本番で送る中身」を作る関数。押した瞬間の値段・数量で作り直し、手順の配列（{label, action}）を返す
 function confirmChange(title, rows, danger, okLabel, run){
+  modalUser = lc(S.user); modalSnap = snapNow();
+  if (S.live && hasUser()) rows = rows.concat([[_('注文する口座'), esc(shortAddr(S.user))]]);
   preview(title, rows, danger ? `<div class="danger">${danger}</div>` : '', {ok: danger ? null : (okLabel || _('この内容で変更する'))});
   modalRun = danger ? null : (run || null); modalAt = Date.now();
 }
@@ -3615,9 +3677,13 @@ $('mOk').onclick = async () => {
   if (needConsent()){ closeModal(); openTerms(); return; }
   if (!LIVE.ready()){ closeModal(); toast(_('鍵が閉じているので送れません。暗証番号を入れてください。'), 6000); openLiveSetup(); return; }
   if (Date.now() - modalAt > 60000){ preview(_('{0}：送りませんでした', t), [[_('理由'), _('確認画面を開いてから1分以上たったので、値段が変わっているかもしれません。もう一度やり直してください。')]], '', {info:true}); return; }
+  if (!S.acct || Date.now() - (S.acctAt || 0) > 30000){ preview(_('{0}：送りませんでした', t), [[_('理由'), _('口座の情報を読めていない（または古い）ので、送りませんでした。通信を確かめて、もう一度やり直してください。')]], '', {info:true}); return; }
+  try { await refreshMids(); } catch { preview(_('{0}：送りませんでした', t), [[_('理由'), _('最新の値段を取れなかったので、送りませんでした。通信を確かめて、もう一度やり直してください。')]], '', {info:true}); return; }
+  if (lc(S.user) !== modalUser || !modalUser){ preview(_('{0}：送りませんでした', t), [[_('理由'), _('口座が変わったので、送りませんでした。もう一度やり直してください。')]], '', {info:true}); return; }
+  if (snapNow() !== modalSnap){ preview(_('{0}：送りませんでした', t), [[_('理由'), _('確認画面を開いたあとで、ポジションか注文が変わりました（約定・決済・別の端末での操作など）。内容が合わなくなるので、送りませんでした。もう一度やり直してください。')]], '', {info:true}); return; }
   let steps; try { steps = run(); } catch (e){ preview(_('{0}：送りませんでした', t), [[_('理由'), esc(e.message)]], '', {info:true}); return; }
-  $('mOk').disabled = $('mClose').disabled = true; $('mOk').textContent = _('送っています…');
-  const r = await LIVE.runSteps(steps);
+  $('mOk').disabled = $('mClose').disabled = true; $('mOk').textContent = _('送っています…'); sending = true;
+  let r; try { r = await LIVE.runSteps(steps, modalUser); } finally { sending = false; $('mOk').disabled = $('mClose').disabled = false; }
   if (r.ok && S.live){ store.set('firstLive', true); renderStart(); }
   $('mOk').disabled = $('mClose').disabled = false; SND.play(r.ok ? 'ok' : 'err');
   preview(_('{0}：{1}', t, r.ok ? _('完了') : _('うまくいきませんでした')), r.rows, r.ok ? '' : `<div class="danger">${_('途中で止めました。ポジションと注文の欄で、いまの状態を確かめてください。')}</div>`, {info:true});
@@ -3633,7 +3699,10 @@ function preview(title, rows, extraHtml, opts){
   $('modal').hidden = false; $('mClose').focus();
 }
 let termsForce = false;   // 最初の同意の画面は、同意するまで閉じられない
-function closeModal(){ if (termsForce) return; $('modal').hidden = true; }
+// 同意の窓が出ているあいだは、窓の外（ヘッダー・タブ・チャート・注文など）にキーボードでも触れないようにする
+function setBgInert(on){ [...document.body.children].forEach(e => { if (e.id === 'modal' || e.id === 'toasts' || e.tagName === 'SCRIPT') return; if (on) e.setAttribute('inert', ''); else e.removeAttribute('inert'); }); }
+let sending = false;   // 取引所へ送っている最中は、窓を閉じさせない（結果が分からなくなるため）
+function closeModal(){ if (termsForce || sending) return; $('modal').hidden = true; }
 $('mClose').onclick = closeModal;
 $('modal').onclick = e => { if (e.target.id === 'modal') closeModal(); };
 function modifyPreview(o, kind, from, to){
@@ -3686,11 +3755,11 @@ function tpslEditor(k){
   $('eTp').value = t.tp ? t.tp.triggerPx : ''; $('eSl').value = t.sl ? t.sl.triggerPx : '';
   const ectx = () => ({k, e, side: Math.sign(s), lev: +pos.leverage.value || 1});
   const b1 = bindPct('eTp', 'tp', ectx), b2 = bindPct('eSl', 'sl', ectx);
-  const upd = () => { for (const [id, pv] of [['eTp','eTpPv'],['eSl','eSlPv']]){ const v = parseFloat($(id).value); $(pv).textContent = v > 0 ? _('{0}（損益率 {1}）', moneyS(pnlAt(pos, v)), fmtPct((v/e - 1) * Math.sign(s) * (+pos.leverage.value || 1))) : ''; } };
+  const upd = () => { for (const [id, pv] of [['eTp','eTpPv'],['eSl','eSlPv']]){ const v = pf($(id).value); $(pv).textContent = v > 0 ? _('{0}（損益率 {1}）', moneyS(pnlAt(pos, v)), fmtPct((v/e - 1) * Math.sign(s) * (+pos.leverage.value || 1))) : ''; } };
   $('eTp').addEventListener('input', upd); $('eSl').addEventListener('input', upd); b1.sync(true); b2.sync(true); upd();
   $('eBe').onclick = () => { $('eSl').value = roundPx(k, e); b2.sync(true); upd(); };
   $('eGo').onclick = () => {
-    const tp = parseFloat($('eTp').value), sl = parseFloat($('eSl').value), m = priceOf(k);
+    const tp = pf($('eTp').value), sl = pf($('eSl').value), m = priceOf(k);
     if ((tp > 0 && (tp - m) * s <= 0) || (sl > 0 && (sl - m) * s >= 0)){ $('eSlPv').textContent = s > 0 ? _('利確はいまの値段より上、損切りは下にしてください') : _('利確はいまの値段より下、損切りは上にしてください'); return; }
     const same = (o, v) => o && Math.abs(+o.triggerPx - v) < 1e-12, keep = o => o ? _('変えない（いまの ${0} のまま）', fmtPx(k, +o.triggerPx)) : _('なし');
     if (sl > 0 && slBeyondLiq(pos, sl)){ $('eSlPv').textContent = _('損切りが清算価格より先です'); return; }
@@ -3724,9 +3793,9 @@ function sizeEditor(k, mode){
     <div style="margin-top:10px;display:flex;justify-content:flex-end"><button id="zGo" style="border:none;border-radius:6px;padding:8px 14px;background:var(--accent);color:#1b1404;font-weight:700">${_('確認へ進む')}</button></div>`;
   preview(_('{0} {1}の数量を変える', label(k), long ? _('ロング') : _('ショート')), [], box);
   let type = 'market';
-  const px = () => type === 'limit' ? parseFloat($('zPx').value) : priceOf(k);
+  const px = () => type === 'limit' ? pf($('zPx').value) : priceOf(k);
   const calc = () => {
-    const q = roundSz(k, parseFloat($('zSz').value) || 0), p = px(), rows = [];
+    const q = roundSz(k, pf($('zSz').value) || 0), p = px(), rows = [];
     if (mode === 'reduce'){
       const qq = Math.min(q, abs), real = (p - e) * qq * Math.sign(s);
       rows.push([_('やること'), _('{0} {1} を{2}決済', qq, label(k), long ? _('売って') : _('買って'))], [_('残る数量'), `${roundSz(k, abs - qq)} ${label(k)}`], [_('確定する損益の目安'), moneyS(real)]);
@@ -3739,8 +3808,8 @@ function sizeEditor(k, mode){
   };
   $('zMode').onclick = ev => { const b = ev.target.closest('button'); if (b && b.dataset.m !== mode) sizeEditor(k, b.dataset.m); };
   $('zType').onclick = ev => { const b = ev.target.closest('button'); if (!b) return; type = b.dataset.t; [...$('zType').children].forEach(x => x.classList.toggle('sel', x === b)); $('zPxF').hidden = type !== 'limit'; calc(); };
-  $('zSz').oninput = () => { const v = parseFloat($('zSz').value); $('zPct').value = v > 0 && base > 0 ? +(v / base * 100).toFixed(1) : ''; calc(); };
-  $('zPct').oninput = () => { const v = parseFloat($('zPct').value); $('zSz').value = v > 0 ? roundSz(k, base * Math.min(v, 100) / 100) : ''; calc(); };
+  $('zSz').oninput = () => { const v = pf($('zSz').value); $('zPct').value = v > 0 && base > 0 ? +(v / base * 100).toFixed(1) : ''; calc(); };
+  $('zPct').oninput = () => { const v = pf($('zPct').value); $('zSz').value = v > 0 ? roundSz(k, base * Math.min(v, 100) / 100) : ''; calc(); };
   $('zChips').onclick = ev => { const b = ev.target.closest('button'); if (!b) return; $('zPct').value = b.dataset.p; $('zPct').oninput(); };
   $('zPx').oninput = calc;
   $('zPct').value = mode === 'reduce' ? 50 : 25; $('zPct').oninput();
@@ -3774,7 +3843,7 @@ function marginEditor(k, mode){
   preview(_('{0} の証拠金（分離）', label(k)), [], box);
   const cap = mode === 'add' ? av : maxRemove;
   const calc = () => {
-    const a = Math.min(parseFloat($('gAmt').value) || 0, cap), d = mode === 'add' ? a : -a;
+    const a = Math.min(pf($('gAmt').value) || 0, cap), d = mode === 'add' ? a : -a;
     const nl = liq ? liq - side * d / abs / (1 - l * side) : NaN;
     const rows = [[_('やること'), _('{0} を{1}', money(a), mode === 'add' ? _('証拠金に足す') : _('証拠金から減らして使える資金に戻す'))], [_('新しい証拠金'), money(mUsed + d)], [_('実質のレバレッジ'), _('{0}倍', (ntl / (mUsed + d)).toFixed(1))], [_('清算価格'), _('${0} → ${1}（目安）', fmtPx(k, liq), fmtPx(k, nl))]];
     $('gCalc').innerHTML = rows.map(([x,y]) => `<span>${x}</span><span>${y}</span>`).join('');
@@ -3820,7 +3889,7 @@ const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で
 const TERMS = {v:2, operator:'', contact:''};
 const BUILDER = {addr:'', fee:25, required:true};   // fee は 0.01% の10分の1の単位（25 = 0.025%）。addr が空のあいだは手数料なし
 // WalletConnect（QR で携帯のウォレットとつなぐ）。Reown のプロジェクト ID（公開されても問題ない識別子）。空にすると、ウォレットの選択画面に出なくなります
-const WC = {projectId:'e4abdb60f0f9bea9c07d9195c3094691', url:'https://esm.sh/@walletconnect/ethereum-provider@2'};
+const WC = {projectId:'e4abdb60f0f9bea9c07d9195c3094691', url:'https://esm.sh/@walletconnect/ethereum-provider@2.25.0'};
 // ===== ウォレット（MetaMask など）につなぐ部品。鍵は預からず、署名だけをもらう =====
 const WALLET = (() => {
   // ブラウザに入っているウォレットは、EIP-6963（ウォレットが自分から名前とアイコンを知らせる決まり）で見つける
@@ -3860,6 +3929,7 @@ const WALLET = (() => {
   }
   async function loadWC(){
     if (wcp) return wcp;
+    if (needConsent()) throw new Error(_('先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。'));
     let mod; try { mod = window.__HL_WC_MOD || await import(WC.url); } catch { throw new Error(_('WalletConnect を読み込めませんでした。ネットワークを確認してください。')); }
     const EP = mod.EthereumProvider || (mod.default && mod.default.EthereumProvider) || mod.default;
     wcp = await EP.init({projectId:WC.projectId, chains:[42161], showQrModal:true, metadata:{name:'HL Trade', description:'Hyperliquid trading screen', url:location.origin, icons:[]}});
@@ -3867,6 +3937,7 @@ const WALLET = (() => {
   }
   // 選んだウォレットにつなぐ（fresh = 別のアカウントを選び直す）。口座のアドレスを返す
   async function use(entry, fresh){
+    if (needConsent()) throw new Error(_('先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。'));
     let accts;
     try {
       if (entry.wc){
@@ -3892,8 +3963,8 @@ const WALLET = (() => {
     let e = list().find(x => x.id === id) || (id === true ? list().find(x => !x.wc) : null); if (!e) return null;
     let accts;
     try {
-      if (e.wc){ const p = await loadWC(); if (!p.session) return null; e = Object.assign({}, e, {provider:p}); accts = p.accounts; }
-      else accts = await e.provider.request({method:'eth_accounts'});
+      if (e.wc) return null;   // WalletConnect は、起動のたびに外部のコードを読み込まない。使うときに、利用者が選んだときだけ読み込む
+      accts = await e.provider.request({method:'eth_accounts'});
     } catch { return null; }
     if (!accts || !accts[0]) return null;
     cur = e; bind(e); return accts[0];
@@ -3914,7 +3985,9 @@ const WALLET = (() => {
     return {r:'0x' + sig.slice(2, 66), s:'0x' + sig.slice(66, 130), v};
   }
   async function post(action, nonce, signature){
-    const r = await fetch(API.replace(/\/info$/, '/exchange'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, nonce, signature})});
+    if (needConsent()) throw new Error(_('先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。'));
+    let r; try { r = await fetchT(API.replace(/\/info$/, '/exchange'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, nonce, signature})}, 20000); }
+    catch (e){ if (e && e.name === 'AbortError') throw new Error(_('取引所から返事がありません（時間切れ）。注文が届いたかどうか分かりません。ポジションと注文の欄で、いまの状態を確かめてから、操作してください。')); throw e; }
     const t = await r.text(); let j; try { j = JSON.parse(t); } catch { j = {status:'err', response:t}; }
     if (j.status !== 'ok') throw new Error(typeof j.response === 'string' ? j.response : (t || ('HTTP ' + r.status)));
     return j;
@@ -3954,8 +4027,8 @@ const BUILD = (() => {
 })();
 const HLX = {
   aid(k){ const a = M[k]?.aid; if (a == null) throw new Error(_('銘柄の番号がわかりません。ページを開き直してください')); return a; },
-  px(k, p){ const r = roundPx(k, p); if (!(r > 0)) throw new Error(_('値段が正しくありません')); return HLSign.wire(r); },
-  sz(k, q){ const r = roundSz(k, q); if (!(r > 0)) throw new Error(_('数量がゼロです')); return HLSign.wire(r); },
+  px(k, p){ const r = roundPx(k, p); if (!(r > 0) || !isFinite(r) || r > 1e10) throw new Error(_('値段が正しくありません')); return HLSign.wire(r); },
+  sz(k, q){ const r = roundSz(k, q); if (!(r > 0) || !isFinite(r) || r > 1e10) throw new Error(_('数量がゼロです')); return HLSign.wire(r); },
   ord(k, buy, p, q, reduce, t){ return {a:HLX.aid(k), b:!!buy, p:HLX.px(k, p), s:HLX.sz(k, q), r:!!reduce, t}; },
   market(k, buy, q, reduce){ const m = priceOf(k); if (!(m > 0)) throw new Error(_('いまの値段が取れていません')); return HLX.ord(k, buy, m * (buy ? 1 + SLIP : 1 - SLIP), q, reduce, {limit:{tif:'Ioc'}}); },
   limit(k, buy, p, q, reduce, alo){ return HLX.ord(k, buy, p, q, reduce, {limit:{tif: alo ? 'Alo' : 'Gtc'}}); },
@@ -3970,8 +4043,9 @@ const HLX = {
 
 // ===== 本番の送信（鍵はこの端末の中だけ。暗証番号で暗号化して保存し、取引所へ送るのは署名だけ）=====
 const LIVE = (() => {
-  let key = null, lastNonce = 0;
+  let key = null, keyOwner = '', lastNonce = 0;   // keyOwner：この鍵を登録した口座（小文字）。画面の口座と違えば、鍵は使わせない
   const saved = () => store.get('agentKey', null);
+  const matches = () => !!key && !!keyOwner && keyOwner === lc(S.user);
   const b64 = u => btoa(String.fromCharCode(...u)), unb64 = t => Uint8Array.from(atob(t), c => c.charCodeAt(0));
   async function kdf(pin, salt){
     const base = await crypto.subtle.importKey('raw', HLSign.utf8(pin), 'PBKDF2', false, ['deriveKey']);
@@ -3979,69 +4053,99 @@ const LIVE = (() => {
   }
   // 日本語入力の全角文字・空白・改行・見えない文字が混じっても受け付ける
   const clean = t => String(t || '').normalize('NFKC').replace(/[\s\u200b-\u200d\ufeff"'「」]/g, '');
-  async function save(k, pin){
+  // 鍵を口座に紐づけて保存する。owner を渡さなければ、いまの口座に登録された鍵か取引所に確かめて決める
+  async function ownerOfAgent(agent){
+    if (!hasUser()) throw new Error(_('先に、口座のアドレスを入れるか、ウォレットをつないでください。'));
+    const list = await info({type:'extraAgents', user:S.user});
+    if (!(list || []).some(x => lc(x.address) === lc(agent))) throw new Error(_('この鍵は、いまの口座（{0}）の注文用の鍵として登録されていません。口座を確かめるか、「ウォレットをつないで鍵を作る」を使ってください。', shortAddr(S.user)));
+    return lc(S.user);
+  }
+  async function save(k, pin, owner){
     k = clean(k); pin = clean(pin);
     if (!k) throw new Error(_('鍵の欄が空です。コピーした鍵を貼り付けてください。'));
     if (/^(0x)?[0-9a-fA-F]{40}$/.test(k)) throw new Error(_('貼り付けたのは「アドレス」（英数字40文字）のようです。必要なのは、作ったときに一度だけ出た「秘密鍵」（英数字64文字）です。'));
     if (!/^(0x)?[0-9a-fA-F]{64}$/.test(k)) throw new Error(_('鍵の形が違います。0x のあとに英数字64文字のはずですが、いまは {0} 文字です。', k.replace(/^0x/, '').length));
     if (!k.startsWith('0x')) k = '0x' + k;
     if (!/^\d{6,12}$/.test(pin)) throw new Error(_('暗証番号は数字6〜12桁にしてください（いまは {0} 文字）。', pin.length));
-    const addr = HLSign.addressOf(k), salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const addr = HLSign.addressOf(k); owner = lc(owner || await ownerOfAgent(addr));
+    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
     const ct = new Uint8Array(await crypto.subtle.encrypt({name:'AES-GCM', iv}, await kdf(pin, salt), HLSign.utf8(k)));
-    store.set('agentKey', {addr, salt:b64(salt), iv:b64(iv), ct:b64(ct)}); key = k; return addr;
+    const rec = {v:2, owner, addr, salt:b64(salt), iv:b64(iv), ct:b64(ct)};
+    try { localStorage.setItem(LSP + 'agentKey', JSON.stringify(rec)); } catch { throw new Error(_('このブラウザでは、鍵を保存できませんでした（保存の容量やプライベートモードを確かめてください）。')); }
+    const back = saved(); if (!back || back.addr !== addr || back.ct !== rec.ct) throw new Error(_('鍵を保存できたか確かめられませんでした。もう一度やり直してください。'));
+    key = k; keyOwner = owner; return addr;
   }
   // ウォレットの署名で、この端末の中で作った注文用の鍵を口座に登録する（鍵は画面に出さず、そのまま暗証番号で暗号化して保存）
   async function createViaWallet(pin){
     pin = clean(pin);
+    if (needConsent()) throw new Error(_('先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。'));
     if (!/^\d{6,12}$/.test(pin)) throw new Error(_('暗証番号は数字6〜12桁にしてください（いまは {0} 文字）。', pin.length));
     if (!window.crypto?.subtle) throw new Error(_('このブラウザでは鍵を安全にしまえません。Safari か Chrome で開いてください。'));
-    try { localStorage.setItem('hlts.probe', '1'); localStorage.removeItem('hlts.probe'); } catch { throw new Error(_('このブラウザでは、鍵を保存できません（プライベートモードなどで保存が禁止されていませんか）。')); }
+    try { localStorage.setItem(LSP + 'probe', 'x'.repeat(4096)); localStorage.removeItem(LSP + 'probe'); } catch { throw new Error(_('このブラウザでは、鍵を保存できません（プライベートモードなどで保存が禁止されていませんか）。')); }
     const acct = await WALLET.connect();
-    if (!/^0x[0-9a-fA-F]{40}$/.test(S.user) || S.user.toLowerCase() !== acct.toLowerCase()) setUser(acct);
+    if (!/^0x[0-9a-fA-F]{40}$/.test(S.user) || lc(S.user) !== lc(acct)) setUser(acct);
     const k = '0x' + HLSign.hex(crypto.getRandomValues(new Uint8Array(32))), agent = WALLET.checksum(HLSign.addressOf(k));
     const nonce = Date.now(), name = 'hl-trade-' + HLSign.hex(crypto.getRandomValues(new Uint8Array(2)));
-    const signature = await WALLET.sign(acct, 'ApproveAgent', [{name:'hyperliquidChain', type:'string'}, {name:'agentAddress', type:'address'}, {name:'agentName', type:'string'}, {name:'nonce', type:'uint64'}], {hyperliquidChain:'Mainnet', agentAddress:agent, agentName:name, nonce});
-    await WALLET.post({type:'approveAgent', hyperliquidChain:'Mainnet', signatureChainId:'0xa4b1', agentAddress:agent, agentName:name, nonce}, nonce, signature).catch(e => { throw new Error(_('登録できませんでした：') + jaErr(e.message)); });
-    await save(k, pin);
+    // 先に、この端末に（口座に紐づけて）保存できることを確かめてから、取引所に登録する。登録に失敗したら、保存した鍵は消す
+    await save(k, pin, acct);
+    try {
+      const signature = await WALLET.sign(acct, 'ApproveAgent', [{name:'hyperliquidChain', type:'string'}, {name:'agentAddress', type:'address'}, {name:'agentName', type:'string'}, {name:'nonce', type:'uint64'}], {hyperliquidChain:'Mainnet', agentAddress:agent, agentName:name, nonce});
+      await WALLET.post({type:'approveAgent', hyperliquidChain:'Mainnet', signatureChainId:'0xa4b1', agentAddress:agent, agentName:name, nonce}, nonce, signature).catch(e => { throw new Error(_('登録できませんでした：') + jaErr(e.message)); });
+    } catch (e){ key = null; keyOwner = ''; try { localStorage.removeItem(LSP + 'agentKey'); } catch {} store.set('agentKey', null); throw e; }
     return {addr:agent, name, account:acct};
   }
   async function unlock(pin){
     pin = clean(pin);
     const sv = saved(); if (!sv) throw new Error(_('鍵が保存されていません'));
-    try { key = new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(sv.iv)}, await kdf(pin, unb64(sv.salt)), unb64(sv.ct))); }
+    let k;
+    try { k = new TextDecoder().decode(await crypto.subtle.decrypt({name:'AES-GCM', iv:unb64(sv.iv)}, await kdf(pin, unb64(sv.salt)), unb64(sv.ct))); }
     catch { throw new Error(_('暗証番号が違います')); }
+    if (lc(HLSign.addressOf(k)) !== lc(sv.addr)) throw new Error(_('保存されている鍵のデータが壊れています。鍵を消して、作り直してください。'));
+    // 持ち主の口座が分からない古い形式の鍵は、いまの口座に登録された鍵だと確かめられたときだけ、口座に紐づけて保存し直す
+    let owner = lc(sv.owner);
+    if (!owner){
+      owner = await ownerOfAgent(sv.addr);
+      try { localStorage.setItem(LSP + 'agentKey', JSON.stringify(Object.assign({}, sv, {v:2, owner}))); } catch {}
+    }
+    key = k; keyOwner = owner;
+    if (!matches()) setLive(false);
   }
   // この鍵が、いまの口座に登録された注文用の鍵か（取引所に問い合わせる。鍵そのものは送らない）
   async function check(){
     const sv = saved(); if (!sv || !/^0x[0-9a-fA-F]{40}$/.test(S.user)) return {ok:false, why:_('口座アドレスか鍵がありません')};
+    if (sv.owner && lc(sv.owner) !== lc(S.user)) return {ok:false, why:_('この鍵は別の口座（{0}）用です', shortAddr(sv.owner))};
     const list = await info({type:'extraAgents', user:S.user});
     const hit = (list || []).find(x => x.address.toLowerCase() === sv.addr.toLowerCase());
     if (!hit) return {ok:false, why:_('この鍵は、いまの口座の注文用の鍵として登録されていません')};
     if (hit.validUntil && hit.validUntil < Date.now()) return {ok:false, why:_('この鍵は期限切れです。作り直してください')};
     return {ok:true, name:hit.name, until:hit.validUntil};
   }
-  async function send(action){
+  async function send(action, expectUser){
     if (needConsent()) throw new Error(_('先に利用規約に同意してください（画面の下の「利用規約・リスク・手数料」）。'));
-    if (!key) throw new Error(_('鍵が閉じています'));
+    if (!key || !keyOwner) throw new Error(_('鍵が閉じています'));
+    if (keyOwner !== lc(S.user) || (expectUser && lc(expectUser) !== keyOwner)) throw new Error(_('画面の口座（{0}）と、鍵の口座（{1}）が違うので、送りません。', shortAddr(S.user), shortAddr(keyOwner)));
     let nonce = Date.now(); if (nonce <= lastNonce) nonce = lastNonce + 1; lastNonce = nonce;
     const signature = HLSign.signAction(action, nonce, key);
-    const r = await fetch(API.replace(/\/info$/, '/exchange'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, nonce, signature, vaultAddress:null})});
+    let r; try { r = await fetchT(API.replace(/\/info$/, '/exchange'), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({action, nonce, signature, vaultAddress:null})}, 15000); }
+    catch (e){ if (e && e.name === 'AbortError') throw new Error(_('取引所から返事がありません（時間切れ）。注文が届いたかどうか分かりません。ポジションと注文の欄で、いまの状態を確かめてから、操作してください。')); throw e; }
     const t = await r.text(); try { return JSON.parse(t); } catch { return {status:'err', response:t || ('HTTP ' + r.status)}; }
   }
-  async function runSteps(steps){
+  async function runSteps(steps, expectUser){
     const rows = []; let ok = true;
+    // 手数料の承認が足りない注文があるときは、倍率の変更なども含めて、1通も送らない
+    if (steps.some(st => BUILD.needsApproval(st.action))) return {ok:false, rows:[[esc(steps[0]?.label || ''), `<span class="bad">${_('アプリの手数料の承認がまだなので、新しい注文は出せません。「本番の注文の設定」から承認してください（決済・取り消しは承認なしでもできます）。')}</span>`]]};
     for (const st of steps){
       if (BUILD.needsApproval(st.action)){ rows.push([esc(st.label), `<span class="bad">${_('アプリの手数料の承認がまだなので、新しい注文は出せません。「本番の注文の設定」から承認してください（決済・取り消しは承認なしでもできます）。')}</span>`]); ok = false; break; }
-      let res; try { res = await send(st.action); } catch (e){ rows.push([esc(st.label), `<span class="bad">${_('送れませんでした：{0}', esc(e.message))}</span>`]); ok = false; break; }
+      let res; try { res = await send(st.action, expectUser); } catch (e){ rows.push([esc(st.label), `<span class="bad">${_('送れませんでした：{0}', esc(e.message))}</span>`]); ok = false; break; }
       const ex = explainRes(res); rows.push([esc(st.label), ex.lines.map(x => ex.ok ? esc(x) : `<span class="bad">${esc(x)}</span>`).join('<br>')]);
       if (!ex.ok){ ok = false; BUILD.refresh(); break; }
     }
     return {ok, rows};
   }
   function setLive(on){ S.live = !!on; store.set('live', S.live); renderMode(); }
-  return {saved, save, createViaWallet, unlock, check, runSteps, setLive, ready: () => !!key, lock(){ key = null; renderMode(); }, forget(){ key = null; store.set('agentKey', null); setLive(false); }};
+  return {saved, save, createViaWallet, unlock, check, runSteps, setLive, ready: matches, hasKey: () => !!key, owner: () => keyOwner, lock(){ key = null; keyOwner = ''; renderMode(); }, forget(){ key = null; keyOwner = ''; store.set('agentKey', null); setLive(false); }};
 })();
-S.live = store.get('live', false) && !!LIVE.saved();
+S.live = store.get('live', false) && !!LIVE.saved() && (!LIVE.saved().owner || lc(LIVE.saved().owner) === lc(S.user));
 // 取引所の返事を日本語にする
 const ERR_JA = [[/must deposit/i, 'このウォレットのアドレスは、まだ Hyperliquid に入金されていません。先に Hyperliquid へ USDC を入金するか、入金ずみのウォレットをつなぎ直してください'], [/insufficient spot balance/i, '現物の残高が足りません'], [/zero size/i, '数量がゼロです'], [/open interest/i, 'この銘柄は建玉の上限に達していて、新しく建てられません'], [/too far from|far from the oracle|price too/i, '指値が、いまの値段から離れすぎています'], [/builder fee/i, 'アプリの手数料の承認が足りない、または取り消されています。「本番の注文の設定」から承認し直してください'], [/insufficient margin|not enough margin/i, '証拠金（余力）が足りません'], [/could not immediately match/i, 'すぐ約定する相手がいませんでした（値段が急に動いたかもしれません）。何も約定していません'],
   [/post only.*immediately matched|would have immediately matched/i, 'メイカー専用なのに、すぐ約定する値段だったので取り消されました'], [/does not exist/i, 'この鍵が口座に登録されていません（作り直しが必要かもしれません）'],
@@ -4093,6 +4197,9 @@ function openLiveSetup(){
     <p class="note">${_('この鍵は注文だけができる種類で、お金の引き出しや送金はできません。PC とスマホでは、それぞれ入れる必要があります。')}</p>
     <label class="f">${_('注文用の鍵')}<input id="lvKey" type="password" autocomplete="off" spellcheck="false" placeholder="${_('0x で始まる英数字')}"></label>
     <div class="btns"><button id="lvSave">${_('この端末に保存する')}</button></div></div></details>`;
+  else if (sv.owner && lc(sv.owner) !== lc(S.user)) h += `<p class="note bad">${_('保存されている鍵は、別の口座（{0}）用です。いまの口座は {1} です。', esc(sv.owner), esc(S.user || '—'))}</p>
+    <p>${_('その口座に切り替えるか、この鍵を消して、いまの口座で作り直してください。')}</p>
+    <div class="btns"><button id="lvForget">${_('鍵を消す')}</button></div>`;
   else if (!rdy) h += `<p>${_('鍵は保存されていますが、閉じています。暗証番号を入れて開けてください。')}</p>
     <label class="f">${_('暗証番号')}<input id="lvPin" type="password" inputmode="numeric" autocomplete="current-password"></label>
     <div class="btns"><button class="pri" id="lvOpen">${_('鍵を開ける')}</button>${S.live ? `<button id="lvOff">${_('練習モードに戻す')}</button>` : ''}<button id="lvForget">${_('鍵を消す')}</button></div>`;
@@ -4173,11 +4280,11 @@ async function loadAcct(){
   try {
     const [a, sp, o] = await Promise.all([info({type:'clearinghouseState', user:u}), info({type:'spotClearinghouseState', user:u}), info({type:'frontendOpenOrders', user:u})]);
     if (u !== S.user) return;
-    S.acct = a; S.spot = sp; S.orders = o || []; renderAcct(); schedule();
+    S.acct = a; S.spot = sp; S.orders = o || []; S.acctAt = Date.now(); renderAcct(); schedule();
     const pk = isPerp() ? (p => p ? p.leverage.type + p.leverage.value : '')(posOf(curKey())) : '';   // ポジションの有無や倍率が変わったときだけ、倍率の欄を作り直す
     if (pk !== S.levKey){ S.levKey = pk; syncLev(); }
     loadAad(isPerp() ? curKey() : firstPerp());
-  } catch (e){ log(_('口座を読めませんでした: ') + e.message); }
+  } catch (e){ if (Date.now() - (S.acctErrAt || 0) > 60000){ S.acctErrAt = Date.now(); log(_('口座を読めませんでした: ') + e.message); } }
 }
 function renderKpis(){
   const a = S.acct; if (!a){ ['kEq','kPnl','kAv'].forEach(i => $(i).textContent = '—'); return; }
@@ -4200,21 +4307,21 @@ function renderAcct(){
     if (!pos.length){ $('aTbl').innerHTML = `<div class="empty">${_('いま持っている先物のポジションはありません')}</div>`; return; }
     $('aTbl').innerHTML = `<table><tr><th>${_('銘柄')}</th><th>${_('向き')}</th><th>${_('数量')}</th><th>${_('建値')}</th><th>${_('いまの値段')}</th><th>${_('含み損益')}</th><th>${_('レバレッジ')}</th><th>${_('清算')}</th><th>${_('利確 / 損切り')}</th><th>${_('証拠金')}</th><th></th></tr>` +
       pos.map(p => { const s = +p.szi, u = +p.unrealizedPnl, k = p.coin, t = tpslOf(k);
-        return `<tr><td class="coin" data-c="${k}">${label(k)}</td><td class="${s>0?'up':'down'}">${s>0?_('ロング'):_('ショート')}</td><td>${Math.abs(s)}</td><td>${fmtPxC(k,+p.entryPx)}</td><td>${fmtPxC(k,priceOf(k))}</td>
+        return `<tr><td class="coin" data-c="${esc(k)}">${label(k)}</td><td class="${s>0?'up':'down'}">${s>0?_('ロング'):_('ショート')}</td><td>${Math.abs(s)}</td><td>${fmtPxC(k,+p.entryPx)}</td><td>${fmtPxC(k,priceOf(k))}</td>
         <td class="${cls(u)}">${moneyS(u)} (${fmtPct(+p.returnOnEquity)})</td><td>${p.leverage.value}x ${p.leverage.type==='cross'?_('クロス'):_('分離')}</td><td>${p.liquidationPx?fmtPxC(k,+p.liquidationPx):'—'}</td>
-        <td><button class="lk up" data-act="tpsl" data-c="${k}">${t.tp?fmtPxC(k,+t.tp.triggerPx):'—'}</button> / <button class="lk down" data-act="tpsl" data-c="${k}">${t.sl?fmtPxC(k,+t.sl.triggerPx):'—'}</button></td><td>${money(+p.marginUsed)}</td>
-        <td><button data-act="close" data-c="${k}">${_('全部決済')}</button><button data-act="half" data-c="${k}">${_('半分')}</button><button data-act="flip" data-c="${k}">${_('ドテン')}</button><button data-act="size" data-c="${k}">${_('増減')}</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${k}">${_('証拠金')}</button>` : ''}</td></tr>`; }).join('') + '</table>';
+        <td><button class="lk up" data-act="tpsl" data-c="${esc(k)}">${t.tp?fmtPxC(k,+t.tp.triggerPx):'—'}</button> / <button class="lk down" data-act="tpsl" data-c="${esc(k)}">${t.sl?fmtPxC(k,+t.sl.triggerPx):'—'}</button></td><td>${money(+p.marginUsed)}</td>
+        <td><button data-act="close" data-c="${esc(k)}">${_('全部決済')}</button><button data-act="half" data-c="${esc(k)}">${_('半分')}</button><button data-act="flip" data-c="${esc(k)}">${_('ドテン')}</button><button data-act="size" data-c="${esc(k)}">${_('増減')}</button>${p.leverage.type === 'isolated' ? `<button data-act="margin" data-c="${esc(k)}">${_('証拠金')}</button>` : ''}</td></tr>`; }).join('') + '</table>';
   } else if (S.aTab === 'ord'){
     if (!S.orders.length){ $('aTbl').innerHTML = `<div class="empty">${_('待っている注文はありません')}</div>`; return; }
     $('aTbl').innerHTML = `<table><tr><th>${_('銘柄')}</th><th>${_('向き')}</th><th>${_('種類')}</th><th>${_('値段')}</th><th>${_('数量')}</th><th>${_('出した時刻')}</th><th></th></tr>` +
       S.orders.map(o => { const kind = orderKind(o), p = o.isTrigger ? +o.triggerPx : +o.limitPx;
-        return `<tr><td class="coin" data-c="${o.coin}">${label(o.coin)}</td><td class="${o.side==='B'?'up':'down'}">${o.side==='B'?_('買い'):_('売り')}</td><td style="font-family:var(--sans)">${kindJa(kind)}${o.isTrigger?_('（届いたら成行）'):''}</td><td>${fmtPxC(o.coin,p)}</td><td>${+o.sz === 0 && o.isPositionTpsl ? _('ポジション全部') : o.sz}</td><td>${new Date(o.timestamp).toLocaleString(LOCALE())}</td><td><button data-act="cancel" data-c="${o.coin}" data-oid="${o.oid}">${_('取り消し')}</button></td></tr>`; }).join('') + '</table>';
+        return `<tr><td class="coin" data-c="${esc(o.coin)}">${label(o.coin)}</td><td class="${o.side==='B'?'up':'down'}">${o.side==='B'?_('買い'):_('売り')}</td><td style="font-family:var(--sans)">${kindJa(kind)}${o.isTrigger?_('（届いたら成行）'):''}</td><td>${fmtPxC(o.coin,p)}</td><td>${+o.sz === 0 && o.isPositionTpsl ? _('ポジション全部') : o.sz}</td><td>${new Date(o.timestamp).toLocaleString(LOCALE())}</td><td><button data-act="cancel" data-c="${esc(o.coin)}" data-oid="${o.oid}">${_('取り消し')}</button></td></tr>`; }).join('') + '</table>';
   } else {
     const bals = (S.spot?.balances || []).filter(b => +b.total > 0);
     if (!bals.length){ $('aTbl').innerHTML = `<div class="empty">${_('現物の残高はありません')}</div>`; return; }
     $('aTbl').innerHTML = `<table><tr><th>${_('通貨')}</th><th>${_('数量')}</th><th>${_('うち注文や証拠金で使用中')}</th><th>${_('評価額')}</th></tr>` +
       bals.map(b => { const key = SPOT_KEYS.find(k => M[k].base === b.token), val = b.coin === 'USDC' ? +b.total : key ? +b.total * (priceOf(key) || 0) : null;
-        return `<tr><td class="${key?'coin':''}" ${key?`data-c="${key}"`:''} style="font-family:var(--sans);font-weight:700">${key ? label(key) : b.coin}</td><td>${(+b.total).toLocaleString('en-US',{maximumFractionDigits:6})}</td><td>${(+b.hold).toLocaleString('en-US',{maximumFractionDigits:6})}</td><td>${val == null ? '—' : money(val)}</td></tr>`; }).join('') + '</table>';
+        return `<tr><td class="${key?'coin':''}" ${key?`data-c="${esc(key)}"`:''} style="font-family:var(--sans);font-weight:700">${key ? label(key) : esc(b.coin)}</td><td>${(+b.total).toLocaleString('en-US',{maximumFractionDigits:6})}</td><td>${(+b.hold).toLocaleString('en-US',{maximumFractionDigits:6})}</td><td>${val == null ? '—' : money(val)}</td></tr>`; }).join('') + '</table>';
   }
 }
 $('aTbl').addEventListener('click', e => {
@@ -4277,8 +4384,8 @@ async function loadHist(){
 }
 const DIR_JA = {'Open Long':'ロング新規','Close Long':'ロング決済','Open Short':'ショート新規','Close Short':'ショート決済','Long > Short':'ドテン（ロング→ショート）','Short > Long':'ドテン（ショート→ロング）','Buy':'現物を買い','Sell':'現物を売り','Liquidated Isolated Long':'清算（ロング）','Liquidated Isolated Short':'清算（ショート）','Liquidated Cross Long':'清算（ロング）','Liquidated Cross Short':'清算（ショート）'};
 const ST_JA = {open:'待ち', filled:'約定', canceled:'取り消し', triggered:'発動', rejected:'拒否', marginCanceled:'証拠金不足で取り消し', reduceOnlyCanceled:'ポジションが無くなり自動取り消し', perpMarginRejected:'証拠金不足で拒否', scheduledCancel:'時間切れで取り消し', siblingFilledCanceled:'片方が約定して自動取り消し', liquidatedCanceled:'清算で取り消し', selfTradeCanceled:'自分の注文と当たり取り消し'};
-const dirJa = d => DIR_JA[d] ? _(DIR_JA[d]) : d, stJa = x => ST_JA[x] ? _(ST_JA[x]) : x;
-const coinLabel = c => M[c] ? label(c) : c.replace(/^xyz:/, '');
+const dirJa = d => DIR_JA[d] ? _(DIR_JA[d]) : esc(d), stJa = x => ST_JA[x] ? _(ST_JA[x]) : esc(x);
+const coinLabel = c => M[c] ? label(c) : SAFE(String(c).replace(/^xyz:/, ''));
 // 現物の買いは手数料が買った銘柄で払われるので、ドルに直してから足す
 function feeParts(f){ const r = f.feeToken && f.feeToken !== 'USDC' ? (+f.px || 0) : 1, all = (+f.fee || 0) * r, b = (+f.builderFee || 0) * r; return {ex: all - b, app: b, all}; }
 function summarize(fills, fund){
@@ -4299,7 +4406,7 @@ function renderHist(){
     const rows = fills.slice(0, 500);
     $('aTbl').innerHTML = `<table><tr><th>${_('日時')}</th><th>${_('銘柄')}</th><th>${_('内容')}</th><th>${_('価格($)')}</th><th>${_('数量')}</th><th>${_('金額')}</th><th>${_('確定損益')}</th><th>${_('取引所の手数料')}</th><th>${_('アプリの手数料')}</th><th>${_('差し引き')}</th></tr>` +
       rows.map(f => { const fp = feeParts(f), p = +f.closedPnl, net = p - fp.all, c = f.coin;
-        return `<tr><td>${dtStr(f.time)}</td><td class="ja"><b>${coinLabel(c)}</b></td><td class="ja ${/Long|Buy/.test(f.dir) && !/Close|>/.test(f.dir) ? 'up' : /Short|Sell/.test(f.dir) && !/Close|>/.test(f.dir) ? 'down' : ''}">${dirJa(f.dir)}</td><td>${M[c] ? fmtPx(c, +f.px) : f.px}</td><td>${(+f.sz).toLocaleString('en-US')}</td><td>${money(+f.px * +f.sz)}</td>
+        return `<tr><td>${dtStr(f.time)}</td><td class="ja"><b>${coinLabel(c)}</b></td><td class="ja ${/Long|Buy/.test(f.dir) && !/Close|>/.test(f.dir) ? 'up' : /Short|Sell/.test(f.dir) && !/Close|>/.test(f.dir) ? 'down' : ''}">${dirJa(f.dir)}</td><td>${M[c] ? fmtPx(c, +f.px) : esc(f.px)}</td><td>${(+f.sz).toLocaleString('en-US')}</td><td>${money(+f.px * +f.sz)}</td>
         <td class="${cls(p)}">${p ? moneyS(p) : '—'}</td><td class="dim">${money(fp.ex, 3)}</td><td class="dim">${fp.app ? money(fp.app, 3) : '—'}</td><td class="${cls(net)}">${moneyS(net)}</td></tr>`; }).join('') + '</table>' +
       (fills.length > 500 ? `<div class="empty">${_('新しい順に500件まで表示しています（この期間は全部で{0}件。合計は「集計」で見られます）', fills.length)}</div>` : '');
   } else if (S.aTab === 'hist'){
@@ -4307,7 +4414,7 @@ function renderHist(){
     if (!ords.length){ $('aTbl').innerHTML = `<div class="empty">${_('この期間の注文はありません')}</div>`; return; }
     $('aTbl').innerHTML = `<table><tr><th>${_('日時')}</th><th>${_('銘柄')}</th><th>${_('向き')}</th><th>${_('種類')}</th><th>${_('値段($)')}</th><th>${_('数量')}</th><th>${_('結果')}</th></tr>` +
       ords.slice(0, 500).map(h => { const o = h.order, kind = orderKind(o), p = o.isTrigger ? +o.triggerPx : +o.limitPx, c = o.coin;
-        return `<tr><td>${dtStr(h.statusTimestamp)}</td><td class="ja"><b>${coinLabel(c)}</b></td><td class="ja ${o.side==='B'?'up':'down'}">${o.side==='B'?_('買い'):_('売り')}</td><td class="ja">${o.orderType === 'Market' ? _('成行') : kindJa(kind)}${o.reduceOnly && kind === 'limit' ? _('（決済用）') : ''}</td><td>${o.orderType === 'Market' ? '—' : (M[c] ? fmtPx(c, p) : p)}</td><td>${+o.origSz ? (+o.origSz).toLocaleString('en-US') : _('ポジション全部')}</td><td class="ja ${h.status === 'filled' ? 'up' : /Rejected|rejected|Canceled|canceled/.test(h.status) ? 'dim' : ''}">${stJa(h.status)}</td></tr>`; }).join('') + '</table>' +
+        return `<tr><td>${dtStr(h.statusTimestamp)}</td><td class="ja"><b>${coinLabel(c)}</b></td><td class="ja ${o.side==='B'?'up':'down'}">${o.side==='B'?_('買い'):_('売り')}</td><td class="ja">${o.orderType === 'Market' ? _('成行') : kindJa(kind)}${o.reduceOnly && kind === 'limit' ? _('（決済用）') : ''}</td><td>${o.orderType === 'Market' ? '—' : (M[c] ? fmtPx(c, p) : esc(p))}</td><td>${+o.origSz ? (+o.origSz).toLocaleString('en-US') : _('ポジション全部')}</td><td class="ja ${h.status === 'filled' ? 'up' : /Rejected|rejected|Canceled|canceled/.test(h.status) ? 'dim' : ''}">${stJa(h.status)}</td></tr>`; }).join('') + '</table>' +
       `<div class="empty">${_('取引所が出す注文履歴は直近2000件までです')}</div>`;
   } else {
     const s = summarize(fills, fund), pl = _(PERIODS.find(p => p[0] === H.period)[1]);
@@ -4342,7 +4449,23 @@ function renderHist(){
 setInterval(() => { if (HIST_TABS.includes(S.aTab) && Date.now() - H.at > 60000) loadHist(); }, 15000);
 $('gear').onclick = () => { $('acctBar').hidden = !$('acctBar').hidden; };
 $('addr').value = S.user;
-function setUser(a){ S.user = String(a || '').trim(); store.set('addr', S.user); $('addr').value = S.user; renderWallet(); BUILD.refresh(); H.at = 0; watchFills(); loadAcct(); if (HIST_TABS.includes(S.aTab)) loadHist(); }
+function setUser(a){
+  const next = String(a || '').trim();
+  if (next && !/^0x[0-9a-fA-F]{40}$/.test(next)){ toast(_('口座のアドレスの形が違います（0x のあとに英数字40文字）'), 5000); $('addr').value = S.user; return; }
+  const changed = lc(next) !== lc(S.user);
+  S.user = next;
+  if (changed){
+    S.acct = S.spot = null; S.orders = []; S.aad = {}; S.myFills = [];
+    Object.assign(H, {fills:[], funding:[], orders:[], user:null, at:0});
+    if (modalRun){ modalRun = null; closeModal(); toast(_('口座が変わったので、開いていた確認画面を閉じました。'), 6000); }
+    const sv = LIVE.saved();
+    if ((S.live || LIVE.hasKey()) && sv && sv.owner && lc(sv.owner) !== lc(next)){
+      LIVE.lock(); LIVE.setLive(false);
+      toast(_('口座が変わったので、本番を止めて鍵を閉じました（鍵の口座: {0}）。', shortAddr(sv.owner)), 9000);
+    }
+  }
+  store.set('addr', S.user); $('addr').value = S.user; renderWallet(); BUILD.refresh(); H.at = 0; watchFills(); loadAcct(); if (HIST_TABS.includes(S.aTab)) loadHist();
+}
 // ===== ウォレット接続ボタン（右上）=====
 const shortAddr = a => a.slice(0, 6) + '…' + a.slice(-4);
 const hasUser = () => /^0x[0-9a-fA-F]{40}$/.test(S.user);
@@ -4391,18 +4514,18 @@ $('addr').onchange = e => setUser(e.target.value);
 async function loadMeta(){
   const [[pm, pc], [sm, sc]] = await Promise.all([info({type:'metaAndAssetCtxs'}), info({type:'spotMetaAndAssetCtxs'})]);
   pm.universe.forEach((u, i) => {
-    if (u.isDelisted){ delete M[u.name]; return; }
+    if (u.isDelisted || !NAME_OK.test(u.name)){ delete M[u.name]; return; }
     const x = pc[i] || {}, mk = +x.markPx;
     M[u.name] = Object.assign(M[u.name] || {}, {key:u.name, aid:i, label:u.name, kind:'perp', szD:u.szDecimals, maxLev:u.maxLeverage, onlyIso: !!u.onlyIsolated || u.marginMode === 'strictIsolated' || u.marginMode === 'noCross', mark:mk, prev:+x.prevDayPx, funding:+x.funding, vol:+x.dayNtlVlm || 0, oi:(+x.openInterest || 0) * mk});
   });
   const tok = Object.fromEntries(sm.tokens.map(tk => [tk.index, tk])), used = new Map();
   for (const u of sm.universe){
-    const b = tok[u.tokens[0]], q = tok[u.tokens[1]]; if (!b || !q || q.name !== 'USDC') continue;
+    const b = tok[u.tokens[0]], q = tok[u.tokens[1]]; if (!b || !q || q.name !== 'USDC' || !NAME_OK.test(u.name) || !NAME_OK.test(String(b.name))) continue;
     const x = sc[u.index] || {}, mk = +x.markPx; if (!(mk > 0)) continue;
     let lbl = /^Unit /.test(b.fullName || '') ? b.name.slice(1) : b.name;
     if (used.has(lbl) && used.get(lbl) !== u.name) lbl += ' ' + u.name;   // 同じ名前の別の銘柄があるときは、見分けられるように呼び名を足す
     used.set(lbl, u.name);
-    M[u.name] = Object.assign(M[u.name] || {}, {key:u.name, aid:10000 + u.index, label:lbl, full:b.fullName || '', kind:'spot', szD:b.szDecimals, base:b.index, mark:mk, prev:+x.prevDayPx, vol:+x.dayNtlVlm || 0});
+    M[u.name] = Object.assign(M[u.name] || {}, {key:u.name, aid:10000 + u.index, label:SAFE(lbl), full:SAFE(b.fullName || ''), kind:'spot', szD:b.szDecimals, base:b.index, mark:mk, prev:+x.prevDayPx, vol:+x.dayNtlVlm || 0});
     if (!SPOT_KEYS.includes(u.name)) SPOT_KEYS.push(u.name);
   }
   if (!S.favs){
@@ -4463,7 +4586,7 @@ function termsBody(){
 // 確認の画面。next があれば、確認したあとに続けて実行する。確認ずみのときは、読むだけ（next なし）。全文は読まなくても、チェックして「確認しました」を押せば先へ進める
 function openTerms(next, force){
   const c = consent(), done = c && c.v === TERMS.v;
-  termsForce = !!force && !done; $('mClose').hidden = termsForce;
+  termsForce = !done && (!!force || termsForce); $('mClose').hidden = termsForce; setBgInert(termsForce);
   const feeTxt = BUILD.on() ? _('アプリの手数料 {0}', BUILD.rate(BUILDER.fee) + '%') : _('アプリの手数料は、いまはなし');
   const sum = `<ul class="tsum"><li>${_('この画面は、Hyperliquid につなぐための<b>ツールの提供だけ</b>です。取引の仲介や、資産の預かりはしません。')}</li>
     <li>${_('通信エラー・不具合・Hyperliquid の障害などで使えなくなっても、運営者は<b>一切の保証も責任も負わず、問い合わせにも対応しません</b>。')}</li>
@@ -4471,7 +4594,7 @@ function openTerms(next, force){
   const checks = done ? '' : `<label class="tchk"><input type="checkbox" class="tc"><span>${_('ツールの提供だけで、障害や通信エラーなどで使えなくなっても、運営者は一切の責任を負わず、問い合わせにも答えないことを確認しました。')}</span></label>
     <label class="tchk"><input type="checkbox" class="tc"><span>${_('取引には、お金をすべて失うことを含む大きなリスクがあり、自己責任で行うことを理解しました。')}</span></label>
     <label class="tchk"><input type="checkbox" class="tc"><span>${_('上の手数料（取引所の手数料と、{0}）を確認し、同意します。', feeTxt)}</span></label>
-    <label class="tchk"><input type="checkbox" class="tc"><span>${_('利用規約の内容（下の「全文」で読めます）を確認し、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。')}</span></label>
+    <label class="tchk"><input type="checkbox" class="tc"><span>${_('利用規約の内容（下の「利用規約の全文を読む」で読めます）を確認し、お住まいの国・地域の法令で、この画面の利用が禁止・制限されていないことを確認しました。')}</span></label>
     <button type="button" class="tgo" id="tGo" disabled>${_('確認しました')}</button>`;
   const head = done ? `<p class="note">${_('確認ずみ：{0}', new Date(c.t).toLocaleString(LOCALE()))}</p>` : `<p class="note">${_('使う前に、次の内容を確認してください。確認しないと、画面は使えません。確認しない場合は、このページを閉じてください。')}</p>`;
   $('mClose').hidden = false; preview(_('利用規約・リスク・手数料'), [], `${head}${sum}<details class="tfull"${done ? ' open' : ''}><summary>${_('利用規約の全文を読む（読まなくても先へ進めます）')}</summary><div class="terms">${termsBody()}</div></details>${checks}`, {info:true});
@@ -4479,7 +4602,8 @@ function openTerms(next, force){
   $('mClose').hidden = termsForce;
   const boxes = [...document.querySelectorAll('#mExtra .tc')];
   boxes.forEach(b => b.onchange = () => { $('tGo').disabled = !boxes.every(x => x.checked); });
-  $('tGo').onclick = () => { store.set('terms', {v:TERMS.v, t:Date.now(), lang:LANG}); termsForce = false; $('mClose').hidden = false; closeModal(); renderStart(); if (next) next(); };
+  $('tGo').onclick = () => { store.set('terms', {v:TERMS.v, t:Date.now(), lang:LANG}); termsForce = false; $('mClose').hidden = false; setBgInert(false); closeModal(); renderStart(); if (next) next(); };
+  if (termsForce) setTimeout(() => { const c = document.querySelector('#mExtra .tc'); if (c) c.focus(); }, 0);
 }
 // 同意ずみならそのまま、まだなら同意の画面を出して、同意したあとに続ける
 const gate = fn => needConsent() ? openTerms(fn) : fn();
@@ -4592,9 +4716,9 @@ const GUIDE = (() => {
   collectStatic(document.documentElement); applyStatic(); renderDemoBar();
   applyZoom(store.get('zoom', matchMedia('(max-width:720px)').matches ? 1.2 : 1));   // スマホは最初から大きめ
   loadFxState(); renderLangSel(); renderCcy(); renderWallet(); connect(); subscribe({type:'allMids'}); watchFills(); loadFx();
+  if (needConsent()) openTerms(null, true);   // はじめて来た人（規約が変わったときも）には、まず規約を出す（取引所の応答を待たずに）
   try { await loadMeta(); } catch (e){ log(_('銘柄情報を取れませんでした: ') + e.message); }
   buildCoins(); buildOType(); setOType('market'); selectCoin(curKey()); loadAcct(); setPage(S.page);
-  if (needConsent()) openTerms(null, true);   // はじめて来た人（規約が変わったときも）には、まず規約を出す
   setInterval(() => { loadAcct(); renderStart(); }, 3000);
   setInterval(() => loadMeta().then(schedule).catch(() => {}), 30000);
   setInterval(loadFx, 3600e3);

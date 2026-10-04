@@ -32,7 +32,7 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     const leg = await page.textContent('#legend');
     ok(/EMA20/.test(leg) && /BB/.test(leg) && /VWAP/.test(leg) && /RSI/.test(leg) && /MACD/.test(leg), '凡例に5つの値が出る', leg);
     if (process.env.SHOT_DIR) await page.screenshot({ path: `${process.env.SHOT_DIR}/ind_${lang}_${w}.png` });
-    ok(await page.evaluate(() => JSON.parse(localStorage.getItem('hlts.ind')).rsi === true), '選んだ指標を覚えている');
+    ok(await page.evaluate(() => JSON.parse(localStorage.getItem('hlts-demo.ind')).rsi === true), '選んだ指標を覚えている');
     await page.reload(); await page.waitForFunction(() => window.__HL_MOCK && document.querySelector('#cMark') && document.querySelector('#cMark').textContent.length > 1, null, { timeout: 15000 }); await page.waitForTimeout(700);
     ok(await page.evaluate(() => S.ind.macd && S.ind.rsi && document.getElementById('indBtn').classList.contains('sel')), '開き直しても指標が残っている');
     // 下の別枠：最小化と消す
@@ -50,7 +50,7 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     ok(await page.evaluate(() => !S.indMin.rsi), 'もう一度押すと元の大きさに戻る');
     await page.locator('.pbtns:visible').first().locator('button').nth(1).click(); await page.waitForTimeout(300);
     ok(await page.evaluate(() => S.ind.rsi === false && S.ind.macd === true) && (await page.locator('.pbtns:visible').count()) === 1, '消すを押すと、その枠だけが消える');
-    ok(await page.evaluate(() => JSON.parse(localStorage.getItem('hlts.ind')).rsi === false), '消した状態を覚えている');
+    ok(await page.evaluate(() => JSON.parse(localStorage.getItem('hlts-demo.ind')).rsi === false), '消した状態を覚えている');
     // 足を動かしても、ズームしてもエラーにならない
     await page.mouse.move(300, 300); await page.mouse.wheel(0, -400); await page.waitForTimeout(200);
     await page.click('#ivs button:nth-child(4)').catch(() => {}); await page.waitForTimeout(500);

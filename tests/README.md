@@ -7,7 +7,8 @@ cd tests
 npm install                 # playwright, ethers, @msgpack/msgpack
 npx playwright install chromium   # まだ入れていなければ
 pip install hyperliquid-python-sdk eth-account   # 署名の照合に使う公式 SDK
-./run-all.sh                # 全部を順に回して、最後に一覧を出す
+./run-all.sh                # 全部を順に回して、最後に一覧を出す（parity-sdk / parity-agent は Python の hyperliquid SDK が要る：PYTHONPATH で指定）
+# 追加の検証：account_guard.js（口座と鍵の対応）/ xss.js / layout.js / network.js（通信の失敗）/ small.js（細かい修正）
 ```
 
 | ファイル | 確かめること |
