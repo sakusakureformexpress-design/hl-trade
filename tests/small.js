@@ -85,6 +85,11 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
       S.acct.withdrawable = '0'; S.acct.marginSummary.accountValue = '1265.54'; S.acct.marginSummary.totalMarginUsed = '950.48'; S.acct.assetPositions = [{ type: 'oneWay', position: { coin: 'XRP', szi: '10000', unrealizedPnl: '-38.02', entryPx: '1', marginUsed: '950.48', leverage: { type: 'cross', value: 20 }, liquidationPx: '0.5' } }];
       const o = { eq: equity(), free: acctFree() }; S.acct = bk.a; S.spot = bk.s; return o; });
     ok(Math.abs(r2.eq - 1265.54) < 0.01 && Math.abs(r2.free - 315.06) < 0.01, '写真の数字（accountValue 1265.54・使用中 950.48）で、総額 $1,265.54・使える余力 $315.06 になる（含み損益を二重に引かない）', JSON.stringify(r2));
+    // 注文のあと「先物の出金できる額」が 0 でなくなっても、同じお金を二重に数えない（先物の口座の価値と現物の USDC がほぼ同じ＝同じお金）
+    const r3 = await page.evaluate(() => { const bk = { a: S.acct, s: S.spot }; S.acct = JSON.parse(JSON.stringify(S.acct)); S.spot = { balances: [{ token: 0, coin: 'USDC', total: '1260.30', hold: '0', entryNtl: '0' }] };
+      S.acct.withdrawable = '181.12'; S.acct.marginSummary.accountValue = '1234.20'; S.acct.marginSummary.totalMarginUsed = '950.48'; S.acct.assetPositions = [{ type: 'oneWay', position: { coin: 'XRP', szi: '10000', unrealizedPnl: '-63.6', entryPx: '1', marginUsed: '950.48', leverage: { type: 'cross', value: 20 }, liquidationPx: '0.5' } }];
+      const o = { ta: totalAssets(), eq: equity(), un: acctParts().unified }; S.acct = bk.a; S.spot = bk.s; return o; });
+    ok(r3.un && Math.abs(r3.ta - 1234.2) < 1.5 && r3.ta < 1400, '先物の口座の価値と現物の USDC が同じお金のとき、総資産は二重に数えない（約 $1,234）', JSON.stringify(r3));
     await page.click('#kEqBox'); await page.waitForSelector('#modal', { state: 'visible' });
     const t = await page.textContent('#modal'); ok(/総資産の内訳/.test(t) && /総資産（上の合計）/.test(t) && /使える余力/.test(t) && /足し算はしません/.test(t), '押すと、総資産の内訳と「余力は足さない」説明が出る', t.slice(0, 200));
     await ctx.close(); }

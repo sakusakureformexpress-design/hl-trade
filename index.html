@@ -3591,7 +3591,10 @@ function acctParts(){
   const a = S.acct; if (!a) return null;
   const upnl = a.assetPositions.reduce((s, p) => s + +p.position.unrealizedPnl, 0);
   const usdc = S.spot?.balances?.find(b => b.token === 0), tot = usdc ? +usdc.total : 0, hold = usdc ? +usdc.hold : 0;
-  const P = +a.marginSummary.accountValue || 0, unified = hold > 0 && +a.withdrawable === 0;
+  const P = +a.marginSummary.accountValue || 0, mu = +a.marginSummary.totalMarginUsed || 0, near = (x, y, r) => Math.abs(x - y) <= Math.max(1, r * Math.max(Math.abs(x), Math.abs(y)));
+  // 現物の USDC が先物の担保になっている（＝同じお金を先物と現物の両方に数えてはいけない）口座かどうか。判定の目印：
+  //  ①現物の「取引中」が、先物の使用中の証拠金とほぼ同じ　②先物の出金できる額が 0　③先物の口座の価値と、現物の USDC＋含み損益がほぼ同じ
+  const unified = (hold > 0 && (+a.withdrawable === 0 || near(hold, mu, .05))) || (P > 0 && tot > 0 && near(P, tot + upnl, .05));
   return {a, upnl, tot, hold, P, unified};
 }
 function equity(){
