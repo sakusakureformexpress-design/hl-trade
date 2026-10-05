@@ -3594,16 +3594,16 @@ function acctParts(){
   const upnl = a.assetPositions.reduce((s, p) => s + +p.position.unrealizedPnl, 0);
   const usdc = S.spot?.balances?.find(b => b.token === 0), tot = usdc ? +usdc.total : 0, hold = usdc ? +usdc.hold : 0;
   const P = +a.marginSummary.accountValue || 0, mu = +a.marginSummary.totalMarginUsed || 0, near = (x, y, r) => Math.abs(x - y) <= Math.max(1, r * Math.max(Math.abs(x), Math.abs(y)));
-  // 現物の USDC が先物の担保になっている（＝同じお金を先物と現物の両方に数えてはいけない）口座かどうか。判定の目印：
-  //  ①現物の「取引中」が、先物の使用中の証拠金とほぼ同じ　②先物の出金できる額が 0　③先物の口座の価値と、現物の USDC＋含み損益がほぼ同じ
-  const unified = (hold > 0 && (+a.withdrawable === 0 || near(hold, mu, .05))) || (P > 0 && tot > 0 && near(P, tot + upnl, .05));
+  // 現物の USDC が先物の担保になっている（統合口座）かどうか。実際の口座の数字で確かめた目印：
+  //  ①現物の「取引中」が、先物の使用中の証拠金とほぼ同じ　②先物の口座の価値が、現物の「取引中」とほぼ同じ　③先物の出金できる額が 0
+  const unified = hold > 0 && (+a.withdrawable === 0 || near(hold, mu, .05) || near(P, hold, .05));
   return {a, upnl, tot, hold, P, unified};
 }
 function equity(){
   const x = acctParts(); if (!x) return null;
-  // 統合口座（現物の USDC がそのまま先物の担保）では、accountValue が担保を含まないことがあるので、USDC＋含み損益と見比べて大きいほうを取る
-  // （どちらかが含み損益を二重に数えていても、足し算はしない）
-  return x.unified ? Math.max(x.tot + x.upnl, x.P) : x.P + (x.tot - x.hold);
+  // 統合口座では、現物の USDC の合計が、含み損益をすでに含んだ総額になっている（先物の accountValue は、担保として取引中の分だけ）。
+  // 実際の口座で、Phantom の総額・利用可能な資金と一致することを確かめた。含み損益は足さない
+  return x.unified ? x.tot : x.P + (x.tot - x.hold);
 }
 // 口座全体の空き証拠金（クロスでは全銘柄で共通）。残高−使用中の証拠金と、取引所の「出金できる額」の大きいほう
 function acctFree(){

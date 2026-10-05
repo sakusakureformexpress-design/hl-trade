@@ -78,18 +78,20 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
     await ctx.close(); }
   // 総資産：先物の口座の価値＋現物の全通貨。押すと内訳が出る
   { const { page, ctx } = await L.open(b, { lang: 'ja', w: 1280, h: 900 }); await page.evaluate(() => window.__HL_DEMO_READY); await page.waitForTimeout(800);
-    const r = await page.evaluate(() => { const so = spotOther().v, ta = totalAssets(), x = acctParts(); const exp = (x.unified ? Math.max(x.tot + x.upnl, x.P) : x.P + x.tot) + so; return { ta, exp, so, label: document.querySelector('#kEqBox small').textContent, unified: x.unified }; });
-    ok(Math.abs(r.ta - r.exp) < 1e-6 && /総資産/.test(r.label), '総資産＝先物の口座の価値（または USDC＋含み損益）＋現物の全通貨', JSON.stringify(r));
+    const r = await page.evaluate(() => { const so = spotOther().v, ta = totalAssets(), x = acctParts(); const exp = (x.unified ? x.tot : x.P + x.tot) + so; return { ta, exp, so, label: document.querySelector('#kEqBox small').textContent, unified: x.unified }; });
+    ok(Math.abs(r.ta - r.exp) < 1e-6 && /総資産/.test(r.label), '総資産＝先物の口座の価値（統合口座では現物の USDC 合計）＋現物の全通貨', JSON.stringify(r));
     // 統合口座に見える口座でも、取引所の accountValue のほうが大きいときは、含み損益を二重に引かない（Phantom の「パーペチュアル」と同じ金額になる）
     const r2 = await page.evaluate(() => { const bk = { a: S.acct, s: S.spot }; S.acct = JSON.parse(JSON.stringify(S.acct)); S.spot = { balances: [{ token: 0, coin: 'USDC', total: '1260.30', hold: '950.48', entryNtl: '0' }] };
       S.acct.withdrawable = '0'; S.acct.marginSummary.accountValue = '1265.54'; S.acct.marginSummary.totalMarginUsed = '950.48'; S.acct.assetPositions = [{ type: 'oneWay', position: { coin: 'XRP', szi: '10000', unrealizedPnl: '-38.02', entryPx: '1', marginUsed: '950.48', leverage: { type: 'cross', value: 20 }, liquidationPx: '0.5' } }];
       const o = { eq: equity(), free: acctFree() }; S.acct = bk.a; S.spot = bk.s; return o; });
-    ok(Math.abs(r2.eq - 1265.54) < 0.01 && Math.abs(r2.free - 315.06) < 0.01, '写真の数字（accountValue 1265.54・使用中 950.48）で、総額 $1,265.54・使える余力 $315.06 になる（含み損益を二重に引かない）', JSON.stringify(r2));
-    // 注文のあと「先物の出金できる額」が 0 でなくなっても、同じお金を二重に数えない（先物の口座の価値と現物の USDC がほぼ同じ＝同じお金）
-    const r3 = await page.evaluate(() => { const bk = { a: S.acct, s: S.spot }; S.acct = JSON.parse(JSON.stringify(S.acct)); S.spot = { balances: [{ token: 0, coin: 'USDC', total: '1260.30', hold: '0', entryNtl: '0' }] };
-      S.acct.withdrawable = '181.12'; S.acct.marginSummary.accountValue = '1234.20'; S.acct.marginSummary.totalMarginUsed = '950.48'; S.acct.assetPositions = [{ type: 'oneWay', position: { coin: 'XRP', szi: '10000', unrealizedPnl: '-63.6', entryPx: '1', marginUsed: '950.48', leverage: { type: 'cross', value: 20 }, liquidationPx: '0.5' } }];
-      const o = { ta: totalAssets(), eq: equity(), un: acctParts().unified }; S.acct = bk.a; S.spot = bk.s; return o; });
-    ok(r3.un && Math.abs(r3.ta - 1234.2) < 1.5 && r3.ta < 1400, '先物の口座の価値と現物の USDC が同じお金のとき、総資産は二重に数えない（約 $1,234）', JSON.stringify(r3));
+    ok(Math.abs(r2.eq - 1260.30) < 0.01 && Math.abs(r2.free - 309.82) < 0.01, '統合口座：現物の USDC 合計（含み損益込み）がそのまま総額、そこから使用中を引いたものが余力（含み損益を足さない）', JSON.stringify(r2));
+    // 実際の口座の数字（Phantom：総額 $992.06・利用可能 $91.53・ポジション計 $900.5）。出金できる額が 0 でなくても、同じお金を二重に数えない
+    for (const wd of ['0', '5.25']){
+      const r3 = await page.evaluate(wd => { const bk = { a: S.acct, s: S.spot }; S.acct = JSON.parse(JSON.stringify(S.acct)); S.spot = { balances: [{ token: 0, coin: 'USDC', total: '992.30', hold: '900.80', entryNtl: '0' }] };
+        S.acct.withdrawable = wd; S.acct.marginSummary.accountValue = '900.80'; S.acct.marginSummary.totalMarginUsed = '900.80'; S.acct.assetPositions = [{ type: 'oneWay', position: { coin: 'XRP', szi: '10000', unrealizedPnl: '-291.9', entryPx: '1', marginUsed: '779.6', leverage: { type: 'cross', value: 20 }, liquidationPx: '0.5' } }, { type: 'oneWay', position: { coin: 'ADA', szi: '1000', unrealizedPnl: '-12.25', entryPx: '1', marginUsed: '121', leverage: { type: 'cross', value: 10 }, liquidationPx: '0.5' } }];
+        const o = { ta: totalAssets(), free: acctFree(), un: acctParts().unified }; S.acct = bk.a; S.spot = bk.s; return o; }, wd);
+      ok(r3.un && Math.abs(r3.ta - 992.30) < 0.01 && Math.abs(r3.free - 91.50) < 0.01, `実際の口座の数字で、総額 $992.3・使える余力 $91.5（Phantom と一致。出金できる額 ${wd} でも同じ）`, JSON.stringify(r3));
+    }
     await page.click('#kEqBox'); await page.waitForSelector('#modal', { state: 'visible' });
     ok(await page.evaluate(() => /marginSummary/.test(document.querySelector('#modal details pre').textContent)), '内訳の下に、取引所が返した生の数字（調査用）が畳んで入っている');
     const t = await page.textContent('#modal'); ok(/総資産の内訳/.test(t) && /総資産（上の合計）/.test(t) && /使える余力/.test(t) && /足し算はしません/.test(t), '押すと、総資産の内訳と「余力は足さない」説明が出る', t.slice(0, 200));
