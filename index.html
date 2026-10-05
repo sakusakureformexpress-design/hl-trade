@@ -1014,6 +1014,7 @@ ko: {
   "本番になりました。確認画面のボタンを押すと、実際に注文が出ます。": "실전으로 전환되었습니다. 확인 화면의 버튼을 누르면 실제로 주문이 나갑니다.",
   "確かめられませんでした：{0}": "확인하지 못했습니다: {0}",
   "口座を読めませんでした: ": "계좌를 읽지 못했습니다: ",
+  "取引所が返した生の数字（原因の調査用）": "거래소가 돌려준 원본 수치 (원인 조사용)",
   "口座を読めていません": "계좌를 읽지 못했습니다",
   "先物の口座の価値（証拠金＋含み損益）": "선물 계좌의 가치 (증거금 + 평가손익)",
   "現物の USDC": "현물 USDC",
@@ -1828,6 +1829,7 @@ en: {
   "本番になりました。確認画面のボタンを押すと、実際に注文が出ます。": "You're live now. Pressing the button on the confirmation screen sends real orders.",
   "確かめられませんでした：{0}": "Couldn't verify: {0}",
   "口座を読めませんでした: ": "Couldn't load the account: ",
+  "取引所が返した生の数字（原因の調査用）": "Raw figures returned by the exchange (for troubleshooting)",
   "口座を読めていません": "The account could not be read",
   "先物の口座の価値（証拠金＋含み損益）": "Futures account value (margin + unrealized P&L)",
   "現物の USDC": "Spot USDC",
@@ -4418,13 +4420,23 @@ function totalAssets(){
   const x = acctParts(); if (!x) return null;
   return (x.unified ? equity() : x.P + x.tot) + spotOther().v;
 }
+// 取引所が返した生の数字（原因をつきとめるための表示。口座の中身を、そのまま並べる）
+function rawDump(){
+  const a = S.acct, sp = S.spot; if (!a) return '';
+  const f = o => Object.entries(o || {}).map(([k, v]) => `${k}: ${typeof v === 'object' ? JSON.stringify(v) : v}`).join('\n');
+  const pos = (a.assetPositions || []).map(x => { const q = x.position; return `${q.coin}  szi ${q.szi}  positionValue ${q.positionValue}  marginUsed ${q.marginUsed}  unrealizedPnl ${q.unrealizedPnl}  ROE ${q.returnOnEquity}  ${q.leverage?.type} ${q.leverage?.value}x`; }).join('\n');
+  const bal = (sp?.balances || []).map(b => `${b.coin}  total ${b.total}  hold ${b.hold}`).join('\n');
+  const aad = Object.keys(S.aad).map(k => `${k}  availableToTrade ${JSON.stringify(S.aad[k].availableToTrade)}`).join('\n');
+  return `marginSummary\n${f(a.marginSummary)}\n\ncrossMarginSummary\n${f(a.crossMarginSummary)}\n\nwithdrawable: ${a.withdrawable}\ncrossMaintenanceMarginUsed: ${a.crossMaintenanceMarginUsed}\n\n[positions]\n${pos}\n\n[spot]\n${bal}\n\n[activeAssetData]\n${aad}\n\n[計算] equity ${equity()}  acctFree ${acctFree()}  totalAssets ${totalAssets()}  unified ${acctParts().unified}`;
+}
+const rawBox = () => `<details style="margin-top:10px"><summary class="note">${_('取引所が返した生の数字（原因の調査用）')}</summary><pre style="white-space:pre-wrap;font-size:11px;line-height:1.5;user-select:all;margin:6px 0 0;max-height:240px;overflow:auto">${esc(rawDump())}</pre></details>`;
 function totalBreakdown(){
   const a = S.acct; if (!a){ toast(_('口座を読めていません')); return; }
   const x = acctParts(), tot = x.tot, upnl = x.upnl, unified = x.unified, so = spotOther();
   const rows = unified ? [[_('先物の口座の価値（証拠金＋含み損益）'), money(equity())]] : [[_('先物の口座の価値（証拠金＋含み損益）'), money(x.P)], [_('現物の USDC'), money(tot)]];
   rows.push([_('（参考）取引所が返す、先物の口座の価値'), money(x.P)], [_('（参考）現物の USDC（合計 / 取引中）'), `${money(tot)} / ${money(x.hold)}`], [_('（参考）含み損益'), moneyS(upnl)]);
   rows.push([_('現物のその他の通貨（評価額）'), money(so.v)], [_('総資産（上の合計）'), money(totalAssets())], [_('うち、使用中の証拠金'), money(+a.marginSummary.totalMarginUsed)], [_('うち、使える余力'), money(acctFree())]);
-  preview(_('総資産の内訳'), rows, `<p class="note" style="margin-top:8px">${_('総資産は、先物の口座（含み損益を含む）と、現物の全通貨を合わせた、あなたの資産ぜんぶです。「使える余力」は、その一部（新しい注文に使える分）なので、足し算はしません。使用中の証拠金と使える余力を合わせたものが、先物の口座の価値のおおよそです。')}</p>${so.skipped ? `<p class="note">${_('値段が取れない現物の通貨が {0} 種類あり、合計に入っていません。', so.skipped)}</p>` : ''}`, {info:true});
+  preview(_('総資産の内訳'), rows, `<p class="note" style="margin-top:8px">${_('総資産は、先物の口座（含み損益を含む）と、現物の全通貨を合わせた、あなたの資産ぜんぶです。「使える余力」は、その一部（新しい注文に使える分）なので、足し算はしません。使用中の証拠金と使える余力を合わせたものが、先物の口座の価値のおおよそです。')}</p>${so.skipped ? `<p class="note">${_('値段が取れない現物の通貨が {0} 種類あり、合計に入っていません。', so.skipped)}</p>` : ''}${rawBox()}`, {info:true});
 }
 $('kEqBox').onclick = totalBreakdown;
 // 「使える余力」を押したときの内訳（取引所の数字と、この画面の計算を並べて見せる）
@@ -4433,7 +4445,7 @@ function availBreakdown(){
   const usdc = S.spot?.balances?.find(b => b.token === 0);
   const rows = [[_('口座残高'), money(equity())], [_('使用中の証拠金（全ポジション）'), money(+a.marginSummary.totalMarginUsed)], [_('出金できる額（取引所の表示）'), money(+a.withdrawable)], [_('現物の USDC（合計 / 取引中）'), usdc ? `${money(+usdc.total)} / ${money(+usdc.hold)}` : '—'], [_('上の「使える余力」（口座全体）'), money(acctFree())]];
   Object.keys(S.aad).forEach(k => { const d = S.aad[k]; rows.push([_('取引所の数字：{0}（買い / 売り）', label(k)), `${money(+d.availableToTrade[0])} / ${money(+d.availableToTrade[1])}`]); });
-  preview(_('使える余力の内訳'), rows, `<p class="note" style="margin-top:8px">${_('上の「使える余力」は、口座全体で新しく建てられる額の目安です（クロスは全銘柄で共通）。取引所は、銘柄ごとに別の数字を返すことがあり、下に並べています。注文を送るときの最終的な判断は、取引所がします。')}</p>`, {info:true});
+  preview(_('使える余力の内訳'), rows, `<p class="note" style="margin-top:8px">${_('上の「使える余力」は、口座全体で新しく建てられる額の目安です（クロスは全銘柄で共通）。取引所は、銘柄ごとに別の数字を返すことがあり、下に並べています。注文を送るときの最終的な判断は、取引所がします。')}</p>${rawBox()}`, {info:true});
 }
 $('kAvBox').onclick = availBreakdown;
 function renderKpis(){

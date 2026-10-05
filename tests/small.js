@@ -91,6 +91,7 @@ const results = []; const ok = (c, m, d) => { results.push(!!c); console.log((c 
       const o = { ta: totalAssets(), eq: equity(), un: acctParts().unified }; S.acct = bk.a; S.spot = bk.s; return o; });
     ok(r3.un && Math.abs(r3.ta - 1234.2) < 1.5 && r3.ta < 1400, '先物の口座の価値と現物の USDC が同じお金のとき、総資産は二重に数えない（約 $1,234）', JSON.stringify(r3));
     await page.click('#kEqBox'); await page.waitForSelector('#modal', { state: 'visible' });
+    ok(await page.evaluate(() => /marginSummary/.test(document.querySelector('#modal details pre').textContent)), '内訳の下に、取引所が返した生の数字（調査用）が畳んで入っている');
     const t = await page.textContent('#modal'); ok(/総資産の内訳/.test(t) && /総資産（上の合計）/.test(t) && /使える余力/.test(t) && /足し算はしません/.test(t), '押すと、総資産の内訳と「余力は足さない」説明が出る', t.slice(0, 200));
     await ctx.close(); }
   // ?lang=__proto__ で壊れない
