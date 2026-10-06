@@ -256,6 +256,10 @@ body.helpPg #foot{padding-bottom:30px}
 #asks{justify-content:flex-end}
 
 /* 注文 */
+#tkBtn{border:1px solid var(--accent);background:none;color:var(--accent);border-radius:6px;padding:4px 10px;font-size:12px;font-weight:700}
+#ticket.shut .hd{background:var(--panel)}
+#ticket.shut #tkBtn{background:var(--accent);color:#1b1404}
+#ticket.shut .op{display:none}
 .op{padding:10px 12px;display:flex;flex-direction:column;gap:11px}
 .side{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--bg);border-radius:8px;padding:3px;border:1px solid var(--line)}
 .side button{border:none;border-radius:6px;padding:9px 4px;font-weight:700;background:none;color:var(--dim)}
@@ -478,8 +482,8 @@ td.ja{font-family:var(--sans)}
   </section>
 
   <section id="ticket">
-    <div class="hd"><b>注文</b><span id="tCoin"></span><button class="qh" type="button" data-help="g4" title="使い方を見る" style="margin-left:auto">?</button></div>
-    <div class="op">
+    <div class="hd"><b>注文</b><span id="tCoin"></span><button class="qh" type="button" data-help="g4" title="使い方を見る" style="margin-left:auto">?</button><button id="tkBtn" type="button" aria-expanded="true" aria-controls="tkOp"></button></div>
+    <div class="op" id="tkOp">
       <div id="posCard" hidden></div>
       <div class="side" id="side"><button data-v="1">ロング</button><button data-v="-1">ショート</button></div>
       <div class="seg" id="oType"></div>
@@ -507,7 +511,6 @@ td.ja{font-family:var(--sans)}
       <div id="tpslWrap" class="f">
         <label class="toggle"><input type="checkbox" id="tpslOn"> 利確と損切りも一緒に入れる</label>
         <div id="tpslBox" hidden><div class="seg pctMode" style="margin-bottom:8px"></div><div class="tpsl" id="tpslFields"></div></div>
-        </div>
       </div>
       <div class="calc" id="calc"></div>
       <div id="submitWrap"><button id="submit" class="L">ロング</button><div id="quick" style="display:none"><button id="qL" class="qk L"></button><button id="qS" class="qk S"></button></div></div>
@@ -1055,6 +1058,8 @@ ko: {
   "取り消す": "취소하기",
   "元に戻す": "원래대로",
   "広げる": "넓히기",
+  "注文を開く": "주문 열기",
+  "注文を閉じる": "주문 닫기",
   "今日": "오늘",
   "昨日": "어제",
   "7日": "7일",
@@ -1870,6 +1875,8 @@ en: {
   "取り消す": "Cancel order",
   "元に戻す": "Collapse",
   "広げる": "Expand",
+  "注文を開く": "Open order panel",
+  "注文を閉じる": "Close order panel",
   "今日": "Today",
   "昨日": "Yesterday",
   "7日": "7D",
@@ -4494,6 +4501,14 @@ $('aTbl').addEventListener('click', e => {
   posAction(t.dataset.act, k);
 });
 $('aTabs').onclick = e => { const b = e.target.closest('button'); if (!b) return; S.aTab = b.dataset.v; renderAcct(); if (HIST_TABS.includes(S.aTab) && Date.now() - H.at > 60000) loadHist(); };
+function renderTicketFold(){
+  const shut = $('ticket').classList.contains('shut');
+  $('tkBtn').textContent = shut ? '▶ ' + _('注文を開く') : '▼ ' + _('注文を閉じる');
+  $('tkBtn').setAttribute('aria-expanded', String(!shut));
+}
+function setTicketShut(v){ $('ticket').classList.toggle('shut', v); store.set('ticketShut', v); renderTicketFold(); }
+$('tkBtn').onclick = () => setTicketShut(!$('ticket').classList.contains('shut'));
+$('ticket').classList.toggle('shut', store.get('ticketShut', false) === true); renderTicketFold();
 $('bigBtn').onclick = () => { const big = document.querySelector('main').classList.toggle('big'); $('bigBtn').textContent = big ? _('元に戻す') : _('広げる'); };
 
 // ===== 履歴と集計 =====
@@ -4725,6 +4740,7 @@ function relocalize(){
   setConn(...lastConn); renderMode(); buildCoins(); buildOType(); setOType(S.otype); syncLev();
   $('fsBtn').textContent = $('chartBox').classList.contains('fs') ? _('戻る') : _('全画面');
   $('bigBtn').textContent = document.querySelector('main').classList.contains('big') ? _('元に戻す') : _('広げる');
+  renderTicketFold();
   $('drawBtn').textContent = drawBtnText();
   renderAcct(); renderAll(); MC.refreshCoins(); renderMarketViews(); renderFav(); renderDemoBar(); renderWallet(); if (S.page === 'help') GUIDE.render();
 }
