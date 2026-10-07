@@ -3727,8 +3727,8 @@ $('submit').onclick = () => {
   if (isPerp()) rows.push([_('レバレッジ'), _('{0}倍（{1}）', c.lev, S.margin === 'cross' ? _('クロス') : _('分離'))], [_('必要な証拠金'), money(c.margin)], [_('清算価格の目安'), '$' + fmtPx(k, c.liq)]);
   if (t.tp) rows.push([_('利確'), '$' + fmtPx(k, t.tp)]); if (t.sl) rows.push([_('損切り'), '$' + fmtPx(k, t.sl)]);
   if (avWarn) rows.push([_('注意'), avWarn]);
-  rows.push([BUILD.on() ? _('手数料の目安（取引所）') : _('手数料の目安'), money(c.fee, 3)]);
-  if (BUILD.on()){
+  rows.push([BUILD.active() ? _('手数料の目安（取引所）') : _('手数料の目安'), money(c.fee, 3)]);
+  if (BUILD.active()){
     const applies = isPerp() || S.side < 0;   // 現物の買いには、アプリの手数料はかかりません
     rows.push([_('アプリの手数料'), applies ? _('{0}%（約 {1}）', BUILD.rate(BUILDER.fee), money(c.ntl * BUILDER.fee / 100000, 3)) + (BUILD.ok() ? '' : ` <b class="bad">${_('承認がまだです')}</b>`) : _('なし（現物の買いは対象外）')]);
   }
@@ -4014,7 +4014,7 @@ const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で
 //   決済・取り消し・倍率変更は、承認がなくてもいつでもできます（ポジションから出られなくならないように）。
 // 利用規約の版。中身を変えたら数字を上げると、全員にもう一度同意してもらいます。operator / contact を入れると、規約に出ます
 const TERMS = {v:2, operator:'', contact:''};
-const BUILDER = {addr:'', fee:25, required:true};   // fee は 0.01% の10分の1の単位（25 = 0.025%）。addr が空のあいだは手数料なし
+const BUILDER = {addr:'0x4b1b3002ba8f679a56672dfb6521b18fbf56e9fa', fee:25, required:true};   // fee は 0.01% の10分の1の単位（25 = 0.025%）。addr が空のあいだは手数料なし
 // WalletConnect（QR で携帯のウォレットとつなぐ）。Reown のプロジェクト ID（公開されても問題ない識別子）。空にすると、ウォレットの選択画面に出なくなります
 const WC = {projectId:'e4abdb60f0f9bea9c07d9195c3094691', url:'https://esm.sh/@walletconnect/ethereum-provider@2.25.0'};
 // ===== ウォレット（MetaMask など）につなぐ部品。鍵は預からず、署名だけをもらう =====
@@ -4131,15 +4131,18 @@ const BUILD = (() => {
   const addr = () => ADDR.test(BUILDER.addr) ? BUILDER.addr.toLowerCase() : '';
   const on = () => !!addr() && Number.isInteger(BUILDER.fee) && BUILDER.fee > 0 && BUILDER.fee <= 100;
   const rate = f => +(f / 1000).toFixed(3);        // 1/10 bp → %（10 → 0.01）
+  // 受け取り口座そのもので取引するとき（運営者本人）は、手数料を付けず承認も求めない
+  const self = () => !!addr() && String(S.user || '').toLowerCase() === addr();
+  const active = () => on() && !self();
   let ok = false;                                   // いまの口座が、必要な額まで承認済みか
   async function refresh(){
-    ok = false; if (!on() || !ADDR.test(S.user)) return ok;
+    ok = false; if (!active() || !ADDR.test(S.user)) return ok;
     try { const r = await info({type:'maxBuilderFee', user:S.user, builder:addr()}); ok = +r >= BUILDER.fee; } catch {}
     return ok;
   }
   // 注文に付ける「手数料の宛先」。承認が確認できているときだけ付ける（未承認で付けると取引所に断られる）
-  const field = () => on() && ok ? {b:addr(), f:BUILDER.fee} : null;
-  const needsApproval = action => on() && BUILDER.required && !ok && action.type === 'order' && action.orders.some(o => !o.r);
+  const field = () => active() && ok ? {b:addr(), f:BUILDER.fee} : null;
+  const needsApproval = action => active() && BUILDER.required && !ok && action.type === 'order' && action.orders.some(o => !o.r);
   // ウォレット（MetaMask など）の署名で、手数料の上限を承認する。f = 0 なら取り消し。鍵や秘密は一切扱わない
   async function approve(f){
     const acct = await WALLET.connect();
@@ -4150,7 +4153,7 @@ const BUILD = (() => {
     await WALLET.post({type:'approveBuilderFee', hyperliquidChain:'Mainnet', signatureChainId:'0xa4b1', maxFeeRate, builder, nonce}, nonce, signature).catch(e => { throw new Error(_('承認できませんでした：') + jaErr(e.message)); });
     await refresh(); return true;
   }
-  return {on, addr, rate, refresh, field, needsApproval, approve, ok: () => ok};
+  return {on, active, addr, rate, refresh, field, needsApproval, approve, ok: () => ok};
 })();
 const HLX = {
   aid(k){ const a = M[k]?.aid; if (a == null) throw new Error(_('銘柄の番号がわかりません。ページを開き直してください')); return a; },
@@ -4337,7 +4340,7 @@ function openLiveSetup(){
     <div class="btns"><button id="lvTest">${_('つながりを確かめる（お金は動きません）')}</button></div>
     <p class="note">${_('最初に一度押してください。ポジションも注文もない銘柄の倍率を「いまと同じ値」に設定し直して、取引所が署名を受け付けるかだけを確かめます。')}</p>
     <div class="btns">${S.live ? `<button class="pri" id="lvOff">${_('練習モードに戻す')}</button>` : `<button class="red" id="lvOn" disabled>${_('本番にする')}</button>`}<button id="lvLock">${_('鍵を閉じる')}</button><button id="lvForget">${_('鍵を消す')}</button></div>`;
-  if (BUILD.on()) h += `<div style="border-top:1px solid var(--line);padding-top:10px"><p><b>${_('アプリの手数料')}</b></p>
+  if (BUILD.active()) h += `<div style="border-top:1px solid var(--line);padding-top:10px"><p><b>${_('アプリの手数料')}</b></p>
     <p class="note">${_('このアプリは、取引所の手数料とは別に、<b>約定した金額の {0}%</b>（現物は売りのときだけ）をアプリの運営に受け取ります。承認した上限を超えて請求されることはありません。承認はウォレットの署名で行い、<b>お金は動かず、秘密鍵も使いません</b>。いつでも取り消せます。受け取り口座：', BUILD.rate(BUILDER.fee))} <span class="num" style="word-break:break-all">${esc(BUILD.addr())}</span></p>
     <p id="bfStat" class="note">${_('承認の状態を確かめています…')}</p>
     <div class="btns"><button class="pri" id="bfOk">${_('手数料を承認する（ウォレットで署名）')}</button><button id="bfNo">${_('承認を取り消す')}</button></div></div>`;
