@@ -4014,7 +4014,7 @@ const SLIP = 0.02;   // 成行は「いまの値段から2%まで」の範囲で
 //   決済・取り消し・倍率変更は、承認がなくてもいつでもできます（ポジションから出られなくならないように）。
 // 利用規約の版。中身を変えたら数字を上げると、全員にもう一度同意してもらいます。operator / contact を入れると、規約に出ます
 const TERMS = {v:2, operator:'', contact:''};
-const BUILDER = {addr:'0x4b1b3002ba8f679a56672dfb6521b18fbf56e9fa', fee:25, required:true};   // fee は 0.01% の10分の1の単位（25 = 0.025%）。addr が空のあいだは手数料なし
+const BUILDER = {addr:'', fee:25, required:true};   // fee は 0.01% の10分の1の単位（25 = 0.025%）。addr が空のあいだは手数料なし
 // WalletConnect（QR で携帯のウォレットとつなぐ）。Reown のプロジェクト ID（公開されても問題ない識別子）。空にすると、ウォレットの選択画面に出なくなります
 const WC = {projectId:'e4abdb60f0f9bea9c07d9195c3094691', url:'https://esm.sh/@walletconnect/ethereum-provider@2.25.0'};
 // ===== ウォレット（MetaMask など）につなぐ部品。鍵は預からず、署名だけをもらう =====
